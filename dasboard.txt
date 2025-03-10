@@ -1,0 +1,30 @@
+What to Show on the Dashboard?
+Your supermarket dashboard should provide a quick, at-a-glance view of the store’s key metrics. Here are the essential components:
+
+1. Sales Overview
+Today's Total Sales (with comparison to the previous day/week)
+Top-Selling Products (today, weekly, monthly)
+Sales Trends (graph showing sales over time)
+Average Basket Value (how much customers spend per transaction)
+2. Inventory Summary 
+Total Stock Value (worth of all current stock)
+Low Stock Alerts (list of products running out)
+Expired/Expiring Products (if applicable)
+Fast-Moving & Slow-Moving Products
+3. Customer Insights
+Total Customers & New Customers (tracked via loyalty program or CRM)
+Most Frequent Buyers
+Customer Retention Rate (how many customers return)
+4. Financial Summary
+Revenue vs Expenses (profit/loss summary)
+Outstanding Supplier Payments
+Payroll Summary (if applicable)
+Tax & VAT Summary
+5. Employee Performance
+Top Salesperson of the Day/Week
+Employee Attendance & Shifts Summary
+6. Online & Delivery Orders (If applicable)
+Pending Orders
+Completed Orders
+Delivery Status Updates
+Would you like AI-based predictions (e.g., "Predicted Sales for Next Week") or a chatbot for quick insights?
