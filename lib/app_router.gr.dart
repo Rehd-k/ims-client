@@ -306,11 +306,11 @@ class PaymentReportsRoute extends _i16.PageRouteInfo<void> {
 class ProductDashboard extends _i16.PageRouteInfo<ProductDashboardArgs> {
   ProductDashboard({
     _i17.Key? key,
-    required Map<dynamic, dynamic> product,
+    String? productId,
     List<_i16.PageRouteInfo>? children,
   }) : super(
          ProductDashboard.name,
-         args: ProductDashboardArgs(key: key, product: product),
+         args: ProductDashboardArgs(key: key, productId: productId),
          initialChildren: children,
        );
 
@@ -319,22 +319,24 @@ class ProductDashboard extends _i16.PageRouteInfo<ProductDashboardArgs> {
   static _i16.PageInfo page = _i16.PageInfo(
     name,
     builder: (data) {
-      final args = data.argsAs<ProductDashboardArgs>();
-      return _i12.ProductDashboard(key: args.key, product: args.product);
+      final args = data.argsAs<ProductDashboardArgs>(
+        orElse: () => const ProductDashboardArgs(),
+      );
+      return _i12.ProductDashboard(key: args.key, productId: args.productId);
     },
   );
 }
 
 class ProductDashboardArgs {
-  const ProductDashboardArgs({this.key, required this.product});
+  const ProductDashboardArgs({this.key, this.productId});
 
   final _i17.Key? key;
 
-  final Map<dynamic, dynamic> product;
+  final String? productId;
 
   @override
   String toString() {
-    return 'ProductDashboardArgs{key: $key, product: $product}';
+    return 'ProductDashboardArgs{key: $key, productId: $productId}';
   }
 }
 

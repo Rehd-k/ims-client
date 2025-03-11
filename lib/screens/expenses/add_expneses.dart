@@ -4,53 +4,50 @@ import 'package:provider/provider.dart';
 import '../../helpers/providers/token_provider.dart';
 import '../../services/api.service.dart';
 
-class AddCustomer extends StatefulWidget {
-  final dynamic updateCustomer;
-  const AddCustomer({super.key, this.updateCustomer});
+class AddExpenses extends StatefulWidget {
+  final dynamic updateExpenses;
+  const AddExpenses({super.key, this.updateExpenses});
 
   @override
-  AddCustomerState createState() => AddCustomerState();
+  AddExpensesState createState() => AddExpensesState();
 }
 
-class AddCustomerState extends State<AddCustomer> {
+class AddExpensesState extends State<AddExpenses> {
   final apiService = ApiService();
   final _formKey = GlobalKey<FormState>();
 
-  final nameController = TextEditingController();
+  final categoryController = TextEditingController();
 
-  final contactController = TextEditingController();
+  final descriptionController = TextEditingController();
 
-  final emailController = TextEditingController();
+  final amountController = TextEditingController();
 
-  final phoneNumberController = TextEditingController();
+  final amountPaidController = TextEditingController();
 
-  final addressController = TextEditingController();
-
-  final initiatorController = TextEditingController();
+  final paidController = TextEditingController();
 
   @override
   void dispose() {
-    nameController.dispose();
-    emailController.dispose();
-    phoneNumberController.dispose();
-    addressController.dispose();
-    initiatorController.dispose();
+    categoryController.dispose();
+    descriptionController.dispose();
+    amountController.dispose();
+    amountPaidController.dispose();
     super.dispose();
   }
 
   Future<void> handleSubmit(BuildContext context) async {
     try {
-      final dynamic response = await apiService.postRequest('/customer', {
-        'name': nameController.text,
-        'email': emailController.text,
-        'phone_number': phoneNumberController.text,
-        'address': addressController.text,
-        'initiator': initiatorController.text
+      final dynamic response = await apiService.postRequest('/expense', {
+        'category': categoryController.text,
+        'description': descriptionController.text,
+        'amount': amountController.text,
+        'amountPaid': amountPaidController.text,
+        'paid': paidController.text,
       });
 
       if (response.statusCode! >= 200 && response.statusCode! <= 300) {
-        if (widget.updateCustomer != null) {
-          widget.updateCustomer!();
+        if (widget.updateExpenses != null) {
+          widget.updateExpenses!();
         }
       } else {}
       // ignore: empty_catches
@@ -72,9 +69,9 @@ class AddCustomerState extends State<AddCustomer> {
               child: Column(
                 children: <Widget>[
                   TextFormField(
-                    controller: nameController,
+                    controller: categoryController,
                     decoration: InputDecoration(
-                      labelText: 'Name *',
+                      labelText: 'Category *',
                       border: OutlineInputBorder(
                           borderRadius: BorderRadius.all(Radius.circular(5.0)),
                           borderSide: BorderSide(color: Colors.blue)),
@@ -83,17 +80,35 @@ class AddCustomerState extends State<AddCustomer> {
                     ),
                     validator: (value) {
                       if (value == null || value.isEmpty) {
-                        return 'Please enter a name';
+                        return 'Please enter a category';
                       }
                       return null;
                     },
                   ),
                   SizedBox(height: 10),
                   TextFormField(
-                      keyboardType: TextInputType.emailAddress,
-                      controller: emailController,
+                    controller: descriptionController,
+                    decoration: InputDecoration(
+                      labelText: 'Description *',
+                      border: OutlineInputBorder(
+                          borderRadius: BorderRadius.all(Radius.circular(5.0)),
+                          borderSide: BorderSide(color: Colors.blue)),
+                      labelStyle: TextStyle(
+                          color: Theme.of(context).hintColor, fontSize: 15),
+                    ),
+                    validator: (value) {
+                      if (value == null || value.isEmpty) {
+                        return 'Please enter a description';
+                      }
+                      return null;
+                    },
+                  ),
+                  SizedBox(height: 10),
+                  TextFormField(
+                      keyboardType: TextInputType.number,
+                      controller: amountController,
                       decoration: InputDecoration(
-                        labelText: 'Email',
+                        labelText: 'Amount *',
                         border: OutlineInputBorder(
                             borderRadius:
                                 BorderRadius.all(Radius.circular(5.0)),
@@ -103,23 +118,10 @@ class AddCustomerState extends State<AddCustomer> {
                       )),
                   SizedBox(height: 10),
                   TextFormField(
-                      keyboardType: TextInputType.phone,
-                      controller: phoneNumberController,
+                      keyboardType: TextInputType.number,
+                      controller: amountPaidController,
                       decoration: InputDecoration(
-                        labelText: 'Phone Number *',
-                        border: OutlineInputBorder(
-                            borderRadius:
-                                BorderRadius.all(Radius.circular(5.0)),
-                            borderSide: BorderSide(color: Colors.blue)),
-                        labelStyle: TextStyle(
-                            color: Theme.of(context).hintColor, fontSize: 15),
-                      )),
-                  SizedBox(height: 10),
-                  TextFormField(
-                      keyboardType: TextInputType.streetAddress,
-                      controller: addressController,
-                      decoration: InputDecoration(
-                        labelText: 'Address',
+                        labelText: 'Amount Paid *',
                         border: OutlineInputBorder(
                             borderRadius:
                                 BorderRadius.all(Radius.circular(5.0)),
@@ -130,8 +132,6 @@ class AddCustomerState extends State<AddCustomer> {
                   SizedBox(height: 10),
                   ElevatedButton(
                     onPressed: () {
-                      initiatorController.text =
-                          tokenNotifier.decodedToken?['username'];
                       handleSubmit(context);
                       if (_formKey.currentState!.validate()) {
                         // Process data

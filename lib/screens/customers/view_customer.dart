@@ -1,6 +1,7 @@
 import 'package:data_table_2/data_table_2.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:invease/helpers/financial_string_formart.dart';
 import 'package:modal_bottom_sheet/modal_bottom_sheet.dart';
 
 import '../../helpers/constants.dart';
@@ -28,8 +29,8 @@ class ViewCustomersState extends State<ViewCustomers> {
 
   void filterProducts(String query) {
     setState(() {
-      filteredCustomers = customers.where((supplier) {
-        return supplier.values.any((value) =>
+      filteredCustomers = customers.where((customer) {
+        return customer.values.any((value) =>
             value.toString().toLowerCase().contains(query.toLowerCase()));
       }).toList();
     });
@@ -40,7 +41,7 @@ class ViewCustomersState extends State<ViewCustomers> {
       isLoading = true;
     });
     var dbcustomers = await apiService.getRequest(
-      '${baseUrl}supplier?skip=${customers.length}',
+      '${baseUrl}customer?skip=${customers.length}',
     );
     setState(() {
       customers.addAll(dbcustomers.data);
@@ -50,7 +51,7 @@ class ViewCustomersState extends State<ViewCustomers> {
   }
 
   Future getCustomersList() async {
-    var dbcustomers = await apiService.getRequest('${baseUrl}supplier');
+    var dbcustomers = await apiService.getRequest('${baseUrl}customer');
     setState(() {
       customers = dbcustomers.data;
       filteredCustomers = List.from(customers);
@@ -162,7 +163,7 @@ class ViewCustomersState extends State<ViewCustomers> {
               DataColumn2(label: Text("Email"), size: ColumnSize.L),
               DataColumn2(label: Text("Phone Number")),
               DataColumn2(label: Text("Address"), size: ColumnSize.L),
-              DataColumn2(label: Text("No. of Orders")),
+              DataColumn2(label: Text("Amount Spent")),
               DataColumn2(label: Text("initiator")),
               DataColumn2(
                 label: Text('Added On'),
@@ -223,21 +224,27 @@ class CustomersDataSource extends DataTableSource {
   @override
   DataRow? getRow(int index) {
     if (index >= customers.length) return null;
-    final supplier = customers[index];
+    final customer = customers[index];
     return DataRow(
       cells: [
-        DataCell(Text(supplier['name'])),
-        DataCell(Text(supplier['email'])),
-        DataCell(Text(supplier['phone_number'])),
-        DataCell(Text(supplier['address'])),
-        DataCell(Text(supplier['orders'].length.toString())),
-        DataCell(Text(supplier['initiator'])),
-        DataCell(Text(formatDate(supplier['createdAt']))),
-        DataCell(Column(
+        DataCell(Text(customer['name'])),
+        DataCell(Text(customer['email'])),
+        DataCell(Text(customer['phone_number'])),
+        DataCell(Text(customer['address'])),
+        DataCell(Text(customer['total_spent']
+            .toString()
+            .formatToFinancial(isMoneySymbol: true))),
+        DataCell(Text(customer['initiator'])),
+        DataCell(Text(formatDate(customer['createdAt']))),
+        DataCell(Row(
           mainAxisAlignment: MainAxisAlignment.spaceAround,
           children: [
-            // OutlinedButton(onPressed: () {}, child: Text('Update'))
-            // OutlinedButton(onPressed: () {}, child: Text('Delete'))
+            IconButton.outlined(
+                tooltip: 'Update', onPressed: () {}, icon: Icon(Icons.edit)),
+            IconButton.outlined(
+                onPressed: () {},
+                icon: Icon(Icons.delete_forever_outlined),
+                tooltip: 'Delete'),
           ],
         ))
       ],

@@ -5,6 +5,7 @@ import 'package:invease/helpers/financial_string_formart.dart';
 
 import '../../helpers/constants.dart';
 import '../../services/api.service.dart';
+import '../customers/add_customer.dart';
 
 @RoutePage()
 class CheckoutScreen extends StatefulWidget {
@@ -25,6 +26,9 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
   final TextEditingController transferController = TextEditingController();
   final TextEditingController cardController = TextEditingController();
   final TextEditingController discountController = TextEditingController();
+  final TextEditingController nameController = TextEditingController();
+
+  Map? selectedName;
   double amountPaid = 0;
   double balance = 0;
   double discount = 0;
@@ -42,6 +46,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
     transferController.dispose();
     cardController.dispose();
     discountController.dispose();
+    nameController.dispose();
     super.dispose();
   }
 
@@ -100,7 +105,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
       'products': widget.cart,
       'accountName': banks.firstWhere((res) => res["id"] == accountNumber,
           orElse: () => {"name": ""})["name"],
-      // 'handler':
+      'customer': selectedName?['_id']
     };
 
     // Capture the context before the async gap
@@ -122,6 +127,107 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
 
     // Use captured router
     router.back();
+  }
+
+  Future<List<Map>> _fetchNames(String query) async {
+    final response = await apiService.getRequest(
+        '${baseUrl}customer?filter={"nameOrPhonenumber": "${nameController.text}"}');
+    if (response.statusCode == 200) {
+      return List<Map>.from(response.data);
+    } else {
+      throw Exception('Failed to load names');
+    }
+  }
+
+  void _showAddCustomerBottomSheet() {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      builder: (BuildContext context) {
+        return AddCustomer(
+          updateCustomer: _fetchNames,
+        );
+      },
+    );
+  }
+
+  Widget _buildNameInput() {
+    return selectedName == null
+        ? Column(
+            children: [
+              Row(
+                children: [
+                  Expanded(
+                    flex: 5,
+                    child: TextFormField(
+                      controller: nameController,
+                      decoration: InputDecoration(
+                        labelText: 'Name',
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                      ),
+                      onChanged: (value) {
+                        setState(() {});
+                      },
+                    ),
+                  ),
+                  Expanded(
+                      flex: 1,
+                      child: IconButton(
+                          tooltip: 'Add new Customer',
+                          onPressed: _showAddCustomerBottomSheet,
+                          icon: Icon(Icons.person_add_alt_1_outlined)))
+                ],
+              ),
+              if (nameController.text.isNotEmpty)
+                FutureBuilder<List<Map>>(
+                  future: _fetchNames(nameController.text),
+                  builder: (context, snapshot) {
+                    if (snapshot.connectionState == ConnectionState.waiting) {
+                      return CircularProgressIndicator();
+                    } else if (snapshot.hasError) {
+                      return Padding(
+                          padding: const EdgeInsets.only(top: 8.0),
+                          child: Text('Error: ${snapshot.error}'));
+                    } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
+                      return Padding(
+                        padding: const EdgeInsets.only(top: 8.0),
+                        child: Text('No suggestions'),
+                      );
+                    } else {
+                      return ListView(
+                        shrinkWrap: true,
+                        children: snapshot.data!.map((suggestion) {
+                          return ListTile(
+                            title: Text(suggestion['name']),
+                            subtitle: Text(suggestion['phone_number']),
+                            trailing: Text(suggestion['total_spent']
+                                .toString()
+                                .formatToFinancial(isMoneySymbol: true)),
+                            onTap: () {
+                              setState(() {
+                                selectedName = suggestion;
+                                nameController.clear();
+                              });
+                            },
+                          );
+                        }).toList(),
+                      );
+                    }
+                  },
+                ),
+            ],
+          )
+        : Chip(
+            label: Text(selectedName?['name']),
+            deleteIcon: Icon(Icons.close),
+            onDeleted: () {
+              setState(() {
+                selectedName = null;
+              });
+            },
+          );
   }
 
   Widget _buildPaymentInput(String label, TextEditingController controller) {
@@ -157,35 +263,41 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
           if (label == 'Transfer') ...[
             SizedBox(width: 10),
             Expanded(
-              child: Column(
+              child: Row(
                 children: [
-                  DropdownButtonFormField<String>(
-                    value: accountNumber,
-                    decoration: InputDecoration(
-                      labelText: 'Select Bank',
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(10),
+                  Expanded(
+                    flex: 10,
+                    child: DropdownButtonFormField<String>(
+                      value: accountNumber,
+                      decoration: InputDecoration(
+                        labelText: 'Select Bank',
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(10),
+                        ),
                       ),
+                      items: [
+                        ...banks.map((bank) => DropdownMenuItem(
+                              value: bank['id'],
+                              child: Text(bank['name']!),
+                            )),
+                      ],
+                      onChanged: (value) {
+                        setState(() {
+                          accountNumber = value;
+                        });
+                      },
                     ),
-                    items: [
-                      ...banks.map((bank) => DropdownMenuItem(
-                            value: bank['id'],
-                            child: Text(bank['name']!),
-                          )),
-                    ],
-                    onChanged: (value) {
-                      setState(() {
-                        accountNumber = value;
-                      });
-                    },
                   ),
                   SizedBox(height: 5),
-                  TextButton(
-                    onPressed: () {
-                      // Add navigation to bank management screen
-                    },
-                    child: Text('+ Add New Bank'),
-                  ),
+                  Expanded(
+                    flex: 1,
+                    child: IconButton(
+                      onPressed: () {
+                        // Add navigation to bank management screen
+                      },
+                      icon: Icon(Icons.add_business_outlined),
+                    ),
+                  )
                 ],
               ),
             ),
@@ -367,13 +479,26 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
             SizedBox(height: 20),
             if (selectedPaymentMethod == 'cash' ||
                 selectedPaymentMethod == 'mixed')
-              _buildPaymentInput('Cash', cashController),
+              Column(
+                children: [
+                  _buildPaymentInput('Cash', cashController),
+                ],
+              ),
             if (selectedPaymentMethod == 'transfer' ||
                 selectedPaymentMethod == 'mixed')
-              _buildPaymentInput('Transfer', transferController),
+              Column(
+                children: [
+                  _buildPaymentInput('Transfer', transferController),
+                ],
+              ),
             if (selectedPaymentMethod == 'card' ||
                 selectedPaymentMethod == 'mixed')
-              _buildPaymentInput('Card', cardController),
+              Column(
+                children: [
+                  _buildPaymentInput('Card', cardController),
+                ],
+              ),
+            _buildNameInput(),
           ],
         ),
       ),

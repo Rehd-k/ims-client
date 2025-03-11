@@ -9,12 +9,13 @@ import '../../../components/charts/range.dart';
 import '../../../components/info_card.dart';
 import '../../../components/tables/purchases/purchases_table.dart';
 import 'add_order.dart';
+import 'header.dart';
 
 @RoutePage()
 class ProductDashboard extends StatefulWidget {
-  final Map product;
+  final String? productId;
 
-  const ProductDashboard({super.key, required this.product});
+  const ProductDashboard({super.key, this.productId});
 
   @override
   ProductDashboardState createState() => ProductDashboardState();
@@ -22,7 +23,7 @@ class ProductDashboard extends StatefulWidget {
 
 class ProductDashboardState extends State<ProductDashboard> {
   ApiService apiService = ApiService();
-  late Map product;
+  late String productId;
   late Map data;
   bool loading = true;
   bool loadingTable = true;
@@ -33,10 +34,27 @@ class ProductDashboardState extends State<ProductDashboard> {
   bool allowMultipleSelection = true;
   dynamic returnedSelection;
   String selectedRange = 'Today';
+  bool showDetails = false;
+
+  String? searchFeild = 'createdAt';
+  String? selectedStatus = '';
+  String? selectedSupplier = '';
+  List<Map> suppliers = [];
+  Set supplierSet = <String>{};
+  dynamic totalSales = 0;
+
+  // Function(String?) onFieldChange;
+  // Function(String?) onSupplierChange;
+  // Function(String?) onSelectStatus;
 
   @override
   void initState() {
-    product = widget.product;
+    if (widget.productId != null) {
+      productId = widget.productId!;
+    } else {
+      productId = '6790e2c0541e66e2d3a41b7c';
+    }
+
     getChartData('Today');
     getPurchases();
     getDashboardData();
@@ -45,8 +63,8 @@ class ProductDashboardState extends State<ProductDashboard> {
   }
 
   Future getDashboardData() async {
-    final response = await apiService
-        .getRequest('products/dashboard/${product['productId']}');
+    final response =
+        await apiService.getRequest('products/dashboard/$productId');
     setState(() {
       data = response.data;
       loading = false;
@@ -54,10 +72,37 @@ class ProductDashboardState extends State<ProductDashboard> {
   }
 
   Future getPurchases() async {
-    final response = await apiService.getRequest(
-        'purchases?filter={"productId":"${product['productId']}"}&sort={"createdAt":-1}&startDate=2024-01-01&endDate=2025-12-31');
     setState(() {
-      purchases = response.data;
+      loading = true;
+      loadingTable = true;
+      supplierSet = {};
+      suppliers = [];
+    });
+    final response = await apiService.getRequest(
+        // "productId":"$productId", "$searchFeild" : "",
+
+        'purchases?filter={"supplier":"$selectedSupplier", "status" : {"\$regex" : "${selectedStatus?.toLowerCase()}"}}&sort={"$searchFeild":-1}&startDate=$_fromDate&endDate=$_toDate');
+
+    setState(() {
+      totalSales = 0;
+      response.data.forEach((element) {
+        var total =
+            element['sold'].fold(0, (sum, item) => sum + (item["amount"] ?? 0));
+        totalSales += total;
+      });
+
+      for (var purchase in purchases) {
+        final supplier = purchase['supplier'];
+        if (!supplierSet.contains(supplier['_id'])) {
+          supplierSet.add(supplier['_id']);
+          suppliers.add({'_id': supplier['_id'], 'name': supplier['name']});
+        }
+      }
+      if (!supplierSet.contains("")) {
+        suppliers.insert(0, {'_id': '', 'name': 'All Suppliers'});
+      }
+
+      loading = false;
       loadingTable = false;
     });
   }
@@ -68,7 +113,7 @@ class ProductDashboardState extends State<ProductDashboard> {
       rangeInfo = range;
     });
     final response = await apiService.getRequest(
-        'sales/getchart/${product['productId']}?filter={"sorter":"$dateRange"}&startDate=${range.startDate}&endDate=${range.endDate}');
+        'sales/getchart/$productId?filter={"sorter":"$dateRange"}&startDate=${range.startDate}&endDate=${range.endDate}');
     print(response);
     // setState(() {
     //   purchases = response.data;
@@ -80,6 +125,23 @@ class ProductDashboardState extends State<ProductDashboard> {
     setState(() {
       returnedSelection = selected;
     });
+  }
+
+  handleRangeChange(String select, DateTime picked) async {
+    setState(() {
+      loadingTable = true;
+    });
+    if (select == 'from') {
+      setState(() {
+        _fromDate = picked;
+      });
+    } else if (select == 'to') {
+      setState(() {
+        _toDate = picked;
+      });
+    }
+
+    await getPurchases();
   }
 
   handleRangeChanged(String rangeLabel) {
@@ -101,8 +163,20 @@ class ProductDashboardState extends State<ProductDashboard> {
             },
             icon: Icon(Icons.arrow_back_ios_new_outlined),
           ),
-          title: Text('${widget.product['title']} Dashboard'),
+          // title: Text('${widget.product?['title']} Dashboard'),
+          title: Text(' Dashboard'),
           actions: [
+            IconButton(
+                onPressed: () {
+                  setState(() {
+                    showDetails = !showDetails;
+                  });
+                },
+                icon: AnimatedRotation(
+                  turns: showDetails ? 0.5 : 0.0,
+                  duration: Duration(milliseconds: 300),
+                  child: Icon(Icons.keyboard_arrow_down),
+                )),
             IconButton(
               onPressed: () {},
               icon: Icon(Icons.settings),
@@ -117,8 +191,7 @@ class ProductDashboardState extends State<ProductDashboard> {
                       expand: true,
                       context: context,
                       backgroundColor: Colors.transparent,
-                      builder: (context) =>
-                          AddOrder(productId: product['productId']),
+                      builder: (context) => AddOrder(productId: productId),
                     ),
                 child: Icon(Icons.add_outlined)),
         body: Padding(
@@ -128,6 +201,43 @@ class ProductDashboardState extends State<ProductDashboard> {
                   mainAxisSize: MainAxisSize.min,
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
+                AnimatedContainer(
+                  width: double.infinity,
+                  duration: Duration(milliseconds: 1000),
+                  curve: Curves.easeInOut,
+                  height: showDetails ? 200 : 0,
+                  child: Column(
+                    children: [
+                      ProductHeader(
+                        selectedField: searchFeild,
+                        dateRangeHolder: dateRangeHolder,
+                        selectedSupplier: selectedSupplier,
+                        selectedStatus: selectedStatus,
+                        onFieldChange: (value) {
+                          setState(() {
+                            searchFeild = value;
+                          });
+                        },
+                        onSupplierChange: (value) {
+                          setState(() {
+                            selectedSupplier = value;
+                          });
+                          getPurchases();
+                        },
+                        onSelectStatus: (value) {
+                          setState(() {
+                            selectedStatus = value;
+                          });
+                          getPurchases();
+                        },
+                        suppliers: suppliers,
+                      ),
+                    ],
+                  ),
+                ),
+                SizedBox(
+                  height: 10,
+                ),
                 SizedBox(
                     width: double.infinity,
                     height: isBigScreen ? 450 : 900,
@@ -290,9 +400,8 @@ class ProductDashboardState extends State<ProductDashboard> {
                                             expand: true,
                                             context: context,
                                             backgroundColor: Colors.transparent,
-                                            builder: (context) => AddOrder(
-                                                productId: widget
-                                                    .product['productId']),
+                                            builder: (context) =>
+                                                AddOrder(productId: productId),
                                           ),
                                       child: Text('Add Order'))
                                   : SizedBox(),
@@ -409,6 +518,90 @@ class ProductDashboardState extends State<ProductDashboard> {
         ));
   }
 
+  Container dateRangeHolder(BuildContext context, isBigScreen) {
+    return Container(
+      padding: EdgeInsets.all(8),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(10),
+        color: Theme.of(context).colorScheme.surface,
+      ),
+      child: Row(
+        children: [
+          Row(
+            children: [
+              isBigScreen ? Text('From :') : SizedBox.shrink(),
+              IconButton(
+                icon: Icon(Icons.calendar_today),
+                tooltip: 'From date',
+                onPressed: () async {
+                  final DateTime? picked = await showDatePicker(
+                    context: context,
+                    initialDate: _fromDate ?? DateTime.now(),
+                    firstDate: DateTime(2000),
+                    lastDate: _toDate ?? DateTime.now(),
+                  );
+                  if (picked != null) {
+                    handleRangeChange('from', picked);
+                  }
+                },
+              ),
+              Text(
+                _fromDate != null
+                    ? "${_fromDate!.toLocal()}".split(' ')[0]
+                    : "From",
+              ),
+            ],
+          ),
+          SizedBox(width: 16),
+          Row(
+            children: [
+              isBigScreen ? Text('To :') : SizedBox.shrink(),
+              IconButton(
+                icon: Icon(Icons.calendar_today),
+                tooltip: 'To date',
+                onPressed: () async {
+                  final DateTime? picked = await showDatePicker(
+                    context: context,
+                    initialDate: _toDate ?? DateTime.now(),
+                    firstDate: _fromDate ?? DateTime(2000),
+                    lastDate: DateTime.now(),
+                  );
+                  if (picked != null) {
+                    handleRangeChange('to', picked);
+                  }
+                },
+              ),
+              Text(
+                _toDate != null ? "${_toDate!.toLocal()}".split(' ')[0] : "To",
+              ),
+            ],
+          ),
+          Spacer(),
+          isBigScreen
+              ? OutlinedButton(
+                  onPressed: () {
+                    setState(() {
+                      _fromDate = DateTime.now();
+                      _toDate = DateTime.now();
+                      // getSales();
+                    });
+                  },
+                  child: Text('Reset'),
+                )
+              : IconButton(
+                  onPressed: () {
+                    setState(() {
+                      _fromDate = DateTime.now();
+                      _toDate = DateTime.now();
+                      // getSales();
+                    });
+                  },
+                  icon: Icon(Icons.cancel_outlined)),
+        ],
+      ),
+    );
+  }
+
   GridView cardsInfo(bool isBigScreen, Map data) {
     return GridView.count(
       physics: ScrollPhysics(parent: NeverScrollableScrollPhysics()),
@@ -422,7 +615,7 @@ class ProductDashboardState extends State<ProductDashboard> {
           title: 'Total Sales',
           icon: Icons.payments_outlined,
           currency: false,
-          value: '3000000000'.toString(),
+          value: totalSales.toString(),
           fontSize: isBigScreen ? 20 : 10,
           color: Theme.of(context).colorScheme.surface,
         ),

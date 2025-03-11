@@ -52,6 +52,7 @@ dependencies:
   infinite_scroll_pagination: ^5.0.0
   flutter_window_close: ^1.2.0
   google_fonts: ^6.2.1
+  flutter_typeahead: ^5.2.0
 
 dev_dependencies:
   flutter_test:

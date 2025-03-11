@@ -113,10 +113,8 @@ class DessertDataSourceAsync extends AsyncDataTableSource {
           ),
           onLongPress: () {
             longPress
-                ? context.router.push(ProductDashboard(product: {
-                    'productId': purchase['_id'],
-                    'title': purchase['title']
-                  }))
+                ? context.router
+                    .push(ProductDashboard(productId: purchase['_id']))
                 : null;
           },
           key: ValueKey<int>(index),
