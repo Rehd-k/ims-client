@@ -8,7 +8,8 @@ class ProductHeader extends StatelessWidget {
   final Function(String?) onSupplierChange;
   final Function(String?) onSelectStatus;
   final List suppliers;
-  final Container Function(BuildContext, bool) dateRangeHolder;
+  final Container Function(BuildContext context, bool isBigScreen)
+      dateRangeHolder;
 
   const ProductHeader({
     super.key,

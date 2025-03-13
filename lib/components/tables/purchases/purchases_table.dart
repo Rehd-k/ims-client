@@ -64,7 +64,7 @@ class MainTableState extends State<MainTable> {
                 handleSelection: _onRowSelectionChanged,
                 context: context,
                 longPress: widget.longPress,
-              );
+                actions: widget.actions);
   }
 
   void sort(
@@ -102,7 +102,7 @@ class MainTableState extends State<MainTable> {
 
   void _onRowSelectionChanged() {
     final selectedRows = _dessertsDataSource!.getSelectedRows();
-
+    print(selectedRows);
     widget.returnSelection(selectedRows);
   }
 
@@ -121,9 +121,6 @@ class MainTableState extends State<MainTable> {
               showCheckboxColumn: widget.showCheckboxColumn,
               columnSpacing: 0,
               wrapInCard: true,
-              actions: [
-                ...?widget.actions,
-              ],
               onPageChanged: (value) {},
               header: Text(
                 '${widget.title} ${widget.data.length}',
@@ -153,8 +150,11 @@ class MainTableState extends State<MainTable> {
               columns: _columns,
               empty: Center(
                 child: Container(
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(5),
+                    color: Theme.of(context).colorScheme.surfaceBright,
+                  ),
                   padding: const EdgeInsets.all(20),
-                  color: Colors.grey[200],
                   child: const Text('No data'),
                 ),
               ),
@@ -166,7 +166,8 @@ class MainTableState extends State<MainTable> {
               source: _dessertsDataSource!,
             ),
           ),
-          widget.range
+          Padding(
+              padding: EdgeInsets.symmetric(horizontal: 5), child: widget.range)
         ],
       ),
     );

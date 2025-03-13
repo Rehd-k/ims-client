@@ -8,8 +8,10 @@ import '../../../components/charts/line_chart.dart';
 import '../../../components/charts/range.dart';
 import '../../../components/info_card.dart';
 import '../../../components/tables/purchases/purchases_table.dart';
+import '../../../globals/dialog.dart';
 import 'add_order.dart';
 import 'header.dart';
+import 'helpers/damaged_goods.dart';
 
 @RoutePage()
 class ProductDashboard extends StatefulWidget {
@@ -28,11 +30,11 @@ class ProductDashboardState extends State<ProductDashboard> {
   bool loading = true;
   bool loadingTable = true;
   late List purchases;
-  DateTime? _fromDate = DateTime.now();
+  DateTime? _fromDate = DateTime(2010, 1, 1);
   DateTime? _toDate = DateTime.now();
   dynamic rangeInfo;
   bool allowMultipleSelection = true;
-  dynamic returnedSelection;
+  List returnedSelection = [];
   String selectedRange = 'Today';
   bool showDetails = false;
 
@@ -79,12 +81,11 @@ class ProductDashboardState extends State<ProductDashboard> {
       suppliers = [];
     });
     final response = await apiService.getRequest(
-        // "productId":"$productId", "$searchFeild" : "",
-
-        'purchases?filter={"supplier":"$selectedSupplier", "status" : {"\$regex" : "${selectedStatus?.toLowerCase()}"}}&sort={"$searchFeild":-1}&startDate=$_fromDate&endDate=$_toDate');
+        'purchases?filter={"productId":"$productId", "$searchFeild" : "","supplier":"$selectedSupplier", "status" : {"\$regex" : "${selectedStatus?.toLowerCase()}"}}&sort={"$searchFeild":-1}&startDate=$_fromDate&endDate=$_toDate');
 
     setState(() {
       totalSales = 0;
+      purchases = response.data;
       response.data.forEach((element) {
         var total =
             element['sold'].fold(0, (sum, item) => sum + (item["amount"] ?? 0));
@@ -98,6 +99,7 @@ class ProductDashboardState extends State<ProductDashboard> {
           suppliers.add({'_id': supplier['_id'], 'name': supplier['name']});
         }
       }
+
       if (!supplierSet.contains("")) {
         suppliers.insert(0, {'_id': '', 'name': 'All Suppliers'});
       }
@@ -119,6 +121,13 @@ class ProductDashboardState extends State<ProductDashboard> {
     //   purchases = response.data;
     //   loadingTable = false;
     // });
+  }
+
+  handleDamagedGoods(Map<String, dynamic> data) async {
+    final info = {'productId': productId, 'damagedGoods': data};
+    await apiService.putRequest(
+        'purchases/update/${returnedSelection[0]['_id']}', info);
+    await getPurchases();
   }
 
   handleSelection(dynamic selected) {
@@ -178,8 +187,19 @@ class ProductDashboardState extends State<ProductDashboard> {
                   child: Icon(Icons.keyboard_arrow_down),
                 )),
             IconButton(
-              onPressed: () {},
-              icon: Icon(Icons.settings),
+                tooltip: 'Add Order',
+                onPressed: () => showBarModalBottomSheet(
+                      expand: true,
+                      context: context,
+                      backgroundColor: Colors.transparent,
+                      builder: (context) => AddOrder(productId: productId),
+                    ),
+                icon: Icon(Icons.add_box_outlined)),
+            IconButton(
+              onPressed: () {
+                openBox(context);
+              },
+              icon: Icon(Icons.delete_outline),
             )
           ],
         ),
@@ -306,6 +326,12 @@ class ProductDashboardState extends State<ProductDashboard> {
                                 'field': 'quantity'
                               },
                               {
+                                'name': 'Sold',
+                                'sortable': true,
+                                'type': 'sold',
+                                'field': 'sold'
+                              },
+                              {
                                 'name': 'Price',
                                 'sortable': true,
                                 'type': 'money',
@@ -382,6 +408,12 @@ class ProductDashboardState extends State<ProductDashboard> {
                                 'sortable': true,
                                 'type': 'date',
                                 'field': 'createdAt'
+                              },
+                              {
+                                'name': 'Actions',
+                                'sortable': false,
+                                'type': 'actions',
+                                'field': 'Actions'
                               }
                             ],
                             sortableColumns: {
@@ -394,46 +426,34 @@ class ProductDashboardState extends State<ProductDashboard> {
                               6: 'createdAt'
                             },
                             actions: [
-                              isBigScreen
-                                  ? FilledButton(
-                                      onPressed: () => showBarModalBottomSheet(
-                                            expand: true,
-                                            context: context,
-                                            backgroundColor: Colors.transparent,
-                                            builder: (context) =>
-                                                AddOrder(productId: productId),
-                                          ),
-                                      child: Text('Add Order'))
-                                  : SizedBox(),
-                              PopupMenuButton(
-                                  icon: Icon(Icons.filter_alt_outlined),
-                                  tooltip: 'filter',
-                                  itemBuilder: (BuildContext _) {
-                                    return const [
-                                      PopupMenuItem(
-                                        value: '/hello',
-                                        child: Text("Hello"),
-                                      ),
-                                      PopupMenuItem(
-                                        value: '/about',
-                                        child: Text("About"),
-                                      ),
-                                      PopupMenuItem(
-                                        value: '/contact',
-                                        child: Text("Contact"),
-                                      )
-                                    ];
-                                  }),
+                              IconButton(
+                                  onPressed: () {
+                                    print(returnedSelection[0]['sold']);
+                                    if (returnedSelection.isEmpty) {
+                                      doAlerts('Please select an item first');
+                                    } else if (returnedSelection[0]
+                                            ['quantity'] ==
+                                        getSold(returnedSelection[0]['sold'])) {
+                                      doAlerts('This batch have been sold out');
+                                    } else {
+                                      showDamagedGoodsForm(
+                                          context,
+                                          handleDamagedGoods,
+                                          (returnedSelection[0]['quantity'] -
+                                              getSold(returnedSelection[0]
+                                                  ['sold'])));
+                                    }
+                                  },
+                                  icon: Icon(Icons.delete))
                             ],
                             title: '',
                             range: Container(
-                              padding: EdgeInsets.symmetric(horizontal: 16),
+                              padding: EdgeInsets.symmetric(horizontal: 20),
                               decoration: BoxDecoration(
-                                color: Colors.grey[100],
-                                border: Border(
-                                  bottom: BorderSide(color: Colors.grey[300]!),
-                                ),
-                              ),
+                                  color: Theme.of(context)
+                                      .colorScheme
+                                      .surfaceBright,
+                                  borderRadius: BorderRadius.circular(5)),
                               child: Row(
                                 children: [
                                   Row(
@@ -516,6 +536,23 @@ class ProductDashboardState extends State<ProductDashboard> {
                           ))
               ])),
         ));
+  }
+
+  num getSold(List sold) {
+    return sold.fold(0, (sum, item) => sum + (item["amount"] ?? 0));
+  }
+
+  doAlerts(String message) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        backgroundColor: Theme.of(context).colorScheme.surfaceBright,
+        padding: EdgeInsets.all(16),
+        content: Text(
+          message,
+          style: Theme.of(context).textTheme.bodyLarge,
+        ),
+      ),
+    );
   }
 
   Container dateRangeHolder(BuildContext context, isBigScreen) {
@@ -620,7 +657,7 @@ class ProductDashboardState extends State<ProductDashboard> {
           color: Theme.of(context).colorScheme.surface,
         ),
         InfoCard(
-            title: 'Total Purchases',
+            title: 'Total Orders',
             icon: Icons.payments_outlined,
             currency: false,
             value: data['total_purchases'].toString(),
@@ -643,8 +680,9 @@ class ProductDashboardState extends State<ProductDashboard> {
         InfoCard(
             title: 'Profit Margin',
             icon: Icons.payments_outlined,
-            currency: false,
-            value: data['profits'].toString(),
+            currency: true,
+            value:
+                data['profits'] < 0 ? 0.toString() : data['profits'].toString(),
             fontSize: isBigScreen ? 20 : 10,
             color: Theme.of(context).colorScheme.surface),
         InfoCard(
@@ -681,16 +719,21 @@ class ProductCategoryChart extends StatelessWidget {
     return Card(
       elevation: 3,
       color: Theme.of(context).colorScheme.surface,
-      child: BarChart(
-        BarChartData(
-          barGroups: [
-            BarChartGroupData(
-                x: 1, barRods: [BarChartRodData(color: Colors.green, toY: 30)]),
-            BarChartGroupData(
-                x: 2, barRods: [BarChartRodData(toY: 20, color: Colors.red)]),
-            BarChartGroupData(
-                x: 3, barRods: [BarChartRodData(toY: 40, color: Colors.blue)]),
-          ],
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 8.0),
+        child: BarChart(
+          BarChartData(
+            barGroups: [
+              BarChartGroupData(
+                  x: 1,
+                  barRods: [BarChartRodData(color: Colors.green, toY: 30)]),
+              BarChartGroupData(
+                  x: 2, barRods: [BarChartRodData(toY: 20, color: Colors.red)]),
+              BarChartGroupData(
+                  x: 3,
+                  barRods: [BarChartRodData(toY: 40, color: Colors.blue)]),
+            ],
+          ),
         ),
       ),
     );

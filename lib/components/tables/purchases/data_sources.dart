@@ -15,7 +15,8 @@ class DessertDataSourceAsync extends AsyncDataTableSource {
       required this.allowMultipleSelection,
       required this.handleSelection,
       required this.context,
-      required this.longPress});
+      required this.longPress,
+      this.actions});
 
   DessertDataSourceAsync.empty(this.allowMultipleSelection,
       this.handleSelection, this.context, this.longPress) {
@@ -36,6 +37,7 @@ class DessertDataSourceAsync extends AsyncDataTableSource {
   final Function handleSelection;
   final BuildContext context;
   final bool longPress;
+  List? actions;
 
   void sort(String columnName, bool ascending) {
     log('$columnName, $ascending');
@@ -152,8 +154,11 @@ class DessertDataSourceAsync extends AsyncDataTableSource {
     return r;
   }
 
-  Text filedText(
-      columnDef, purchase, String Function(String isoDate) formatDate) {
+  num getSold(List sold) {
+    return sold.fold(0, (sum, item) => sum + (item["amount"] ?? 0));
+  }
+
+  filedText(columnDef, purchase, String Function(String isoDate) formatDate) {
     switch (columnDef['type']) {
       case 'money':
         return Text(purchase[columnDef['field']]
@@ -166,6 +171,14 @@ class DessertDataSourceAsync extends AsyncDataTableSource {
         return Text(formatDate(purchase[columnDef['field']].toString()));
       case 'uppercase':
         return Text(purchase[columnDef['field']].toString().toUpperCase());
+      case 'actions':
+        return Row(
+          children: [...?actions],
+        );
+      case 'sold':
+        return Text(getSold(purchase[columnDef['field']])
+            .toString()
+            .formatToFinancial());
       default:
         return Text(purchase[columnDef['field']].toString());
     }
