@@ -103,7 +103,9 @@ Future<void> showDamagedGoodsForm(
                       'reason': reasonController.text,
                       'date': selectedDate.toLocal().toString().split(' ')[0],
                     });
-                    Navigator.pop(context);
+                    if (context.mounted) {
+                      Navigator.pop(context);
+                    }
                   }
                 },
                 child: Text('Save'),

@@ -4,7 +4,11 @@ import '../../../components/chart.dart';
 import '../../../components/info_card.dart';
 
 class Salesoverview extends StatelessWidget {
-  const Salesoverview({super.key});
+  final num totalSales;
+  final Map topSellingProducts;
+
+  const Salesoverview(
+      {super.key, required this.totalSales, required this.topSellingProducts});
 
   @override
   Widget build(BuildContext context) {
@@ -45,7 +49,7 @@ class Salesoverview extends StatelessWidget {
                     child: grids(isBigScreen, context)),
                 SizedBox(height: 1),
                 Divider(
-                  color: Theme.of(context).colorScheme.surfaceBright,
+                  color: Theme.of(context).colorScheme.onPrimary,
                 ),
                 SizedBox(height: 5),
                 Expanded(child: SalesLineChart())
@@ -65,34 +69,40 @@ class Salesoverview extends StatelessWidget {
           InfoCard(
             title: 'Today\'s Total Sales',
             icon: Icons.payments_outlined,
-            currency: true,
-            value: '3000000',
+            currency: false,
+            value: totalSales.toString(),
             fontSize: isBigScreen ? 20 : 10,
-            color: Theme.of(context).colorScheme.surfaceBright,
+            color: Theme.of(context).colorScheme.onPrimary,
           ),
           InfoCard(
             title: 'Top-Selling Products \n Today',
             icon: Icons.trending_up,
-            currency: true,
-            value: '3000000',
+            currency: false,
+            value: topSellingProducts['topSellingToday'].isNotEmpty
+                ? topSellingProducts['topSellingToday'][0]['title']
+                : 'No Sale Today',
             fontSize: isBigScreen ? 20 : 10,
-            color: Theme.of(context).colorScheme.surfaceBright,
+            color: Theme.of(context).colorScheme.onPrimary,
           ),
           InfoCard(
             title: 'Top-Selling Products \n Weekly',
             icon: Icons.trending_up,
-            currency: true,
-            value: '3000000',
+            currency: false,
+            value: topSellingProducts['topSellingWeekly'].isNotEmpty
+                ? topSellingProducts['topSellingWeekly'][0]['title']
+                : 'No Sale This Week',
             fontSize: isBigScreen ? 20 : 10,
-            color: Theme.of(context).colorScheme.surfaceBright,
+            color: Theme.of(context).colorScheme.onPrimary,
           ),
           InfoCard(
             title: 'Top-Selling Products \n Monthly',
             icon: Icons.trending_up,
-            currency: true,
-            value: '3000000',
+            currency: false,
+            value: topSellingProducts['topSellingMonthly'].isNotEmpty
+                ? topSellingProducts['topSellingMonthly'][0]['title']
+                : 'No Sale This Month',
             fontSize: isBigScreen ? 20 : 10,
-            color: Theme.of(context).colorScheme.surfaceBright,
+            color: Theme.of(context).colorScheme.onPrimary,
           ),
         ]);
   }

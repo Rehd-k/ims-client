@@ -140,7 +140,7 @@ class SideBarState extends State<SideBar> {
     return Column(children: [
       SizedBox(
         width: double.infinity,
-        height: 180,
+        height: 110,
         child: Center(
           child: Text(widget.tokenNotifier.decodedToken?['username']),
         ),

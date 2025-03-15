@@ -6,7 +6,7 @@ import '../../../components/info_card.dart';
 import '../../../components/tables/purchases/purchases_table.dart';
 import '../../../globals/actions.dart';
 import '../../../globals/sidebar.dart';
-import '../../../helpers/constants.dart';
+
 import '../../../helpers/providers/theme_notifier.dart';
 import '../../../helpers/providers/token_provider.dart';
 import '../../../services/api.service.dart';
@@ -47,7 +47,7 @@ class IncomeReportsScreenState extends State<IncomeReportsScreen> {
       loadingTable = true;
     });
     var dbsales = await apiService.getRequest(
-      '${baseUrl}sales?filter={"$searchFeild" : {"\$regex" : "${query.toLowerCase()}"}}&limit=0&sort={"transactionDate":-1}&startDate=$_fromDate&endDate=$_toDate',
+      'sales?filter={"$searchFeild" : {"\$regex" : "${query.toLowerCase()}"}}&limit=0&sort={"transactionDate":-1}&startDate=$_fromDate&endDate=$_toDate',
     );
     updateFilter(dbsales);
   }
@@ -58,14 +58,14 @@ class IncomeReportsScreenState extends State<IncomeReportsScreen> {
       loadingTable = true;
     });
     var dbsales = await apiService.getRequest(
-      '${baseUrl}sales?filter={"$searchFeild" : {"\$regex" : "${query?.toLowerCase()}"}}&limit=0&sort={"transactionDate":-1}&startDate=$_fromDate&endDate=$_toDate',
+      'sales?filter={"$searchFeild" : {"\$regex" : "${query?.toLowerCase()}"}}&limit=0&sort={"transactionDate":-1}&startDate=$_fromDate&endDate=$_toDate',
     );
     updateFilter(dbsales);
   }
 
   void updateTransaction() async {
     await apiService.putRequest(
-        '${baseUrl}sales/${selectedItem[0]['_id']}', transactionUpdate);
+        'sales/${selectedItem[0]['_id']}', transactionUpdate);
     getSales();
   }
 
@@ -101,6 +101,23 @@ class IncomeReportsScreenState extends State<IncomeReportsScreen> {
         }
       }
     });
+
+    if (selectedItem.isNotEmpty && MediaQuery.of(context).size.width < 600) {
+      showModalBottomSheet(
+        isScrollControlled: true,
+        context: context,
+        builder: (BuildContext context) {
+          return Container(
+              height: MediaQuery.of(context).size.height *
+                  0.95, // Almost full screen
+              padding: EdgeInsets.all(16),
+              child: ShowDetails(
+                  dataList: selectedItem,
+                  handleUpdate: handleUpdate,
+                  updatePageInfo: updatePageInfo));
+        },
+      );
+    }
   }
 
   // Future updatesalesList() async {
@@ -108,7 +125,7 @@ class IncomeReportsScreenState extends State<IncomeReportsScreen> {
   //     loadingTable = true;
   //   });
   //   var dbsales = await apiService.getRequest(
-  //     '${baseUrl}sales?skip=${sales.length}',
+  //     'sales?skip=${sales.length}',
   //   );
   //   setState(() {
   //     sales.addAll(dbsales.data['sales']);
@@ -122,14 +139,14 @@ class IncomeReportsScreenState extends State<IncomeReportsScreen> {
       loadingTable = true;
     });
     var dbsales = await apiService.getRequest(
-      '${baseUrl}sales?limit=0&sort={"transactionDate":-1}&startDate=$_fromDate&endDate=$_toDate',
+      'sales?limit=0&sort={"transactionDate":-1}&startDate=$_fromDate&endDate=$_toDate',
     );
     updateFilter(dbsales);
   }
 
   void updatePageInfo() async {
     var dbsales = await apiService.getRequest(
-      '${baseUrl}sales?limit=0&sort={"transactionDate":-1}&startDate=$_fromDate&endDate=$_toDate',
+      'sales?limit=0&sort={"transactionDate":-1}&startDate=$_fromDate&endDate=$_toDate',
     );
     updateFilter(dbsales);
   }
@@ -184,6 +201,7 @@ class IncomeReportsScreenState extends State<IncomeReportsScreen> {
   Widget build(BuildContext context) {
     double width = MediaQuery.sizeOf(context).width;
     bool isBigScreen = width >= 1200;
+
     return Consumer2<ThemeNotifier, TokenNotifier>(
         builder: (context, themeNotifier, tokenNotifier, child) {
       return Scaffold(
@@ -282,7 +300,7 @@ class IncomeReportsScreenState extends State<IncomeReportsScreen> {
                   ),
                   SizedBox(
                       width: double.infinity,
-                      height: isBigScreen ? 450 : 900,
+                      height: isBigScreen ? 450 : 400,
                       child: loadingTable
                           ? Center(
                               child: SizedBox(
@@ -382,22 +400,24 @@ class IncomeReportsScreenState extends State<IncomeReportsScreen> {
                               longPress: false,
                             ),
                           ),
-                          AnimatedContainer(
-                            decoration: BoxDecoration(
-                                borderRadius: BorderRadius.circular(10)),
-                            duration: Duration(milliseconds: 600),
-                            width: selectedItem.isNotEmpty
-                                ? isBigScreen
-                                    ? 600.0
-                                    : double.infinity
-                                : 0.00,
-                            child: selectedItem.isNotEmpty
-                                ? ShowDetails(
-                                    dataList: selectedItem,
-                                    handleUpdate: handleUpdate,
-                                    updatePageInfo: updatePageInfo)
-                                : Container(),
-                          ),
+                          isBigScreen
+                              ? AnimatedContainer(
+                                  decoration: BoxDecoration(
+                                      borderRadius: BorderRadius.circular(10)),
+                                  duration: Duration(milliseconds: 600),
+                                  width: selectedItem.isNotEmpty
+                                      ? isBigScreen
+                                          ? 600.0
+                                          : double.infinity
+                                      : 0.00,
+                                  child: selectedItem.isNotEmpty
+                                      ? ShowDetails(
+                                          dataList: selectedItem,
+                                          handleUpdate: handleUpdate,
+                                          updatePageInfo: updatePageInfo)
+                                      : Container(),
+                                )
+                              : SizedBox.shrink()
                         ]),
                 ],
               ),

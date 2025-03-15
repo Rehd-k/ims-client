@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:invease/components/tables/purchases/purchases_table.dart';
 
-import '../../helpers/constants.dart';
 import '../../helpers/providers/token_provider.dart';
 import '../../services/api.service.dart';
 
@@ -36,7 +35,7 @@ class ViewProductsState extends State<ViewProducts> {
       isLoading = true;
     });
     var dbproducts = await apiService.getRequest(
-      '${baseUrl}products?skip=${products.length}',
+      'products?skip=${products.length}',
     );
     setState(() {
       products.addAll(dbproducts.data);
@@ -47,7 +46,7 @@ class ViewProductsState extends State<ViewProducts> {
 
   Future getProductsList() async {
     isLoading = true;
-    var dbproducts = await apiService.getRequest('${baseUrl}products?limit=20');
+    var dbproducts = await apiService.getRequest('products?limit=20');
     setState(() {
       products = dbproducts.data;
       filteredProducts = List.from(products);

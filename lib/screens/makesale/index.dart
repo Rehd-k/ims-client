@@ -9,7 +9,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:convert';
 
 import '../../globals/sidebar.dart';
-import '../../helpers/constants.dart';
+
 import '../../helpers/providers/theme_notifier.dart';
 import '../../helpers/providers/token_provider.dart';
 import '../../services/api.service.dart';
@@ -168,8 +168,9 @@ class MakeSaleIndexState extends State<MakeSaleIndex> {
     try {
       final newKey = (_state.keys?.last ?? 0) + 1;
       final newItems = await apiService.getRequest(
-          '${baseUrl}products?filter={"isAvailable" : true}&sort={"title": 1}&limit=20&skip=$numberOfProducts&select=" title price quantity isAvailable "');
+          'products?filter={"isAvailable" : true}&sort={"title": 1}&limit=20&skip=$numberOfProducts&select=" title price quantity isAvailable "');
       final isLastPage = newItems.data.length < pageCount;
+
       setState(() {
         numberOfProducts = newItems.data.length;
         filteredProducts.addAll(newItems.data);
@@ -201,7 +202,7 @@ class MakeSaleIndexState extends State<MakeSaleIndex> {
     try {
       final newKey = (_state.keys?.last ?? 0) + 1;
       final newItems = await apiService.getRequest(
-          '${baseUrl}products?filter={"isAvailable" : true, "title": {"\$regex": "$query"}}&sort={"title": 1}&limit=20&skip=$numberOfProducts&select=" title price quantity isAvailable "');
+          'products?filter={"isAvailable" : true, "title": {"\$regex": "$query"}}&sort={"title": 1}&limit=20&skip=$numberOfProducts&select=" title price quantity isAvailable "');
 
       final isLastPage = newItems.data.length < pageCount;
 

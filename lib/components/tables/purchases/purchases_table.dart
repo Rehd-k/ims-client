@@ -116,7 +116,7 @@ class MainTableState extends State<MainTable> {
         children: [
           Expanded(
             child: AsyncPaginatedDataTable2(
-              horizontalMargin: 20,
+              horizontalMargin: 30,
               checkboxHorizontalMargin: 12,
               showCheckboxColumn: widget.showCheckboxColumn,
               columnSpacing: 0,

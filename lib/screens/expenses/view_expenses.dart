@@ -5,7 +5,6 @@ import 'package:intl/intl.dart';
 import 'package:invease/helpers/financial_string_formart.dart';
 import 'package:modal_bottom_sheet/modal_bottom_sheet.dart';
 
-import '../../helpers/constants.dart';
 import '../../services/api.service.dart';
 import 'add_expneses.dart';
 
@@ -42,7 +41,7 @@ class ViewExpensesState extends State<ViewExpenses> {
       isLoading = true;
     });
     var dbexpenses = await apiService.getRequest(
-      '${baseUrl}expense?skip=${expenses.length}',
+      'expense?skip=${expenses.length}',
     );
     setState(() {
       expenses.addAll(dbexpenses.data);
@@ -53,7 +52,7 @@ class ViewExpensesState extends State<ViewExpenses> {
 
   void updateExpenseWhole() async {
     var dbexpenses = await apiService.getRequest(
-      '${baseUrl}expense',
+      'expense',
     );
     setState(() {
       expenses = dbexpenses.data;
@@ -62,12 +61,12 @@ class ViewExpensesState extends State<ViewExpenses> {
   }
 
   void deleteExpense(String id) async {
-    await apiService.deleteRequest('${baseUrl}expense/delete/$id');
+    await apiService.deleteRequest('expense/delete/$id');
     updateExpenseWhole();
   }
 
   Future getExpensesList() async {
-    var dbexpenses = await apiService.getRequest('${baseUrl}expense');
+    var dbexpenses = await apiService.getRequest('expense');
     setState(() {
       expenses = dbexpenses.data;
       filteredExpenses = List.from(expenses);
@@ -264,7 +263,7 @@ class EditExpenseState extends State<EditExpense> {
   void _saveExpense() async {
     if (_formKey.currentState!.validate()) {
       await apiService.putRequest(
-        '${baseUrl}expense/update/${widget.expense['_id']}',
+        'expense/update/${widget.expense['_id']}',
         {
           'category': _categoryController.text,
           'description': _descriptionController.text,

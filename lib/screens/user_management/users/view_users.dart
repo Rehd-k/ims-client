@@ -3,7 +3,6 @@ import 'package:intl/intl.dart';
 import 'package:flutter/material.dart';
 import 'package:modal_bottom_sheet/modal_bottom_sheet.dart';
 
-import '../../../helpers/constants.dart';
 import '../../../services/api.service.dart';
 import 'add_user.dart';
 
@@ -48,7 +47,7 @@ class ViewUsersState extends State<ViewUsers> {
       isLoading = true;
     });
     var dbusers = await apiService.getRequest(
-      '${baseUrl}user?skip=${users.length}',
+      'user?skip=${users.length}',
     );
     setState(() {
       users.addAll(dbusers.data);
@@ -58,7 +57,7 @@ class ViewUsersState extends State<ViewUsers> {
   }
 
   Future getUsersList() async {
-    var dbusers = await apiService.getRequest('${baseUrl}user');
+    var dbusers = await apiService.getRequest('user');
     setState(() {
       users = dbusers.data;
       getFilteredAndSortedRows();

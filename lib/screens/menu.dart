@@ -158,26 +158,6 @@ class MainMenuScreenState extends State<MainMenuScreen> {
     return Consumer2<ThemeNotifier, TokenNotifier>(
         builder: (context, themeNotifier, tokenNotifier, child) {
       return Scaffold(
-          // appBar: AppBar(
-          //   title: const Text('AppBar with hamburger button'),
-          //   leading: !smallScreen
-          //       ? null
-          //       : Builder(
-          //           builder: (context) {
-          //             return IconButton(
-          //               icon: const Icon(Icons.menu),
-          //               onPressed: () {
-          //                 Scaffold.of(context).openDrawer();
-          //               },
-          //             );
-          //           },
-          //         ),
-          // ),
-          // drawer: Drawer(
-          //   backgroundColor: Theme.of(context).drawerTheme.backgroundColor,
-          //   child: sideBar(
-          //       context, menuData,  tokenNotifier),
-          // ),
           body: Row(
         children: [
           !smallScreen

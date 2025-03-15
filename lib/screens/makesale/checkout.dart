@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:invease/helpers/financial_string_formart.dart';
 
-import '../../helpers/constants.dart';
 import '../../services/api.service.dart';
 import '../customers/add_customer.dart';
 
@@ -112,7 +111,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
     final scaffoldMessenger = ScaffoldMessenger.of(context);
     final router = context.router;
 
-    await apiService.postRequest('${baseUrl}sales', paymentData);
+    await apiService.postRequest('sales', paymentData);
 
     // Check if widget is still mounted before showing message
     if (!mounted) return;
@@ -131,7 +130,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
 
   Future<List<Map>> _fetchNames(String query) async {
     final response = await apiService.getRequest(
-        '${baseUrl}customer?filter={"nameOrPhonenumber": "${nameController.text}"}');
+        'customer?filter={"nameOrPhonenumber": "${nameController.text}"}');
     if (response.statusCode == 200) {
       return List<Map>.from(response.data);
     } else {

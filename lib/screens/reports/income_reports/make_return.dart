@@ -1,8 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:invease/services/api.service.dart';
 
-import '../../../helpers/constants.dart';
-
 class MakeReturn extends StatefulWidget {
   final List<Map<String, dynamic>> sales;
   final String id;
@@ -55,7 +53,7 @@ class MakeReturnState extends State<MakeReturn> {
   void doReturns() async {
     // Capture the context before the async gap
     final scaffoldMessenger = ScaffoldMessenger.of(context);
-    await apiService.putRequest('${baseUrl}sales/return/${widget.id}', {
+    await apiService.putRequest('sales/return/${widget.id}', {
       'id': widget.id,
       'returns': _updatedProducts,
     });

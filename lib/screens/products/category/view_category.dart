@@ -3,7 +3,6 @@ import 'package:intl/intl.dart';
 import 'package:flutter/material.dart';
 import 'package:modal_bottom_sheet/modal_bottom_sheet.dart';
 
-import '../../../helpers/constants.dart';
 import '../../../services/api.service.dart';
 import 'add_category.dart';
 
@@ -48,7 +47,7 @@ class ViewCategoryState extends State<ViewCategory> {
       isLoading = true;
     });
     var dbcategories = await apiService.getRequest(
-      '${baseUrl}category?skip=${categories.length}',
+      'category?skip=${categories.length}',
     );
     setState(() {
       categories.addAll(dbcategories.data);
@@ -58,7 +57,7 @@ class ViewCategoryState extends State<ViewCategory> {
   }
 
   Future getProductsList() async {
-    var dbcategories = await apiService.getRequest('${baseUrl}category');
+    var dbcategories = await apiService.getRequest('category');
     setState(() {
       categories = dbcategories.data;
       filteredCategories = List.from(categories);

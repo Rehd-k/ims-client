@@ -3,7 +3,8 @@ import 'package:flutter/material.dart';
 import '../../../components/info_card.dart';
 
 class Inventorysummery extends StatelessWidget {
-  const Inventorysummery({super.key});
+  final Map data;
+  const Inventorysummery({super.key, required this.data});
 
   @override
   Widget build(BuildContext context) {
@@ -12,7 +13,7 @@ class Inventorysummery extends StatelessWidget {
 
     return ConstrainedBox(
         constraints: BoxConstraints(
-          minHeight: 400,
+          minHeight: isBigScreen ? 450 : 350,
         ),
         child: Container(
             width: double.infinity,
@@ -39,9 +40,8 @@ class Inventorysummery extends StatelessWidget {
                 SizedBox(height: 20),
                 Container(
                     padding: EdgeInsets.symmetric(horizontal: 14),
-                    height: isBigScreen ? 350 : 175,
+                    height: isBigScreen ? 400 : 297,
                     child: grids(isBigScreen, context)),
-                SizedBox(height: 5),
               ],
             )));
   }
@@ -56,44 +56,60 @@ class Inventorysummery extends StatelessWidget {
         childAspectRatio: 3,
         children: [
           InfoCard(
+            title: 'No. of Products',
+            icon: Icons.payments_outlined,
+            currency: false,
+            value: data['totalProducts'].toString(),
+            fontSize: isBigScreen ? 20 : 10,
+            color: Theme.of(context).colorScheme.onPrimary,
+          ),
+          InfoCard(
+            title: 'Total Stock',
+            icon: Icons.payments_outlined,
+            currency: false,
+            value: data['totalQuantity'].toString(),
+            fontSize: isBigScreen ? 20 : 10,
+            color: Theme.of(context).colorScheme.onPrimary,
+          ),
+          InfoCard(
             title: 'Total Stock Value',
             icon: Icons.payments_outlined,
             currency: true,
-            value: '3000000',
+            value: data['totalValue'].toString(),
             fontSize: isBigScreen ? 20 : 10,
-            color: Theme.of(context).colorScheme.surfaceBright,
+            color: Theme.of(context).colorScheme.onPrimary,
           ),
           InfoCard(
             title: 'Low Stock',
             icon: Icons.trending_up,
-            currency: true,
-            value: '3000000',
+            currency: false,
+            value: data['lowStockCount'].toString(),
             fontSize: isBigScreen ? 20 : 10,
-            color: Theme.of(context).colorScheme.error.withAlpha(200),
+            color: Colors.redAccent,
           ),
           InfoCard(
             title: 'Expired/Expiring',
             icon: Icons.trending_up,
-            currency: true,
-            value: '3000000',
+            currency: false,
+            value: data['expiredProducts'].toString(),
             fontSize: isBigScreen ? 20 : 10,
             color: Theme.of(context).colorScheme.error,
           ),
           InfoCard(
             title: 'Fast-Moving',
             icon: Icons.trending_up,
-            currency: true,
-            value: '3000000',
+            currency: false,
+            value: data['fastestMovingProduct']['title'],
             fontSize: isBigScreen ? 20 : 10,
-            color: Theme.of(context).colorScheme.surfaceBright,
+            color: Theme.of(context).colorScheme.onPrimary,
           ),
           InfoCard(
             title: ' Slow-Moving ',
             icon: Icons.trending_up,
-            currency: true,
-            value: '3000000',
+            currency: false,
+            value: data['slowestMovingProduct']['title'],
             fontSize: isBigScreen ? 20 : 10,
-            color: Theme.of(context).colorScheme.surfaceBright,
+            color: Theme.of(context).colorScheme.onPrimary,
           ),
         ]);
   }

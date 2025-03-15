@@ -5,7 +5,6 @@ import 'package:invease/screens/supplier/add_supplier.dart';
 import 'package:provider/provider.dart';
 import 'package:auto_route/auto_route.dart';
 
-import '../../../helpers/constants.dart';
 import '../../../helpers/providers/token_provider.dart';
 import '../../../services/api.service.dart';
 
@@ -192,7 +191,7 @@ class AddOrderState extends State<AddOrder> {
       isSuppliersLoading = true;
     });
     var dbsuppliers = await apiService.getRequest(
-      '${baseUrl}supplier?skip=${suppliers.length}',
+      'supplier?skip=${suppliers.length}',
     );
     setState(() {
       suppliers.addAll(dbsuppliers.data);

@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:modal_bottom_sheet/modal_bottom_sheet.dart';
 
-import '../../helpers/constants.dart';
 import '../../services/api.service.dart';
 import 'add_supplier.dart';
 
@@ -40,7 +39,7 @@ class ViewSuppliersState extends State<ViewSuppliers> {
       isLoading = true;
     });
     var dbsuppliers = await apiService.getRequest(
-      '${baseUrl}supplier?skip=${suppliers.length}',
+      'supplier?skip=${suppliers.length}',
     );
     setState(() {
       suppliers.addAll(dbsuppliers.data);
@@ -50,7 +49,7 @@ class ViewSuppliersState extends State<ViewSuppliers> {
   }
 
   Future getSuppliersList() async {
-    var dbsuppliers = await apiService.getRequest('${baseUrl}supplier');
+    var dbsuppliers = await apiService.getRequest('supplier');
     setState(() {
       suppliers = dbsuppliers.data;
       filteredSuppliers = List.from(suppliers);

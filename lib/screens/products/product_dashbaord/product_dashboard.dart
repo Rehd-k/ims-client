@@ -260,7 +260,7 @@ class ProductDashboardState extends State<ProductDashboard> {
                 ),
                 SizedBox(
                     width: double.infinity,
-                    height: isBigScreen ? 450 : 900,
+                    height: isBigScreen ? 450 : 350,
                     child: loading
                         ? Center(
                             child: SizedBox(
@@ -428,7 +428,6 @@ class ProductDashboardState extends State<ProductDashboard> {
                             actions: [
                               IconButton(
                                   onPressed: () {
-                                    print(returnedSelection[0]['sold']);
                                     if (returnedSelection.isEmpty) {
                                       doAlerts('Please select an item first');
                                     } else if (returnedSelection[0]

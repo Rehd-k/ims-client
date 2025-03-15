@@ -4,7 +4,8 @@ import '../../../components/info_card.dart';
 import '../../../components/tables/smalltable/smalltable.dart';
 
 class CustomerInsight extends StatelessWidget {
-  const CustomerInsight({super.key});
+  final Map data;
+  const CustomerInsight({super.key, required this.data});
 
   @override
   Widget build(BuildContext context) {
@@ -66,85 +67,21 @@ class CustomerInsight extends StatelessWidget {
                                       Padding(
                                         padding: EdgeInsets.all(8.0),
                                         child: Text(
-                                          'Customer Details',
+                                          'Top Customers',
                                           style: TextStyle(
-                                              fontSize: 20,
+                                              fontSize: 15,
                                               fontWeight: FontWeight.bold,
                                               color: Theme.of(context)
                                                   .colorScheme
                                                   .primary),
                                         ),
                                       ),
-                                      SmallTable(
-                                        columns: [
-                                          'Name',
-                                          'Last Purchase Date',
-                                          'Amount Spent',
-                                          'Total Spent',
-                                        ],
-                                        rows: [
-                                          [
-                                            'John Doe',
-                                            '12/12/2020',
-                                            '2000',
-                                            '20000'
-                                          ],
-                                          [
-                                            'Jane Doe',
-                                            '12/12/2020',
-                                            '2000',
-                                            '20000'
-                                          ],
-                                          [
-                                            'John Doe',
-                                            '12/12/2020',
-                                            '2000',
-                                            '20000'
-                                          ],
-                                          [
-                                            'Jane Doe',
-                                            '12/12/2020',
-                                            '2000',
-                                            '20000'
-                                          ],
-                                          [
-                                            'John Doe',
-                                            '12/12/2020',
-                                            '2000',
-                                            '20000'
-                                          ],
-                                          [
-                                            'Jane Doe',
-                                            '12/12/2020',
-                                            '2000',
-                                            '20000'
-                                          ],
-                                          [
-                                            'John Doe',
-                                            '12/12/2020',
-                                            '2000',
-                                            '20000'
-                                          ],
-                                          [
-                                            'Jane Doe',
-                                            '12/12/2020',
-                                            '2000',
-                                            '20000'
-                                          ],
-                                          [
-                                            'John Doe',
-                                            '12/12/2020',
-                                            '2000',
-                                            '20000'
-                                          ],
-                                          [
-                                            'Jane Doe',
-                                            '12/12/2020',
-                                            '2000',
-                                            '20000'
-                                          ],
-                                        ],
-                                      ),
+                                      SmallTable(columns: [
+                                        'Name',
+                                        'Last Purchase Date',
+                                        'Amount Spent',
+                                        'Total Spent',
+                                      ], rows: data['mostFrequentCustomer']),
                                     ],
                                   ),
                                 ),
@@ -162,85 +99,21 @@ class CustomerInsight extends StatelessWidget {
                                       Padding(
                                         padding: EdgeInsets.all(8.0),
                                         child: Text(
-                                          'Customer Details',
+                                          'New Customers',
                                           style: TextStyle(
-                                              fontSize: 20,
+                                              fontSize: 15,
                                               fontWeight: FontWeight.bold,
                                               color: Theme.of(context)
                                                   .colorScheme
                                                   .primary),
                                         ),
                                       ),
-                                      SmallTable(
-                                        columns: [
-                                          'Name',
-                                          'Last Purchase Date',
-                                          'Amount Spent',
-                                          'Total Spent',
-                                        ],
-                                        rows: [
-                                          [
-                                            'John Doe',
-                                            '12/12/2020',
-                                            '2000',
-                                            '20000'
-                                          ],
-                                          [
-                                            'Jane Doe',
-                                            '12/12/2020',
-                                            '2000',
-                                            '20000'
-                                          ],
-                                          [
-                                            'John Doe',
-                                            '12/12/2020',
-                                            '2000',
-                                            '20000'
-                                          ],
-                                          [
-                                            'Jane Doe',
-                                            '12/12/2020',
-                                            '2000',
-                                            '20000'
-                                          ],
-                                          [
-                                            'John Doe',
-                                            '12/12/2020',
-                                            '2000',
-                                            '20000'
-                                          ],
-                                          [
-                                            'Jane Doe',
-                                            '12/12/2020',
-                                            '2000',
-                                            '20000'
-                                          ],
-                                          [
-                                            'John Doe',
-                                            '12/12/2020',
-                                            '2000',
-                                            '20000'
-                                          ],
-                                          [
-                                            'Jane Doe',
-                                            '12/12/2020',
-                                            '2000',
-                                            '20000'
-                                          ],
-                                          [
-                                            'John Doe',
-                                            '12/12/2020',
-                                            '2000',
-                                            '20000'
-                                          ],
-                                          [
-                                            'Jane Doe',
-                                            '12/12/2020',
-                                            '2000',
-                                            '20000'
-                                          ],
-                                        ],
-                                      ),
+                                      SmallTable(columns: [
+                                        'Name',
+                                        'Last Purchase Date',
+                                        'Amount Spent',
+                                        'Total Spent',
+                                      ], rows: data['newestCustomers']),
                                     ],
                                   ),
                                 ),
@@ -260,7 +133,7 @@ class CustomerInsight extends StatelessWidget {
                                     Padding(
                                       padding: EdgeInsets.all(8.0),
                                       child: Text(
-                                        'Customer Details',
+                                        'Top Customers',
                                         style: TextStyle(
                                             fontSize: 15,
                                             fontWeight: FontWeight.bold,
@@ -269,40 +142,12 @@ class CustomerInsight extends StatelessWidget {
                                                 .primary),
                                       ),
                                     ),
-                                    SmallTable(
-                                      columns: [
-                                        'Name',
-                                        'Last Purchase Date',
-                                        'Amount Spent',
-                                        'Total Spent',
-                                      ],
-                                      rows: [
-                                        [
-                                          'John Doe',
-                                          '12/12/2020',
-                                          '2000',
-                                          '20000'
-                                        ],
-                                        [
-                                          'Jane Doe',
-                                          '12/12/2020',
-                                          '2000',
-                                          '20000'
-                                        ],
-                                        [
-                                          'John Doe',
-                                          '12/12/2020',
-                                          '2000',
-                                          '20000'
-                                        ],
-                                        [
-                                          'Jane Doe',
-                                          '12/12/2020',
-                                          '2000',
-                                          '20000'
-                                        ]
-                                      ],
-                                    ),
+                                    SmallTable(columns: [
+                                      'Name',
+                                      'Last Purchase Date',
+                                      'Amount Spent',
+                                      'Total Spent',
+                                    ], rows: data['newestCustomers']),
                                   ],
                                 ),
                               ),
@@ -318,7 +163,7 @@ class CustomerInsight extends StatelessWidget {
                                     Padding(
                                       padding: EdgeInsets.all(8.0),
                                       child: Text(
-                                        'Customer Details',
+                                        'New Customers',
                                         style: TextStyle(
                                             fontSize: 15,
                                             fontWeight: FontWeight.bold,
@@ -327,40 +172,12 @@ class CustomerInsight extends StatelessWidget {
                                                 .primary),
                                       ),
                                     ),
-                                    SmallTable(
-                                      columns: [
-                                        'Name',
-                                        'Last Purchase Date',
-                                        'Amount Spent',
-                                        'Total Spent',
-                                      ],
-                                      rows: [
-                                        [
-                                          'John Doe',
-                                          '12/12/2020',
-                                          '2000',
-                                          '20000'
-                                        ],
-                                        [
-                                          'Jane Doe',
-                                          '12/12/2020',
-                                          '2000',
-                                          '20000'
-                                        ],
-                                        [
-                                          'John Doe',
-                                          '12/12/2020',
-                                          '2000',
-                                          '20000'
-                                        ],
-                                        [
-                                          'Jane Doe',
-                                          '12/12/2020',
-                                          '2000',
-                                          '20000'
-                                        ]
-                                      ],
-                                    ),
+                                    SmallTable(columns: [
+                                      'Name',
+                                      'Last Purchase Date',
+                                      'Amount Spent',
+                                      'Total Spent',
+                                    ], rows: data['mostFrequentCustomer']),
                                   ],
                                 ),
                               ),
@@ -384,18 +201,19 @@ class CustomerInsight extends StatelessWidget {
           InfoCard(
             title: 'Total Customers',
             icon: Icons.payments_outlined,
-            currency: true,
-            value: '3000000',
+            currency: false,
+            value: data['totalCustomers'][0]['totalCustomers'].toString(),
             fontSize: isBigScreen ? 20 : 10,
-            color: Theme.of(context).colorScheme.surfaceBright,
+            color: Theme.of(context).colorScheme.onPrimary,
           ),
           InfoCard(
-            title: 'Low Stock',
+            title: 'Customer Retention',
             icon: Icons.trending_up,
-            currency: true,
-            value: '3000000',
+            currency: false,
+            value: data['retentionCurrentMonth'][0]['customerRetention']
+                .toString(),
             fontSize: isBigScreen ? 20 : 10,
-            color: Theme.of(context).colorScheme.error.withAlpha(200),
+            color: Theme.of(context).colorScheme.onPrimary,
           )
         ]);
   }

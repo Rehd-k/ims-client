@@ -1,5 +1,7 @@
 import 'package:auto_route/auto_route.dart';
+import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 import 'package:invease/helpers/providers/token_provider.dart';
 import 'package:provider/provider.dart';
 
@@ -53,12 +55,22 @@ class _LoginFormState extends State<LoginScreen> {
     }
   }
 
+  showToast(String? message) => Fluttertoast.showToast(
+      msg: message!,
+      toastLength: Toast.LENGTH_SHORT,
+      gravity: ToastGravity.CENTER,
+      timeInSecForIosWeb: 2,
+      backgroundColor: Colors.red,
+      textColor: Colors.white,
+      webShowClose: true,
+      fontSize: 16.0);
+
   Future<void> handleSubmit(context) async {
     setState(() {
       isLoading = true;
     });
     try {
-      final dynamic response = await apiServices.postRequest('auth/login', {
+      final response = await apiServices.postRequest('auth/login', {
         'username': _userController.text,
         'password': _passwordController.text,
       });
@@ -91,8 +103,21 @@ class _LoginFormState extends State<LoginScreen> {
           }
         } else {}
       }
+    } on DioException catch (e, _) {
+      if (e.type == DioExceptionType.connectionError) {
+        showToast('Connection Error');
+        setState(() {
+          isLoading = false;
+        });
+      }
+
+      setState(() {
+        isLoading = false;
+      });
     } catch (e) {
-      isLoading = false;
+      setState(() {
+        isLoading = false;
+      });
     }
   }
 

@@ -35,8 +35,42 @@ class ProductsIndexState extends State<ProductsIndex> {
     return Consumer2<TokenNotifier, ThemeNotifier>(
         builder: (context, tokenNotifier, themeNotifier, child) {
       return Scaffold(
+          floatingActionButton: smallScreen
+              ? FloatingActionButton(
+                  onPressed: () {
+                    showModalBottomSheet(
+                      context: context,
+                      builder: (context) => Container(
+                        // height: MediaQuery.of(context).size.height * 0.8,
+                        padding: const EdgeInsets.all(8.0),
+                        child: AddProducts(
+                          updateProducts: updateProducts,
+                          tokenNotifier: tokenNotifier,
+                        ),
+                      ),
+                    );
+                  },
+                  child: Icon(Icons.add_outlined))
+              : null,
           appBar: AppBar(
-            actions: actions(themeNotifier, tokenNotifier),
+            actions: [
+              IconButton(
+                  onPressed: () {
+                    showModalBottomSheet(
+                      context: context,
+                      builder: (context) => Container(
+                        height: MediaQuery.of(context).size.height * 1,
+                        padding: const EdgeInsets.all(8.0),
+                        child: AddProducts(
+                          updateProducts: updateProducts,
+                          tokenNotifier: tokenNotifier,
+                        ),
+                      ),
+                    );
+                  },
+                  icon: Icon(Icons.add_outlined)),
+              ...actions(themeNotifier, tokenNotifier)
+            ],
           ),
           drawer: smallScreen
               ? Drawer(

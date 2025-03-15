@@ -1,8 +1,13 @@
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 
 class SmallTable extends StatelessWidget {
   final List<String> columns;
-  final List<List<String>> rows;
+  final dynamic rows;
+  String formatDate(String isoDate) {
+    final DateTime parsedDate = DateTime.parse(isoDate);
+    return DateFormat('dd-MM-yyyy').format(parsedDate);
+  }
 
   const SmallTable({super.key, required this.columns, required this.rows});
 
@@ -15,24 +20,20 @@ class SmallTable extends StatelessWidget {
         child: DataTable(
           columns:
               columns.map((column) => DataColumn(label: Text(column))).toList(),
-          rows: rows.asMap().entries.map((entry) {
-            int index = entry.key;
-            List<String> row = entry.value;
-            return DataRow(
-              color: WidgetStateProperty.resolveWith<Color?>(
-                (Set<WidgetState> states) {
-                  if (index % 2 == 0) {
-                    return Theme.of(context)
-                        .colorScheme
-                        .surfaceBright; // Even rows
-                  } else {
-                    return Theme.of(context).colorScheme.surfaceDim; // Odd rows
-                  }
-                },
-              ),
-              cells: row.map((cell) => DataCell(Text(cell))).toList(),
-            );
-          }).toList(),
+          rows: [
+            ...rows.map((res) {
+              // Map<String, dynamic> row = entry.value;
+              return DataRow(
+                cells: [
+                  DataCell(Text(res['name'].toString())),
+                  DataCell(
+                      Text(formatDate(res['lastPurchaseDate'].toString()))),
+                  DataCell(Text(res['lastPurchaseAmount'].toString())),
+                  DataCell(Text(res['total_spent'].toString()))
+                ],
+              );
+            })
+          ],
           border: TableBorder.all(style: BorderStyle.none),
         ),
       ),

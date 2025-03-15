@@ -1,6 +1,7 @@
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:invease/helpers/providers/token_provider.dart';
+import 'package:invease/services/api.service.dart';
 import 'package:provider/provider.dart';
 
 import '../../globals/actions.dart';
@@ -22,6 +23,71 @@ class DashboardScreen extends StatefulWidget {
 
 class DashboardState extends State<DashboardScreen> {
   bool loading = true;
+  ApiService apiService = ApiService();
+
+  List dashboardInfo = [];
+
+  @override
+  void initState() {
+    super.initState();
+    fetchData();
+  }
+
+  Future<void> fetchData() async {
+    setState(() {
+      loading = true;
+    });
+
+    try {
+      final results = await Future.wait([
+        fetchSalesOverview(),
+        fetchBestSellingProducts(),
+        fetchInventorySummary(),
+        fetchCustomerInsight(),
+        fetchFinancialSummary()
+      ]);
+      setState(() {
+        dashboardInfo = results;
+      });
+
+      // Process results here if needed
+    } catch (e) {
+      // Handle errors here
+    } finally {
+      setState(() {
+        loading = false;
+      });
+    }
+  }
+
+  Future<Map> fetchSalesOverview() async {
+    // Your API call for Sales Overview
+    var salesInfo = await apiService.getRequest(
+        'analytics/profit-and-loss?startDate=${DateTime.now().toIso8601String()}&endDate=${DateTime.now().toIso8601String()}');
+
+    return salesInfo.data;
+  }
+
+  Future<Map> fetchBestSellingProducts() async {
+    // Your API call for Best Selling Products
+    var bestSellingProducts =
+        await apiService.getRequest('analytics/get-best-selling-products');
+    return bestSellingProducts.data;
+  }
+
+  Future<Map> fetchInventorySummary() async {
+    var data = await apiService.getRequest('analytics/inventory-summary');
+    return data.data;
+  }
+
+  Future<void> fetchCustomerInsight() async {
+    var data = await apiService.getRequest('analytics/customer-summary');
+    return data.data;
+  }
+
+  Future<void> fetchFinancialSummary() async {
+    // Your API call for Financial Summary
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -32,19 +98,24 @@ class DashboardState extends State<DashboardScreen> {
         drawer: Drawer(
             backgroundColor: Theme.of(context).drawerTheme.backgroundColor,
             child: SideBar(tokenNotifier: tokenNotifier)),
-        body: Padding(
-            padding: const EdgeInsets.all(8.0),
-            child: SingleChildScrollView(
-              child: Column(children: [
-                Salesoverview(),
-                SizedBox(height: 20),
-                Inventorysummery(),
-                SizedBox(height: 20),
-                CustomerInsight(),
-                SizedBox(height: 20),
-                Financialsummary()
-              ]),
-            )),
+        body: loading
+            ? Center(child: CircularProgressIndicator())
+            : Padding(
+                padding: const EdgeInsets.all(8.0),
+                child: SingleChildScrollView(
+                  child: Column(children: [
+                    Salesoverview(
+                      totalSales: dashboardInfo[0]['totalRevenue'],
+                      topSellingProducts: dashboardInfo[1],
+                    ),
+                    SizedBox(height: 20),
+                    Inventorysummery(data: dashboardInfo[2]),
+                    SizedBox(height: 20),
+                    CustomerInsight(data: dashboardInfo[3]),
+                    SizedBox(height: 20),
+                    Financialsummary()
+                  ]),
+                )),
       );
     });
   }

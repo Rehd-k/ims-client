@@ -4,7 +4,6 @@ import 'package:intl/intl.dart';
 import 'package:invease/helpers/financial_string_formart.dart';
 import 'package:modal_bottom_sheet/modal_bottom_sheet.dart';
 
-import '../../helpers/constants.dart';
 import '../../services/api.service.dart';
 import 'add_customer.dart';
 
@@ -41,7 +40,7 @@ class ViewCustomersState extends State<ViewCustomers> {
       isLoading = true;
     });
     var dbcustomers = await apiService.getRequest(
-      '${baseUrl}customer?skip=${customers.length}',
+      'customer?skip=${customers.length}',
     );
     setState(() {
       customers.addAll(dbcustomers.data);
@@ -51,7 +50,7 @@ class ViewCustomersState extends State<ViewCustomers> {
   }
 
   Future getCustomersList() async {
-    var dbcustomers = await apiService.getRequest('${baseUrl}customer');
+    var dbcustomers = await apiService.getRequest('customer');
     setState(() {
       customers = dbcustomers.data;
       filteredCustomers = List.from(customers);
