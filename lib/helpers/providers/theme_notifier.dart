@@ -7,6 +7,7 @@ class ThemeNotifier with ChangeNotifier {
 
   Future<void> initializePreferences() async {
     preferences = await SharedPreferences.getInstance();
+    getTheme();
   }
 
   ThemeMode get themeMode => _themeMode;

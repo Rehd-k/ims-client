@@ -33,7 +33,7 @@ class CategoryIndexState extends State<CategoryIndex> {
         builder: (context, tokenNotifier, themeNotifier, child) {
       return Scaffold(
           appBar: AppBar(
-            actions: [...actions(themeNotifier, tokenNotifier)],
+            actions: [...actions(context, themeNotifier, tokenNotifier)],
           ),
           drawer: smallScreen
               ? Drawer(

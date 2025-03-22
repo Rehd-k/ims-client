@@ -19,7 +19,6 @@ class Inventorysummery extends StatelessWidget {
             width: double.infinity,
             decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(10),
-              color: Theme.of(context).cardColor,
             ),
             child: Column(
               children: [
@@ -91,7 +90,9 @@ class Inventorysummery extends StatelessWidget {
             title: 'Expired/Expiring',
             icon: Icons.trending_up,
             currency: false,
-            value: data['expiredProducts'].toString(),
+            value: data['expiredProducts'] == null
+                ? 'No Data'
+                : data['expiredProducts'].toString(),
             fontSize: isBigScreen ? 20 : 10,
             color: Theme.of(context).colorScheme.error,
           ),

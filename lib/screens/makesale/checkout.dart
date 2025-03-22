@@ -10,8 +10,13 @@ import '../customers/add_customer.dart';
 class CheckoutScreen extends StatefulWidget {
   final double total;
   final List cart;
+  final Function handleComplete;
 
-  const CheckoutScreen({super.key, required this.total, required this.cart});
+  const CheckoutScreen(
+      {super.key,
+      required this.total,
+      required this.cart,
+      required this.handleComplete});
 
   @override
   State<CheckoutScreen> createState() => _CheckoutScreenState();
@@ -123,6 +128,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
         backgroundColor: Theme.of(context).colorScheme.primary,
       ),
     );
+    widget.handleComplete();
 
     // Use captured router
     router.back();

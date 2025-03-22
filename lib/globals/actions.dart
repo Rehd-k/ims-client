@@ -1,9 +1,12 @@
+import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
+import 'package:invease/app_router.gr.dart';
 
 import '../helpers/providers/theme_notifier.dart';
 import '../helpers/providers/token_provider.dart';
 
-List<Widget> actions(ThemeNotifier themeNotifier, TokenNotifier tokenNotifier) {
+List<Widget> actions(BuildContext context, ThemeNotifier themeNotifier,
+    TokenNotifier tokenNotifier) {
   return [
     IconButton(
       icon: const Icon(Icons.remove_red_eye),
@@ -18,6 +21,7 @@ List<Widget> actions(ThemeNotifier themeNotifier, TokenNotifier tokenNotifier) {
     IconButton(
       icon: const Icon(Icons.logout_outlined),
       onPressed: () {
+        context.router.replaceAll([LoginRoute()]);
         tokenNotifier.logout();
       },
     ),

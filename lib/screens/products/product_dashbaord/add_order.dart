@@ -3,14 +3,14 @@ import 'package:flutter/services.dart';
 import 'package:invease/helpers/financial_string_formart.dart';
 import 'package:invease/screens/supplier/add_supplier.dart';
 import 'package:provider/provider.dart';
-import 'package:auto_route/auto_route.dart';
 
 import '../../../helpers/providers/token_provider.dart';
 import '../../../services/api.service.dart';
 
 class AddOrder extends StatefulWidget {
   final String productId;
-  const AddOrder({super.key, required this.productId});
+  final VoidCallback getUpDate;
+  const AddOrder({super.key, required this.productId, required this.getUpDate});
 
   @override
   AddOrderState createState() => AddOrderState();
@@ -61,6 +61,8 @@ class AddOrderState extends State<AddOrder> {
   bool isSuppliersLoading = true;
 
   int total = 0;
+
+  bool isLoading = false;
 
   @override
   void dispose() {
@@ -135,8 +137,8 @@ class AddOrderState extends State<AddOrder> {
   }
 
   Future<void> handleSubmit(BuildContext context) async {
-    final router = context.router;
     final messenger = ScaffoldMessenger.of(context);
+    isLoading = true;
 
     var formData = {
       'initiator': initiatorController.text,
@@ -163,13 +165,16 @@ class AddOrderState extends State<AddOrder> {
       final dynamic response =
           await apiService.postRequest('purchases', formData);
 
-      if (!mounted) return;
-
       if (response.statusCode! >= 200 && response.statusCode! <= 300) {
-        router.back();
+        widget.getUpDate();
+
+        // ignore: use_build_context_synchronously
+        Navigator.pop(context);
       }
+      isLoading = false;
     } catch (e) {
       if (!mounted) return;
+      isLoading = false;
       messenger.showSnackBar(
         SnackBar(content: Text('Failed to submit order: ${e.toString()}')),
       );

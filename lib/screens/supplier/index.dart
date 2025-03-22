@@ -31,9 +31,10 @@ class SupplierIndexState extends State<SupplierIndex> {
     bool smallScreen = width <= 1200;
     return Consumer2<ThemeNotifier, TokenNotifier>(
         builder: (context, themeNotifier, tokenNotifier, child) {
+      print(tokenNotifier.decodedToken);
       return Scaffold(
           appBar: AppBar(
-            actions: [...actions(themeNotifier, tokenNotifier)],
+            actions: [...actions(context, themeNotifier, tokenNotifier)],
           ),
           drawer: smallScreen
               ? Drawer(

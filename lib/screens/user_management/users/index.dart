@@ -31,7 +31,8 @@ class UserManagementScreenState extends State<UserManagementScreen> {
     return Consumer2<TokenNotifier, ThemeNotifier>(
         builder: (context, tokenNotifier, themeNotifier, child) {
       return Scaffold(
-        appBar: AppBar(actions: [...actions(themeNotifier, tokenNotifier)]),
+        appBar: AppBar(
+            actions: [...actions(context, themeNotifier, tokenNotifier)]),
         drawer: smallScreen
             ? Drawer(
                 backgroundColor: Theme.of(context).drawerTheme.backgroundColor,

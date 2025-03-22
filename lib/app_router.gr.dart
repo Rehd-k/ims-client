@@ -51,10 +51,16 @@ class CheckoutRoute extends _i16.PageRouteInfo<CheckoutRouteArgs> {
     _i17.Key? key,
     required double total,
     required List<dynamic> cart,
+    required Function handleComplete,
     List<_i16.PageRouteInfo>? children,
   }) : super(
          CheckoutRoute.name,
-         args: CheckoutRouteArgs(key: key, total: total, cart: cart),
+         args: CheckoutRouteArgs(
+           key: key,
+           total: total,
+           cart: cart,
+           handleComplete: handleComplete,
+         ),
          initialChildren: children,
        );
 
@@ -68,13 +74,19 @@ class CheckoutRoute extends _i16.PageRouteInfo<CheckoutRouteArgs> {
         key: args.key,
         total: args.total,
         cart: args.cart,
+        handleComplete: args.handleComplete,
       );
     },
   );
 }
 
 class CheckoutRouteArgs {
-  const CheckoutRouteArgs({this.key, required this.total, required this.cart});
+  const CheckoutRouteArgs({
+    this.key,
+    required this.total,
+    required this.cart,
+    required this.handleComplete,
+  });
 
   final _i17.Key? key;
 
@@ -82,9 +94,11 @@ class CheckoutRouteArgs {
 
   final List<dynamic> cart;
 
+  final Function handleComplete;
+
   @override
   String toString() {
-    return 'CheckoutRouteArgs{key: $key, total: $total, cart: $cart}';
+    return 'CheckoutRouteArgs{key: $key, total: $total, cart: $cart, handleComplete: $handleComplete}';
   }
 }
 
@@ -307,10 +321,15 @@ class ProductDashboard extends _i16.PageRouteInfo<ProductDashboardArgs> {
   ProductDashboard({
     _i17.Key? key,
     String? productId,
+    String? productName,
     List<_i16.PageRouteInfo>? children,
   }) : super(
          ProductDashboard.name,
-         args: ProductDashboardArgs(key: key, productId: productId),
+         args: ProductDashboardArgs(
+           key: key,
+           productId: productId,
+           productName: productName,
+         ),
          initialChildren: children,
        );
 
@@ -322,21 +341,27 @@ class ProductDashboard extends _i16.PageRouteInfo<ProductDashboardArgs> {
       final args = data.argsAs<ProductDashboardArgs>(
         orElse: () => const ProductDashboardArgs(),
       );
-      return _i12.ProductDashboard(key: args.key, productId: args.productId);
+      return _i12.ProductDashboard(
+        key: args.key,
+        productId: args.productId,
+        productName: args.productName,
+      );
     },
   );
 }
 
 class ProductDashboardArgs {
-  const ProductDashboardArgs({this.key, this.productId});
+  const ProductDashboardArgs({this.key, this.productId, this.productName});
 
   final _i17.Key? key;
 
   final String? productId;
 
+  final String? productName;
+
   @override
   String toString() {
-    return 'ProductDashboardArgs{key: $key, productId: $productId}';
+    return 'ProductDashboardArgs{key: $key, productId: $productId, productName: $productName}';
   }
 }
 

@@ -45,7 +45,7 @@ class ExpensesState extends State<Expenses> {
                   style: TextStyle(fontWeight: FontWeight.w100, fontSize: 10),
                 ),
               ),
-              ...actions(themeNotifier, tokenNotifier)
+              ...actions(context, themeNotifier, tokenNotifier)
             ],
           ),
           drawer: smallScreen

@@ -12,6 +12,7 @@ class CartSection extends StatelessWidget {
   final Function(String) decrementCartQuantity;
   final Function(String) incrementCartQuantity;
   final Function(String) removeFromCart;
+  final Function() handleComplete;
 
   const CartSection({
     super.key,
@@ -22,6 +23,7 @@ class CartSection extends StatelessWidget {
     required this.removeFromCart,
     required this.saveCart,
     required this.emptyCart,
+    required this.handleComplete,
   });
 
   @override
@@ -49,8 +51,10 @@ class CartSection extends StatelessWidget {
               onTap: () {
                 cartTotal < 1
                     ? null
-                    : context.router
-                        .push(CheckoutRoute(total: cartTotal, cart: cart));
+                    : context.router.push(CheckoutRoute(
+                        total: cartTotal,
+                        cart: cart,
+                        handleComplete: handleComplete));
               },
               child: Container(
                 height: 100,

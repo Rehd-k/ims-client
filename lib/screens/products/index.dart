@@ -69,7 +69,7 @@ class ProductsIndexState extends State<ProductsIndex> {
                     );
                   },
                   icon: Icon(Icons.add_outlined)),
-              ...actions(themeNotifier, tokenNotifier)
+              ...actions(context, themeNotifier, tokenNotifier)
             ],
           ),
           drawer: smallScreen

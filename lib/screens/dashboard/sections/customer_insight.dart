@@ -18,10 +18,7 @@ class CustomerInsight extends StatelessWidget {
         ),
         child: Container(
             width: double.infinity,
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(10),
-              color: Theme.of(context).cardColor,
-            ),
+            decoration: BoxDecoration(borderRadius: BorderRadius.circular(10)),
             child: Column(
               children: [
                 Align(

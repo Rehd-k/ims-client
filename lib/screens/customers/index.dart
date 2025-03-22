@@ -33,7 +33,7 @@ class CustomerScreenState extends State<CustomerScreen> {
         builder: (context, themeNotifier, tokenNotifier, child) {
       return Scaffold(
           appBar: AppBar(
-            actions: [...actions(themeNotifier, tokenNotifier)],
+            actions: [...actions(context, themeNotifier, tokenNotifier)],
           ),
           drawer: smallScreen
               ? Drawer(

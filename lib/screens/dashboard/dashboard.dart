@@ -24,6 +24,8 @@ class DashboardScreen extends StatefulWidget {
 class DashboardState extends State<DashboardScreen> {
   bool loading = true;
   ApiService apiService = ApiService();
+  final DateTime _fromDate = DateTime.now();
+  final DateTime _toDate = DateTime.now();
 
   List dashboardInfo = [];
 
@@ -46,11 +48,10 @@ class DashboardState extends State<DashboardScreen> {
         fetchCustomerInsight(),
         fetchFinancialSummary()
       ]);
+
       setState(() {
         dashboardInfo = results;
       });
-
-      // Process results here if needed
     } catch (e) {
       // Handle errors here
     } finally {
@@ -63,7 +64,7 @@ class DashboardState extends State<DashboardScreen> {
   Future<Map> fetchSalesOverview() async {
     // Your API call for Sales Overview
     var salesInfo = await apiService.getRequest(
-        'analytics/profit-and-loss?startDate=${DateTime.now().toIso8601String()}&endDate=${DateTime.now().toIso8601String()}');
+        'analytics/profit-and-loss?startDate=$_fromDate&endDate=$_toDate');
 
     return salesInfo.data;
   }
@@ -91,13 +92,18 @@ class DashboardState extends State<DashboardScreen> {
 
   @override
   Widget build(BuildContext context) {
+    double width = MediaQuery.sizeOf(context).width;
+    bool smallScreen = width <= 1200;
     return Consumer2<ThemeNotifier, TokenNotifier>(
         builder: (context, themeNotifier, tokenNotifier, child) {
       return Scaffold(
-        appBar: AppBar(actions: [...actions(themeNotifier, tokenNotifier)]),
-        drawer: Drawer(
-            backgroundColor: Theme.of(context).drawerTheme.backgroundColor,
-            child: SideBar(tokenNotifier: tokenNotifier)),
+        appBar: AppBar(
+            actions: [...actions(context, themeNotifier, tokenNotifier)]),
+        drawer: smallScreen
+            ? Drawer(
+                backgroundColor: Theme.of(context).drawerTheme.backgroundColor,
+                child: SideBar(tokenNotifier: tokenNotifier))
+            : null,
         body: loading
             ? Center(child: CircularProgressIndicator())
             : Padding(

@@ -158,7 +158,7 @@ class MakeSaleIndexState extends State<MakeSaleIndex> {
     return cart.fold(0, (sum, item) => sum + item['total']);
   }
 
-  void getProductsList() async {
+  Future getProductsList() async {
     if (_state.isLoading) return;
     setState(() {
       // set loading to true and remove any previous error
@@ -287,6 +287,11 @@ class MakeSaleIndexState extends State<MakeSaleIndex> {
     });
   }
 
+  void handleSubmited() async {
+    emptycart();
+    // await getProductsList();
+  }
+
   @override
   void dispose() {
     _searchFocusNode.dispose();
@@ -318,7 +323,7 @@ class MakeSaleIndexState extends State<MakeSaleIndex> {
                   child: savedCartsIcon(index),
                 );
               }),
-              ...actions(themeNotifier, tokenNotifier)
+              ...actions(context, themeNotifier, tokenNotifier)
             ],
           ),
           drawer: smallScreen
@@ -343,6 +348,7 @@ class MakeSaleIndexState extends State<MakeSaleIndex> {
                           decrementCartQuantity: decrementCartQuantity,
                           incrementCartQuantity: incrementCartQuantity,
                           removeFromCart: removeFromCart,
+                          handleComplete: handleSubmited,
                         ),
                       ),
                     );
@@ -375,6 +381,7 @@ class MakeSaleIndexState extends State<MakeSaleIndex> {
                         removeFromCart: removeFromCart,
                         saveCart: saveCartToStorage,
                         emptyCart: emptycart,
+                        handleComplete: handleSubmited,
                       ),
               ],
             ),

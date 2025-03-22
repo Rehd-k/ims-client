@@ -37,6 +37,8 @@ class AppColors {
 
 // Light theme
 final ThemeData lightTheme = ThemeData(
+  useMaterial3: true,
+  fontFamily: 'Poppins',
   brightness: Brightness.light,
   primaryColor: AppColors.primary,
   cardColor: AppColors.surface,
@@ -152,6 +154,7 @@ final ThemeData lightTheme = ThemeData(
 
 // Dark theme
 final ThemeData darkTheme = ThemeData(
+  fontFamily: 'Poppins',
   brightness: Brightness.dark,
   primaryColor: AppColors.darkPrimary,
   cardColor: AppColors.darkSurface,

@@ -217,7 +217,7 @@ class IncomeReportsScreenState extends State<IncomeReportsScreen> {
                   duration: Duration(milliseconds: 300),
                   child: Icon(Icons.keyboard_arrow_down),
                 )),
-            ...actions(themeNotifier, tokenNotifier)
+            ...actions(context, themeNotifier, tokenNotifier)
           ]),
           drawer: isBigScreen
               ? null

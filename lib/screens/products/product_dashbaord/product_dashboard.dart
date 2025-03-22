@@ -9,15 +9,18 @@ import '../../../components/charts/range.dart';
 import '../../../components/info_card.dart';
 import '../../../components/tables/purchases/purchases_table.dart';
 import '../../../globals/dialog.dart';
+import '../../../globals/error.dart';
 import 'add_order.dart';
 import 'header.dart';
 import 'helpers/damaged_goods.dart';
+import 'helpers/edit_product.dart';
 
 @RoutePage()
 class ProductDashboard extends StatefulWidget {
   final String? productId;
+  final String? productName;
 
-  const ProductDashboard({super.key, this.productId});
+  const ProductDashboard({super.key, this.productId, this.productName});
 
   @override
   ProductDashboardState createState() => ProductDashboardState();
@@ -29,6 +32,7 @@ class ProductDashboardState extends State<ProductDashboard> {
   late Map data;
   bool loading = true;
   bool loadingTable = true;
+  bool loadingCharts = true;
   late List purchases;
   DateTime? _fromDate = DateTime(2010, 1, 1);
   DateTime? _toDate = DateTime.now();
@@ -44,6 +48,7 @@ class ProductDashboardState extends State<ProductDashboard> {
   List<Map> suppliers = [];
   Set supplierSet = <String>{};
   dynamic totalSales = 0;
+  bool hasError = false;
 
   // Function(String?) onFieldChange;
   // Function(String?) onSupplierChange;
@@ -54,29 +59,39 @@ class ProductDashboardState extends State<ProductDashboard> {
     if (widget.productId != null) {
       productId = widget.productId!;
     } else {
-      productId = '6790e2c0541e66e2d3a41b7c';
+      hasError = true;
+      return;
     }
-
-    getChartData('Today');
-    getPurchases();
-    getDashboardData();
-
+    getAllData();
     super.initState();
   }
 
+  getAllData() async {
+    await getDashboardData();
+    await getChartData('Today');
+    await getPurchases();
+  }
+
   Future getDashboardData() async {
-    final response =
-        await apiService.getRequest('products/dashboard/$productId');
-    setState(() {
-      data = response.data;
-      loading = false;
-    });
+    try {
+      final dynamic response =
+          await apiService.getRequest('products/dashboard/$productId');
+
+      setState(() {
+        data = response.data;
+        loading = false;
+        hasError = false;
+      });
+    } catch (err) {
+      setState(() {
+        hasError = true;
+        loading = false;
+      });
+    }
   }
 
   Future getPurchases() async {
     setState(() {
-      loading = true;
-      loadingTable = true;
       supplierSet = {};
       suppliers = [];
     });
@@ -104,7 +119,6 @@ class ProductDashboardState extends State<ProductDashboard> {
         suppliers.insert(0, {'_id': '', 'name': 'All Suppliers'});
       }
 
-      loading = false;
       loadingTable = false;
     });
   }
@@ -116,11 +130,11 @@ class ProductDashboardState extends State<ProductDashboard> {
     });
     final response = await apiService.getRequest(
         'sales/getchart/$productId?filter={"sorter":"$dateRange"}&startDate=${range.startDate}&endDate=${range.endDate}');
-    print(response);
-    // setState(() {
-    //   purchases = response.data;
-    //   loadingTable = false;
-    // });
+    // print(response);
+    setState(() {
+      purchases = response.data;
+      loadingCharts = false;
+    });
   }
 
   handleDamagedGoods(Map<String, dynamic> data) async {
@@ -164,377 +178,417 @@ class ProductDashboardState extends State<ProductDashboard> {
   Widget build(BuildContext context) {
     double width = MediaQuery.sizeOf(context).width;
     bool isBigScreen = width >= 1200;
-    return Scaffold(
-        appBar: AppBar(
-          leading: IconButton(
-            onPressed: () {
-              context.router.back();
-            },
-            icon: Icon(Icons.arrow_back_ios_new_outlined),
-          ),
-          // title: Text('${widget.product?['title']} Dashboard'),
-          title: Text(' Dashboard'),
-          actions: [
-            IconButton(
-                onPressed: () {
-                  setState(() {
-                    showDetails = !showDetails;
-                  });
-                },
-                icon: AnimatedRotation(
-                  turns: showDetails ? 0.5 : 0.0,
-                  duration: Duration(milliseconds: 300),
-                  child: Icon(Icons.keyboard_arrow_down),
-                )),
-            IconButton(
-                tooltip: 'Add Order',
-                onPressed: () => showBarModalBottomSheet(
-                      expand: true,
-                      context: context,
-                      backgroundColor: Colors.transparent,
-                      builder: (context) => AddOrder(productId: productId),
-                    ),
-                icon: Icon(Icons.add_box_outlined)),
-            IconButton(
+    if (!hasError) {
+      return Scaffold(
+          appBar: AppBar(
+            leading: IconButton(
               onPressed: () {
-                openBox(context);
+                context.router.back();
               },
-              icon: Icon(Icons.delete_outline),
-            )
-          ],
-        ),
-        floatingActionButton: isBigScreen
-            ? null
-            : FloatingActionButton(
-                tooltip: 'Make an Order',
-                onPressed: () => showBarModalBottomSheet(
-                      expand: true,
-                      context: context,
-                      backgroundColor: Colors.transparent,
-                      builder: (context) => AddOrder(productId: productId),
-                    ),
-                child: Icon(Icons.add_outlined)),
-        body: Padding(
-          padding: const EdgeInsets.all(8.0),
-          child: SingleChildScrollView(
-              child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                AnimatedContainer(
-                  width: double.infinity,
-                  duration: Duration(milliseconds: 1000),
-                  curve: Curves.easeInOut,
-                  height: showDetails ? 200 : 0,
-                  child: Column(
-                    children: [
-                      ProductHeader(
-                        selectedField: searchFeild,
-                        dateRangeHolder: dateRangeHolder,
-                        selectedSupplier: selectedSupplier,
-                        selectedStatus: selectedStatus,
-                        onFieldChange: (value) {
-                          setState(() {
-                            searchFeild = value;
-                          });
-                        },
-                        onSupplierChange: (value) {
-                          setState(() {
-                            selectedSupplier = value;
-                          });
-                          getPurchases();
-                        },
-                        onSelectStatus: (value) {
-                          setState(() {
-                            selectedStatus = value;
-                          });
-                          getPurchases();
-                        },
-                        suppliers: suppliers,
+              icon: Icon(Icons.arrow_back_ios_new_outlined),
+            ),
+            title: Text('${widget.productName} Dashboard'),
+            actions: [
+              IconButton(
+                  onPressed: () {
+                    setState(() {
+                      showDetails = !showDetails;
+                    });
+                  },
+                  icon: AnimatedRotation(
+                    turns: showDetails ? 0.5 : 0.0,
+                    duration: Duration(milliseconds: 300),
+                    child: Icon(Icons.keyboard_arrow_down),
+                  )),
+              IconButton(
+                  tooltip: 'Add Order',
+                  onPressed: () => showBarModalBottomSheet(
+                        expand: true,
+                        context: context,
+                        backgroundColor: Colors.transparent,
+                        builder: (context) => AddOrder(
+                          productId: productId,
+                          getUpDate: getAllData,
+                        ),
                       ),
-                    ],
+                  icon: Icon(Icons.add_box_outlined)),
+              IconButton(
+                onPressed: () {
+                  openBox(context);
+                },
+                icon: Icon(Icons.delete_outline),
+              ),
+              IconButton(
+                  tooltip: 'Edit Product',
+                  onPressed: () => showBarModalBottomSheet(
+                        expand: true,
+                        context: context,
+                        backgroundColor: Colors.transparent,
+                        builder: (context) => EditProduct(
+                          updatePageInfo: getAllData,
+                          productId: widget.productId,
+                        ),
+                      ),
+                  icon: Icon(Icons.edit_note_outlined))
+            ],
+          ),
+          floatingActionButton: isBigScreen
+              ? null
+              : FloatingActionButton(
+                  tooltip: 'Make an Order',
+                  onPressed: () => showBarModalBottomSheet(
+                        expand: true,
+                        context: context,
+                        backgroundColor: Colors.transparent,
+                        builder: (context) => AddOrder(
+                            productId: productId, getUpDate: getAllData),
+                      ),
+                  child: Icon(Icons.add_outlined)),
+          body: Padding(
+            padding: const EdgeInsets.all(8.0),
+            child: SingleChildScrollView(
+                child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                  AnimatedContainer(
+                    width: double.infinity,
+                    duration: Duration(milliseconds: 1000),
+                    curve: Curves.easeInOut,
+                    height: showDetails ? 200 : 0,
+                    child: Column(
+                      children: [
+                        ProductHeader(
+                          selectedField: searchFeild,
+                          dateRangeHolder: dateRangeHolder,
+                          selectedSupplier: selectedSupplier,
+                          selectedStatus: selectedStatus,
+                          onFieldChange: (value) {
+                            setState(() {
+                              searchFeild = value;
+                            });
+                          },
+                          onSupplierChange: (value) {
+                            setState(() {
+                              selectedSupplier = value;
+                            });
+                            getPurchases();
+                          },
+                          onSelectStatus: (value) {
+                            setState(() {
+                              selectedStatus = value;
+                            });
+                            getPurchases();
+                          },
+                          suppliers: suppliers,
+                        ),
+                      ],
+                    ),
                   ),
-                ),
-                SizedBox(
-                  height: 10,
-                ),
-                SizedBox(
-                    width: double.infinity,
-                    height: isBigScreen ? 450 : 350,
-                    child: loading
-                        ? Center(
-                            child: SizedBox(
-                                width: 50,
-                                height: 50,
-                                child: CircularProgressIndicator()))
-                        : cardsInfo(isBigScreen, data)),
-                SizedBox(height: 16),
-                Container(
-                    height: isBigScreen ? 600 : 900,
-                    width: double.infinity,
-                    decoration:
-                        BoxDecoration(borderRadius: BorderRadius.circular(10)),
-                    child: isBigScreen
-                        ? Row(
-                            children: [
-                              Expanded(
-                                  flex: 3,
-                                  child: Card(
-                                    elevation: 3,
-                                    color:
-                                        Theme.of(context).colorScheme.surface,
-                                    child: LineChartSample1(
-                                      onRangeChanged: handleRangeChanged,
-                                      rangeInfo: rangeInfo,
-                                      selectedRange: selectedRange,
-                                    ),
-                                  )),
-                              SizedBox(width: 5),
-                              Expanded(flex: 2, child: ProductCategoryChart()),
-                            ],
-                          )
-                        : Column(
-                            children: [
-                              Expanded(
-                                  child: Card(
-                                elevation: 3,
-                                color: Theme.of(context).colorScheme.surface,
-                                child: LineChartSample1(
-                                  onRangeChanged: handleRangeChanged,
-                                  rangeInfo: rangeInfo,
-                                  selectedRange: selectedRange,
-                                ),
-                              )),
-                              SizedBox(height: 50),
-                              Expanded(child: ProductCategoryChart()),
-                            ],
-                          )),
-                SizedBox(height: 16),
-                SizedBox(
-                    height: 600,
-                    child: loadingTable
-                        ? SizedBox()
-                        : MainTable(
-                            showCheckboxColumn: false,
-                            isLoading: loadingTable,
-                            data: purchases,
-                            columnDefs: [
-                              {
-                                'name': 'Quantity',
-                                'sortable': true,
-                                'type': 'number',
-                                'field': 'quantity'
-                              },
-                              {
-                                'name': 'Sold',
-                                'sortable': true,
-                                'type': 'sold',
-                                'field': 'sold'
-                              },
-                              {
-                                'name': 'Price',
-                                'sortable': true,
-                                'type': 'money',
-                                'field': 'price'
-                              },
-                              {
-                                'name': 'Total',
-                                'sortable': true,
-                                'type': 'money',
-                                'field': 'total'
-                              },
-                              {
-                                'name': 'Discount',
-                                'sortable': true,
-                                'type': 'money',
-                                'field': 'discount'
-                              },
-                              {
-                                'name': 'Total Payable',
-                                'sortable': true,
-                                'type': 'money',
-                                'field': 'totalPayable'
-                              },
-                              {
-                                'name': 'Purchase Date',
-                                'sortable': false,
-                                'type': 'date',
-                                'field': 'purchaseDate'
-                              },
-                              {
-                                'name': 'Status',
-                                'sortable': false,
-                                'type': 'text',
-                                'field': 'status'
-                              },
-                              {
-                                'name': 'Delivery Date',
-                                'sortable': true,
-                                'type': 'date',
-                                'field': 'deliveryDate'
-                              },
-                              {
-                                'name': 'Expiry Date',
-                                'sortable': true,
-                                'type': 'date',
-                                'field': 'expiryDate'
-                              },
-                              {
-                                'name': 'Cash',
-                                'sortable': false,
-                                'type': 'money',
-                                'field': 'cash'
-                              },
-                              {
-                                'name': 'Transfer',
-                                'sortable': false,
-                                'type': 'money',
-                                'field': 'transfer'
-                              },
-                              {
-                                'name': 'Card',
-                                'sortable': false,
-                                'type': 'money',
-                                'field': 'card'
-                              },
-                              {
-                                'name': 'Initiator',
-                                'sortable': false,
-                                'type': 'text',
-                                'field': 'initiator'
-                              },
-                              {
-                                'name': 'Date',
-                                'sortable': true,
-                                'type': 'date',
-                                'field': 'createdAt'
-                              },
-                              {
-                                'name': 'Actions',
-                                'sortable': false,
-                                'type': 'actions',
-                                'field': 'Actions'
-                              }
-                            ],
-                            sortableColumns: {
-                              0: 'quantity',
-                              1: 'price',
-                              2: 'total',
-                              3: 'discount',
-                              4: 'totalPayable',
-                              5: 'purchaseDate',
-                              6: 'createdAt'
-                            },
-                            actions: [
-                              IconButton(
-                                  onPressed: () {
-                                    if (returnedSelection.isEmpty) {
-                                      doAlerts('Please select an item first');
-                                    } else if (returnedSelection[0]
-                                            ['quantity'] ==
-                                        getSold(returnedSelection[0]['sold'])) {
-                                      doAlerts('This batch have been sold out');
-                                    } else {
-                                      showDamagedGoodsForm(
-                                          context,
-                                          handleDamagedGoods,
-                                          (returnedSelection[0]['quantity'] -
-                                              getSold(returnedSelection[0]
-                                                  ['sold'])));
-                                    }
-                                  },
-                                  icon: Icon(Icons.delete))
-                            ],
-                            title: '',
-                            range: Container(
-                              padding: EdgeInsets.symmetric(horizontal: 20),
-                              decoration: BoxDecoration(
-                                  color: Theme.of(context)
-                                      .colorScheme
-                                      .surfaceBright,
-                                  borderRadius: BorderRadius.circular(5)),
-                              child: Row(
-                                children: [
-                                  Row(
-                                    children: [
-                                      IconButton(
-                                        icon: Icon(Icons.calendar_today),
-                                        tooltip: 'From date',
-                                        onPressed: () async {
-                                          final DateTime? picked =
-                                              await showDatePicker(
-                                            context: context,
-                                            initialDate:
-                                                _fromDate ?? DateTime.now(),
-                                            firstDate: DateTime(2000),
-                                            lastDate: _toDate ?? DateTime.now(),
-                                          );
-                                          if (picked != null) {
-                                            setState(() {
-                                              _fromDate = picked;
-                                            });
-                                          }
-                                        },
+                  SizedBox(
+                    height: 10,
+                  ),
+                  SizedBox(
+                      width: double.infinity,
+                      height: isBigScreen ? 450 : 350,
+                      child: loading
+                          ? Center(
+                              child: SizedBox(
+                                  width: 50,
+                                  height: 50,
+                                  child: CircularProgressIndicator()))
+                          : cardsInfo(isBigScreen, data)),
+                  SizedBox(height: 16),
+                  loadingCharts
+                      ? Center(
+                          child: SizedBox(
+                              width: 50,
+                              height: 50,
+                              child: CircularProgressIndicator()))
+                      : Container(
+                          height: isBigScreen ? 600 : 900,
+                          width: double.infinity,
+                          decoration: BoxDecoration(
+                              borderRadius: BorderRadius.circular(10)),
+                          child: isBigScreen
+                              ? Row(
+                                  children: [
+                                    Expanded(
+                                        flex: 3,
+                                        child: Card(
+                                          elevation: 3,
+                                          color: Theme.of(context)
+                                              .colorScheme
+                                              .surface,
+                                          child: LineChartSample1(
+                                            onRangeChanged: handleRangeChanged,
+                                            rangeInfo: rangeInfo,
+                                            selectedRange: selectedRange,
+                                          ),
+                                        )),
+                                    SizedBox(width: 5),
+                                    Expanded(
+                                        flex: 2, child: ProductCategoryChart()),
+                                  ],
+                                )
+                              : Column(
+                                  children: [
+                                    Expanded(
+                                        child: Card(
+                                      elevation: 3,
+                                      color:
+                                          Theme.of(context).colorScheme.surface,
+                                      child: LineChartSample1(
+                                        onRangeChanged: handleRangeChanged,
+                                        rangeInfo: rangeInfo,
+                                        selectedRange: selectedRange,
                                       ),
-                                      Text(
-                                        _fromDate != null
-                                            ? "${_fromDate!.toLocal()}"
-                                                .split(' ')[0]
-                                            : "From",
-                                      ),
-                                    ],
-                                  ),
-                                  SizedBox(width: 16),
-                                  Row(
-                                    children: [
-                                      IconButton(
-                                        icon: Icon(Icons.calendar_today),
-                                        tooltip: 'To date',
-                                        onPressed: () async {
-                                          final DateTime? picked =
-                                              await showDatePicker(
-                                            context: context,
-                                            initialDate:
-                                                _toDate ?? DateTime.now(),
-                                            firstDate:
-                                                _fromDate ?? DateTime(2000),
-                                            lastDate: DateTime.now(),
-                                          );
-                                          if (picked != null) {
-                                            setState(() {
-                                              _toDate = picked;
-                                            });
-                                          }
-                                        },
-                                      ),
-                                      Text(
-                                        _toDate != null
-                                            ? "${_toDate!.toLocal()}"
-                                                .split(' ')[0]
-                                            : "To",
-                                      ),
-                                    ],
-                                  ),
-                                  Spacer(),
-                                  SizedBox(width: 8),
-                                  OutlinedButton(
-                                    onPressed: () {
-                                      setState(() {
-                                        _fromDate = null;
-                                        _toDate = null;
-                                      });
+                                    )),
+                                    SizedBox(height: 50),
+                                    Expanded(child: ProductCategoryChart()),
+                                  ],
+                                )),
+                  SizedBox(height: 16),
+                  loadingTable
+                      ? Center(
+                          child: SizedBox(
+                              width: 50,
+                              height: 50,
+                              child: CircularProgressIndicator()))
+                      : SizedBox(
+                          height: 600,
+                          child: loadingTable
+                              ? SizedBox()
+                              : MainTable(
+                                  showCheckboxColumn: false,
+                                  isLoading: loadingTable,
+                                  data: purchases,
+                                  columnDefs: [
+                                    {
+                                      'name': 'Quantity',
+                                      'sortable': true,
+                                      'type': 'number',
+                                      'field': 'quantity'
                                     },
-                                    child: Text('Reset'),
+                                    {
+                                      'name': 'Sold',
+                                      'sortable': true,
+                                      'type': 'sold',
+                                      'field': 'sold'
+                                    },
+                                    {
+                                      'name': 'Price',
+                                      'sortable': true,
+                                      'type': 'money',
+                                      'field': 'price'
+                                    },
+                                    {
+                                      'name': 'Total',
+                                      'sortable': true,
+                                      'type': 'money',
+                                      'field': 'total'
+                                    },
+                                    {
+                                      'name': 'Discount',
+                                      'sortable': true,
+                                      'type': 'money',
+                                      'field': 'discount'
+                                    },
+                                    {
+                                      'name': 'Total Payable',
+                                      'sortable': true,
+                                      'type': 'money',
+                                      'field': 'totalPayable'
+                                    },
+                                    {
+                                      'name': 'Purchase Date',
+                                      'sortable': false,
+                                      'type': 'date',
+                                      'field': 'purchaseDate'
+                                    },
+                                    {
+                                      'name': 'Status',
+                                      'sortable': false,
+                                      'type': 'text',
+                                      'field': 'status'
+                                    },
+                                    {
+                                      'name': 'Delivery Date',
+                                      'sortable': true,
+                                      'type': 'date',
+                                      'field': 'deliveryDate'
+                                    },
+                                    {
+                                      'name': 'Expiry Date',
+                                      'sortable': true,
+                                      'type': 'date',
+                                      'field': 'expiryDate'
+                                    },
+                                    {
+                                      'name': 'Cash',
+                                      'sortable': false,
+                                      'type': 'money',
+                                      'field': 'cash'
+                                    },
+                                    {
+                                      'name': 'Transfer',
+                                      'sortable': false,
+                                      'type': 'money',
+                                      'field': 'transfer'
+                                    },
+                                    {
+                                      'name': 'Card',
+                                      'sortable': false,
+                                      'type': 'money',
+                                      'field': 'card'
+                                    },
+                                    {
+                                      'name': 'Initiator',
+                                      'sortable': false,
+                                      'type': 'text',
+                                      'field': 'initiator'
+                                    },
+                                    {
+                                      'name': 'Date',
+                                      'sortable': true,
+                                      'type': 'date',
+                                      'field': 'createdAt'
+                                    },
+                                    {
+                                      'name': 'Actions',
+                                      'sortable': false,
+                                      'type': 'actions',
+                                      'field': 'Actions'
+                                    }
+                                  ],
+                                  sortableColumns: {
+                                    0: 'quantity',
+                                    1: 'price',
+                                    2: 'total',
+                                    3: 'discount',
+                                    4: 'totalPayable',
+                                    5: 'purchaseDate',
+                                    6: 'createdAt'
+                                  },
+                                  actions: [
+                                    IconButton(
+                                        onPressed: () {
+                                          if (returnedSelection.isEmpty) {
+                                            doAlerts(
+                                                'Please select an item first');
+                                          } else if (returnedSelection[0]
+                                                  ['quantity'] ==
+                                              getSold(returnedSelection[0]
+                                                  ['sold'])) {
+                                            doAlerts(
+                                                'This batch have been sold out');
+                                          } else {
+                                            showDamagedGoodsForm(
+                                                context,
+                                                handleDamagedGoods,
+                                                (returnedSelection[0]
+                                                        ['quantity'] -
+                                                    getSold(returnedSelection[0]
+                                                        ['sold'])));
+                                          }
+                                        },
+                                        icon: Icon(Icons.delete))
+                                  ],
+                                  title: '',
+                                  range: Container(
+                                    padding:
+                                        EdgeInsets.symmetric(horizontal: 20),
+                                    decoration: BoxDecoration(
+                                        color: Theme.of(context)
+                                            .colorScheme
+                                            .surfaceBright,
+                                        borderRadius: BorderRadius.circular(5)),
+                                    child: Row(
+                                      children: [
+                                        Row(
+                                          children: [
+                                            IconButton(
+                                              icon: Icon(Icons.calendar_today),
+                                              tooltip: 'From date',
+                                              onPressed: () async {
+                                                final DateTime? picked =
+                                                    await showDatePicker(
+                                                  context: context,
+                                                  initialDate: _fromDate ??
+                                                      DateTime.now(),
+                                                  firstDate: DateTime(2000),
+                                                  lastDate:
+                                                      _toDate ?? DateTime.now(),
+                                                );
+                                                if (picked != null) {
+                                                  setState(() {
+                                                    _fromDate = picked;
+                                                  });
+                                                }
+                                              },
+                                            ),
+                                            Text(
+                                              _fromDate != null
+                                                  ? "${_fromDate!.toLocal()}"
+                                                      .split(' ')[0]
+                                                  : "From",
+                                            ),
+                                          ],
+                                        ),
+                                        SizedBox(width: 16),
+                                        Row(
+                                          children: [
+                                            IconButton(
+                                              icon: Icon(Icons.calendar_today),
+                                              tooltip: 'To date',
+                                              onPressed: () async {
+                                                final DateTime? picked =
+                                                    await showDatePicker(
+                                                  context: context,
+                                                  initialDate:
+                                                      _toDate ?? DateTime.now(),
+                                                  firstDate: _fromDate ??
+                                                      DateTime(2000),
+                                                  lastDate: DateTime.now(),
+                                                );
+                                                if (picked != null) {
+                                                  setState(() {
+                                                    _toDate = picked;
+                                                  });
+                                                }
+                                              },
+                                            ),
+                                            Text(
+                                              _toDate != null
+                                                  ? "${_toDate!.toLocal()}"
+                                                      .split(' ')[0]
+                                                  : "To",
+                                            ),
+                                          ],
+                                        ),
+                                        Spacer(),
+                                        SizedBox(width: 8),
+                                        OutlinedButton(
+                                          onPressed: () {
+                                            setState(() {
+                                              _fromDate = null;
+                                              _toDate = null;
+                                            });
+                                          },
+                                          child: Text('Reset'),
+                                        ),
+                                      ],
+                                    ),
                                   ),
-                                ],
-                              ),
-                            ),
-                            allowMultipleSelection: false,
-                            returnSelection: handleSelection,
-                            longPress: false,
-                          ))
-              ])),
-        ));
+                                  allowMultipleSelection: false,
+                                  returnSelection: handleSelection,
+                                  longPress: false,
+                                ))
+                ])),
+          ));
+    } else {
+      return ErrorPage(onRetry: getDashboardData);
+    }
   }
 
   num getSold(List sold) {
