@@ -22,6 +22,7 @@ List<Widget> actions(BuildContext context, ThemeNotifier themeNotifier,
       icon: const Icon(Icons.logout_outlined),
       onPressed: () {
         context.router.replaceAll([LoginRoute()]);
+        print('logeed out');
         tokenNotifier.logout();
       },
     ),

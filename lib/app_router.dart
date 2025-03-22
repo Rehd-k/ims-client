@@ -6,20 +6,18 @@ import 'helpers/auth_guards/login_gaurd.dart';
 
 @AutoRouterConfig()
 class AppRouter extends RootStackRouter {
-  final Map? decodedToken;
-  AppRouter({required this.decodedToken});
   @override
   List<AutoRoute> get routes => [
         AutoRoute(
             page: LoginRoute.page,
             keepHistory: false,
             initial: true,
-            guards: [LoginGaurd(decodedToken: decodedToken)]),
+            guards: [LoginGaurd()]),
         AutoRoute(path: '/', page: MainMenuRoute.page, children: [
           AutoRoute(
               path: 'dashboard',
               page: DashboardRoute.page,
-              guards: [LogedinGuard(decodedToken: decodedToken)]),
+              guards: [LogedinGuard()]),
           AutoRoute(path: 'users', page: UserManagementRoute.page),
           AutoRoute(
             path: 'products',

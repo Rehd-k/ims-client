@@ -9,19 +9,20 @@ import 'theme.dart';
 // import 'screens/menu.dart';
 
 class MyApp extends StatelessWidget {
-  const MyApp({super.key});
+  MyApp({super.key});
+  final AppRouter appRouter = AppRouter();
 
   @override
   Widget build(BuildContext context) {
+    final router = appRouter;
     return Consumer2<ThemeNotifier, TokenNotifier>(
         builder: (context, themeNotifier, tokenNotifier, child) {
       tokenNotifier.initializePreferences();
       themeNotifier.initializePreferences();
       themeNotifier.getTheme();
 
-      final appRouter = AppRouter(decodedToken: tokenNotifier.decodedToken);
       return MaterialApp.router(
-        routerConfig: appRouter.config(),
+        routerConfig: router.config(),
         debugShowCheckedModeBanner: false,
         title: 'Flutter Demo',
         theme: lightTheme,

@@ -1,18 +1,27 @@
 import 'package:auto_route/auto_route.dart';
 
 import '../../app_router.gr.dart';
+import '../../services/token.service.dart';
 
 class AdminAuthGuard extends AutoRouteGuard {
   final Map? decodedToken;
+  final JwtService _jwtService = JwtService();
   AdminAuthGuard({required this.decodedToken});
   @override
-  void onNavigation(NavigationResolver resolver, StackRouter router) {
-    if (decodedToken != null) {
-      if (decodedToken?['role'] == 'admin') {
+  void onNavigation(NavigationResolver resolver, StackRouter router) async {
+    Map? decodeToken;
+    final token = await _jwtService.getToken();
+    if (token != null) {
+      decodeToken = _jwtService.decodeToken(token);
+    }
+
+    if (decodeToken != null) {
+      if (decodeToken['role'] == 'admin') {
+        print(decodeToken);
         router.push(DashboardRoute(onResult: () {
           resolver.next(true);
         }));
-      } else if (decodedToken?['role'] == 'cashier') {
+      } else if (decodeToken['role'] == 'cashier') {
         router.push(MakeSaleIndex(onResult: () {
           resolver.next(true);
         }));

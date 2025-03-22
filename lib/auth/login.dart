@@ -2,10 +2,12 @@ import 'package:auto_route/auto_route.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
+import 'package:invease/app_router.gr.dart';
 import 'package:invease/helpers/providers/token_provider.dart';
 import 'package:provider/provider.dart';
 
 import '../services/api.service.dart';
+import '../services/token.service.dart';
 import 'form.dart';
 
 @RoutePage()
@@ -29,6 +31,8 @@ class _LoginFormState extends State<LoginScreen> {
   bool hidePassword = true;
   bool isLoading = false;
   final ApiService apiServices = ApiService();
+  final JwtService jwtService = JwtService();
+  bool loggedIn = false;
   @override
   void initState() {
     super.initState();
@@ -78,10 +82,15 @@ class _LoginFormState extends State<LoginScreen> {
         token = response.data['access_token'];
         if (!mounted) return;
         final auth = Provider.of<TokenNotifier>(context, listen: false);
-        // final prefs = await SharedPreferences.getInstance();
-        // prefs.setString('access_token', token);
+
+        await jwtService.saveToken(token);
         auth.setToken(token, context);
-        context.router.replaceNamed('/dashboard');
+        print('gitten here now');
+
+        setState(() {
+          loggedIn = true;
+        });
+        print('gitten here');
       } else {
         if (response.data['statusCode'] == 401) {
           var result = response.data['message'];
@@ -130,6 +139,9 @@ class _LoginFormState extends State<LoginScreen> {
 
   @override
   Widget build(BuildContext context) {
+    if (loggedIn == true) {
+      context.router.replaceAll([DashboardRoute()]);
+    }
     return Scaffold(
       body: Container(
           color: Theme.of(context).cardColor,
