@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
-import '../../../helpers/providers/token_provider.dart';
-import '../../../services/api.service.dart';
+import '../../helpers/providers/token_provider.dart';
+import '../../services/api.service.dart';
 
 class AddUser extends StatefulWidget {
   final Function()? updateUserList;

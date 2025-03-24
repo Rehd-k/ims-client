@@ -4,9 +4,11 @@ import 'package:invease/app_router.gr.dart';
 
 import '../helpers/providers/theme_notifier.dart';
 import '../helpers/providers/token_provider.dart';
+import '../services/token.service.dart';
 
 List<Widget> actions(BuildContext context, ThemeNotifier themeNotifier,
     TokenNotifier tokenNotifier) {
+  JwtService jwtService = JwtService();
   return [
     IconButton(
       icon: const Icon(Icons.remove_red_eye),
@@ -21,9 +23,9 @@ List<Widget> actions(BuildContext context, ThemeNotifier themeNotifier,
     IconButton(
       icon: const Icon(Icons.logout_outlined),
       onPressed: () {
-        context.router.replaceAll([LoginRoute()]);
-        print('logeed out');
+        jwtService.clearToken();
         tokenNotifier.logout();
+        context.router.replaceAll([LoginRoute()]);
       },
     ),
   ];

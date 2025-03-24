@@ -102,7 +102,7 @@ class MainTableState extends State<MainTable> {
 
   void _onRowSelectionChanged() {
     final selectedRows = _dessertsDataSource!.getSelectedRows();
-    print(selectedRows);
+
     widget.returnSelection(selectedRows);
   }
 
@@ -131,7 +131,6 @@ class MainTableState extends State<MainTable> {
               minWidth: 1500,
               fit: FlexFit.tight,
               onRowsPerPageChanged: (value) {
-                print('Row per page changed to $value');
                 _rowsPerPage = value!;
               },
               initialFirstRowIndex: _initialRow,

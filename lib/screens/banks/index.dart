@@ -6,23 +6,22 @@ import '../../globals/actions.dart';
 import '../../globals/sidebar.dart';
 import '../../helpers/providers/theme_notifier.dart';
 import '../../helpers/providers/token_provider.dart';
-import 'add_supplier.dart';
-import 'view_suppliers.dart';
+import 'add_bank.dart';
+import 'view_banks.dart';
 
 @RoutePage()
-class SupplierIndex extends StatefulWidget {
-  const SupplierIndex({super.key});
+class BankScreen extends StatefulWidget {
+  const BankScreen({super.key});
 
   @override
-  SupplierIndexState createState() => SupplierIndexState();
+  BankScreenState createState() => BankScreenState();
 }
 
-class SupplierIndexState extends State<SupplierIndex> {
-  final GlobalKey<ViewSuppliersState> _viewSupplierKey =
-      GlobalKey<ViewSuppliersState>();
+class BankScreenState extends State<BankScreen> {
+  final GlobalKey<ViewBanksState> _viewBankKey = GlobalKey<ViewBanksState>();
 
-  void updateSuppliers() {
-    _viewSupplierKey.currentState?.updateSupplierList();
+  void updateBanks() {
+    _viewBankKey.currentState?.updateBankList();
   }
 
   @override
@@ -49,13 +48,12 @@ class SupplierIndexState extends State<SupplierIndex> {
                 smallScreen
                     ? SizedBox.shrink()
                     : Expanded(
-                        flex: 1,
-                        child: AddSupplier(updateSupplier: updateSuppliers)),
+                        flex: 1, child: AddBank(updateBank: updateBanks)),
                 SizedBox(width: smallScreen ? 0 : 20),
                 Expanded(
                     flex: 2,
-                    child: ViewSuppliers(
-                        key: _viewSupplierKey, updateSupplier: updateSuppliers))
+                    child:
+                        ViewBanks(key: _viewBankKey, updateBank: updateBanks))
               ],
             ),
           ));

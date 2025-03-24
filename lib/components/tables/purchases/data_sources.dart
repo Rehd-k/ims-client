@@ -40,8 +40,6 @@ class DessertDataSourceAsync extends AsyncDataTableSource {
   List? actions;
 
   void sort(String columnName, bool ascending) {
-    log('$columnName, $ascending');
-
     refreshDatasource();
   }
 

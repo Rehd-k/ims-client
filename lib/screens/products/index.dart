@@ -24,7 +24,6 @@ class ProductsIndexState extends State<ProductsIndex> {
       GlobalKey<ViewProductsState>();
 
   void updateProducts() {
-    log('did you see this');
     _viewProductKey.currentState?.updateProductsList();
   }
 
@@ -54,21 +53,23 @@ class ProductsIndexState extends State<ProductsIndex> {
               : null,
           appBar: AppBar(
             actions: [
-              IconButton(
-                  onPressed: () {
-                    showModalBottomSheet(
-                      context: context,
-                      builder: (context) => Container(
-                        height: MediaQuery.of(context).size.height * 1,
-                        padding: const EdgeInsets.all(8.0),
-                        child: AddProducts(
-                          updateProducts: updateProducts,
-                          tokenNotifier: tokenNotifier,
-                        ),
-                      ),
-                    );
-                  },
-                  icon: Icon(Icons.add_outlined)),
+              tokenNotifier.decodedToken!['role'] == 'cashier'
+                  ? SizedBox.shrink()
+                  : IconButton(
+                      onPressed: () {
+                        showModalBottomSheet(
+                          context: context,
+                          builder: (context) => Container(
+                            height: MediaQuery.of(context).size.height * 1,
+                            padding: const EdgeInsets.all(8.0),
+                            child: AddProducts(
+                              updateProducts: updateProducts,
+                              tokenNotifier: tokenNotifier,
+                            ),
+                          ),
+                        );
+                      },
+                      icon: Icon(Icons.add_outlined)),
               ...actions(context, themeNotifier, tokenNotifier)
             ],
           ),

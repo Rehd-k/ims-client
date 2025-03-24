@@ -15,7 +15,7 @@ List fullMenu = [
     'link': '/administrator',
     'children': [
       {'title': 'Users', 'link': '/users', 'icon': Icons.emoji_people_outlined},
-      {'title': 'Roles', 'link': '/roles', 'icon': Icons.shield_outlined},
+      {'title': 'Banks', 'link': '/banks', 'icon': Icons.business_outlined},
     ]
   },
   {
@@ -137,130 +137,137 @@ class SideBarState extends State<SideBar> {
 
   @override
   Widget build(BuildContext context) {
-    return Column(children: [
-      SizedBox(
-        width: double.infinity,
-        height: 110,
-        child: Center(
-          child: Text(widget.tokenNotifier.decodedToken?['username']),
+    if (widget.tokenNotifier.decodedToken?['username'] != null) {
+      return Column(children: [
+        SizedBox(
+          width: double.infinity,
+          height: 110,
+          child: Center(
+            child: Text(widget.tokenNotifier.decodedToken?['username']),
+          ),
         ),
-      ),
-      Expanded(
-        child: ListView.builder(
-            itemCount: menuData.length,
-            itemBuilder: (context, index) {
-              final item = menuData[index];
-              bool hasChildren = item['children'] != null;
-              return Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  InkWell(
-                    onTap: () => hasChildren
-                        ? expand(index)
-                        : context.router.pushNamed(item['link']),
-                    child: Container(
-                        padding: EdgeInsets.all(16),
-                        child: Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              Row(
-                                children: [
-                                  SizedBox(width: 10),
-                                  Container(
-                                    padding: EdgeInsets.all(7),
-                                    decoration: BoxDecoration(
-                                        color: Theme.of(context)
-                                            .colorScheme
-                                            .surface,
-                                        boxShadow: [
-                                          BoxShadow(
-                                            color: Colors.grey.withAlpha(25),
-                                            spreadRadius: 1,
-                                            blurRadius: 1,
-                                            offset: Offset(0, 1),
-                                          ),
-                                        ],
-                                        borderRadius:
-                                            BorderRadius.circular(10)),
-                                    child: Icon(
-                                      item['icon'],
-                                      size: 15,
-                                      color: Colors.blueGrey,
-                                    ),
-                                  ),
-                                  SizedBox(width: 14),
-                                  Text(
-                                    item['title'],
-                                    style:
-                                        Theme.of(context).textTheme.bodyMedium,
-                                  ),
-                                ],
-                              ),
-                              hasChildren
-                                  ? Container(
-                                      margin: EdgeInsets.only(left: 10),
+        Expanded(
+          child: ListView.builder(
+              itemCount: menuData.length,
+              itemBuilder: (context, index) {
+                final item = menuData[index];
+                bool hasChildren = item['children'] != null;
+                return Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    InkWell(
+                      onTap: () => hasChildren
+                          ? expand(index)
+                          : context.router.pushPath(item['link']),
+                      child: Container(
+                          padding: EdgeInsets.all(16),
+                          child: Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Row(
+                                  children: [
+                                    SizedBox(width: 10),
+                                    Container(
+                                      padding: EdgeInsets.all(7),
+                                      decoration: BoxDecoration(
+                                          color: Theme.of(context)
+                                              .colorScheme
+                                              .surface,
+                                          boxShadow: [
+                                            BoxShadow(
+                                              color: Colors.grey.withAlpha(25),
+                                              spreadRadius: 1,
+                                              blurRadius: 1,
+                                              offset: Offset(0, 1),
+                                            ),
+                                          ],
+                                          borderRadius:
+                                              BorderRadius.circular(10)),
                                       child: Icon(
-                                        size: 14,
-                                        expandedStates[index]
-                                            ? Icons.keyboard_arrow_down
-                                            : Icons.keyboard_arrow_right,
+                                        item['icon'],
+                                        size: 15,
                                         color: Colors.blueGrey,
                                       ),
-                                    )
-                                  : SizedBox.shrink()
-                            ])),
-                  ),
-                  AnimatedSize(
-                      duration: Duration(milliseconds: 300),
-                      curve: Curves.easeInOut,
-                      child: expandedStates[index]
-                          ? Padding(
-                              padding: EdgeInsets.symmetric(
-                                  horizontal: 16, vertical: 8),
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: item['children']
-                                    .map<Widget>(
-                                      (child) => InkWell(
-                                        onTap: () => context.router
-                                            .pushNamed(child['link']),
-                                        child: Padding(
-                                          padding: const EdgeInsets.fromLTRB(
-                                              20, 0, 0, 20),
-                                          child: Row(
-                                            children: [
-                                              SizedBox(
-                                                width: 30,
-                                              ),
-                                              Icon(
-                                                child['icon'],
-                                                size: 15,
-                                                color: Colors.blueGrey,
-                                              ),
-                                              Padding(
-                                                padding:
-                                                    const EdgeInsets.fromLTRB(
-                                                        10, 0, 0, 0),
-                                                child: Text(
-                                                  child['title'],
-                                                  style: Theme.of(context)
-                                                      .textTheme
-                                                      .labelMedium,
+                                    ),
+                                    SizedBox(width: 14),
+                                    Text(
+                                      item['title'],
+                                      style: Theme.of(context)
+                                          .textTheme
+                                          .bodyMedium,
+                                    ),
+                                  ],
+                                ),
+                                hasChildren
+                                    ? Container(
+                                        margin: EdgeInsets.only(left: 10),
+                                        child: Icon(
+                                          size: 14,
+                                          expandedStates[index]
+                                              ? Icons.keyboard_arrow_down
+                                              : Icons.keyboard_arrow_right,
+                                          color: Colors.blueGrey,
+                                        ),
+                                      )
+                                    : SizedBox.shrink()
+                              ])),
+                    ),
+                    AnimatedSize(
+                        duration: Duration(milliseconds: 300),
+                        curve: Curves.easeInOut,
+                        child: expandedStates[index]
+                            ? Padding(
+                                padding: EdgeInsets.symmetric(
+                                    horizontal: 16, vertical: 8),
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: item['children']
+                                      .map<Widget>(
+                                        (child) => InkWell(
+                                          onTap: () => context.router
+                                              .pushPath(child['link']),
+                                          child: Padding(
+                                            padding: const EdgeInsets.fromLTRB(
+                                                20, 0, 0, 20),
+                                            child: Row(
+                                              children: [
+                                                SizedBox(
+                                                  width: 30,
                                                 ),
-                                              ),
-                                            ],
+                                                Icon(
+                                                  child['icon'],
+                                                  size: 15,
+                                                  color: Colors.blueGrey,
+                                                ),
+                                                Padding(
+                                                  padding:
+                                                      const EdgeInsets.fromLTRB(
+                                                          10, 0, 0, 0),
+                                                  child: Text(
+                                                    child['title'],
+                                                    style: Theme.of(context)
+                                                        .textTheme
+                                                        .labelMedium,
+                                                  ),
+                                                ),
+                                              ],
+                                            ),
                                           ),
                                         ),
-                                      ),
-                                    )
-                                    .toList(),
-                              ),
-                            )
-                          : SizedBox.shrink())
-                ],
-              );
-            }),
-      ),
-    ]);
+                                      )
+                                      .toList(),
+                                ),
+                              )
+                            : SizedBox.shrink())
+                  ],
+                );
+              }),
+        ),
+      ]);
+    } else {
+      return Center(
+        child: CircularProgressIndicator(),
+      );
+    }
   }
 }

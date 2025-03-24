@@ -43,7 +43,8 @@ class Salesoverview extends StatelessWidget {
                 ),
                 SizedBox(height: 20),
                 Container(
-                    padding: EdgeInsets.symmetric(horizontal: 14),
+                    padding:
+                        EdgeInsets.symmetric(horizontal: isBigScreen ? 14 : 0),
                     height: isBigScreen ? 350 : 175,
                     child: grids(isBigScreen, context)),
                 SizedBox(height: 1),

@@ -2,6 +2,8 @@ import 'package:invease/helpers/constants.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:dio/dio.dart';
 
+import 'navigation.service.dart';
+
 class ApiService {
   final Dio _dio = Dio(BaseOptions(
       baseUrl: baseUrl,
@@ -11,6 +13,11 @@ class ApiService {
   ApiService() {
     _dio.interceptors.add(InterceptorsWrapper(
       onError: (error, handler) {
+        if (error.type == DioExceptionType.connectionError) {
+          NavigationService.goToErrorPage({
+            'message': 'The Server is Unreachable Check your network connection'
+          }, null);
+        }
         return handler.next(error);
       },
       onRequest: (options, handler) async {

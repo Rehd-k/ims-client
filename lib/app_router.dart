@@ -13,6 +13,7 @@ class AppRouter extends RootStackRouter {
             keepHistory: false,
             initial: true,
             guards: [LoginGaurd()]),
+        AutoRoute(page: ErrorRoute.page),
         AutoRoute(path: '/', page: MainMenuRoute.page, children: [
           AutoRoute(
               path: 'dashboard',
@@ -33,6 +34,7 @@ class AppRouter extends RootStackRouter {
           AutoRoute(path: 'income_report', page: IncomeReportsRoute.page),
           AutoRoute(path: 'expenses_report', page: ExpencesReportRoute.page),
           AutoRoute(path: 'expenses', page: Expenses.page),
+          AutoRoute(path: 'banks', page: BankRoute.page)
         ]),
       ];
 }

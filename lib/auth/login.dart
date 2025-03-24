@@ -85,12 +85,10 @@ class _LoginFormState extends State<LoginScreen> {
 
         await jwtService.saveToken(token);
         auth.setToken(token, context);
-        print('gitten here now');
 
         setState(() {
           loggedIn = true;
         });
-        print('gitten here');
       } else {
         if (response.data['statusCode'] == 401) {
           var result = response.data['message'];

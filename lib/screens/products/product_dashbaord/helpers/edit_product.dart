@@ -90,8 +90,10 @@ class _EditProductState extends State<EditProduct> {
           'products/update/${widget.productId}', updatedProduct);
 
       widget.updatePageInfo();
+      // ignore: use_build_context_synchronously
       Navigator.of(context).pop();
     } catch (e) {
+      // ignore: use_build_context_synchronously
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Error updating product: $e')),
       );

@@ -36,7 +36,7 @@ dependencies:
   shared_preferences: ^2.3.5
   dio: ^5.7.0
   jwt_decoder: ^2.0.1
-  auto_route: ^9.3.0+1
+  auto_route: ^10.0.1
   fl_chart: ^0.70.2
   data_table_2: ^2.5.18
 
@@ -49,6 +49,7 @@ dependencies:
   flutter_window_close: ^1.2.0
   fluttertoast: ^8.2.12
   lottie: ^3.3.1
+  flutter_native_splash: ^2.4.4
 
 dev_dependencies:
   flutter_test:

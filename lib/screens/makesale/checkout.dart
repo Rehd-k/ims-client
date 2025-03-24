@@ -36,13 +36,10 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
   double amountPaid = 0;
   double balance = 0;
   double discount = 0;
+  bool isBankLoading = true;
 
   // Mock bank data - replace with your backend data
-  final List<Map<String, String>> banks = [
-    {'id': '1', 'name': 'First Bank'},
-    {'id': '2', 'name': 'GTBank'},
-    // ... other banks
-  ];
+  List<dynamic> banks = [];
 
   @override
   void dispose() {
@@ -54,9 +51,23 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
     super.dispose();
   }
 
+  Future updateBankList() async {
+    setState(() {
+      isBankLoading = true;
+    });
+    var dbbanks = await apiService.getRequest(
+      'banks?skip=${banks.length}',
+    );
+    setState(() {
+      banks = dbbanks.data;
+      isBankLoading = false;
+    });
+  }
+
   @override
   void initState() {
     super.initState();
+    updateBankList();
     _updateAmountPaid();
   }
 
@@ -107,7 +118,8 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
       'card': double.tryParse(cardController.text) ?? 0,
       'accountNumber': accountNumber,
       'products': widget.cart,
-      'accountName': banks.firstWhere((res) => res["id"] == accountNumber,
+      'accountName': banks.firstWhere(
+          (res) => res["accountNumber"] == accountNumber,
           orElse: () => {"name": ""})["name"],
       'customer': selectedName?['_id']
     };
@@ -268,42 +280,25 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
           if (label == 'Transfer') ...[
             SizedBox(width: 10),
             Expanded(
-              child: Row(
-                children: [
-                  Expanded(
-                    flex: 10,
-                    child: DropdownButtonFormField<String>(
-                      value: accountNumber,
-                      decoration: InputDecoration(
-                        labelText: 'Select Bank',
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(10),
-                        ),
-                      ),
-                      items: [
-                        ...banks.map((bank) => DropdownMenuItem(
-                              value: bank['id'],
-                              child: Text(bank['name']!),
-                            )),
-                      ],
-                      onChanged: (value) {
-                        setState(() {
-                          accountNumber = value;
-                        });
-                      },
-                    ),
+              child: DropdownButtonFormField<String>(
+                value: accountNumber,
+                decoration: InputDecoration(
+                  labelText: 'Select Bank',
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(10),
                   ),
-                  SizedBox(height: 5),
-                  Expanded(
-                    flex: 1,
-                    child: IconButton(
-                      onPressed: () {
-                        // Add navigation to bank management screen
-                      },
-                      icon: Icon(Icons.add_business_outlined),
-                    ),
-                  )
+                ),
+                items: [
+                  ...banks.map((bank) => DropdownMenuItem(
+                        value: bank['accountNumber'],
+                        child: Text(bank['name']!),
+                      )),
                 ],
+                onChanged: (value) {
+                  setState(() {
+                    accountNumber = value;
+                  });
+                },
               ),
             ),
           ],

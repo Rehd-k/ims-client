@@ -130,7 +130,7 @@ class ProductDashboardState extends State<ProductDashboard> {
     });
     final response = await apiService.getRequest(
         'sales/getchart/$productId?filter={"sorter":"$dateRange"}&startDate=${range.startDate}&endDate=${range.endDate}');
-    // print(response);
+
     setState(() {
       purchases = response.data;
       loadingCharts = false;

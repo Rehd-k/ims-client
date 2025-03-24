@@ -17,7 +17,6 @@ class AdminAuthGuard extends AutoRouteGuard {
 
     if (decodeToken != null) {
       if (decodeToken['role'] == 'admin') {
-        print(decodeToken);
         router.push(DashboardRoute(onResult: () {
           resolver.next(true);
         }));

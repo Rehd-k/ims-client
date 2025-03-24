@@ -36,7 +36,8 @@ class TokenNotifier with ChangeNotifier, WidgetsBindingObserver {
     notifyListeners();
   }
 
-  void clearToken() {
+  void clearToken() async {
+    preferences = await SharedPreferences.getInstance();
     _token = null;
     preferences!.remove("access_token");
   }

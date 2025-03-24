@@ -174,7 +174,6 @@ class _LineChart extends StatelessWidget {
     );
 
     final title = bottomTitlesData.firstWhere((element) {
-      // print(element);
       return element.value == value.toInt();
     }, orElse: () => ChartTitle(value: -1, label: ''));
 

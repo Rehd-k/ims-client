@@ -14,16 +14,15 @@ class LogedinGuard extends AutoRouteGuard {
       decodeToken = _jwtService.decodeToken(token);
     }
     if (decodeToken != null) {
-      print(decodeToken);
       if (decodeToken['role'] == 'admin') {
         resolver.next(true); // Allow navigation
       } else if (decodeToken['role'] == 'cashier') {
         router.replaceAll([MakeSaleIndex()]);
       } else {
-        resolver.redirect(LoginRoute());
+        resolver.redirectUntil(LoginRoute());
       }
     } else {
-      resolver.redirect(LoginRoute());
+      resolver.redirectUntil(LoginRoute());
     }
   }
 }

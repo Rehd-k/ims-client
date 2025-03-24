@@ -13,9 +13,9 @@ class LoginGaurd extends AutoRouteGuard {
       decodeToken = _jwtService.decodeToken(token);
     }
     if (decodeToken != null && decodeToken['role'] == 'admin') {
-      router.replaceNamed('/dashboard');
+      router.replacePath('/dashboard');
     } else if (decodeToken != null && decodeToken['role'] == 'cashier') {
-      router.replaceNamed('/make-sale');
+      router.replacePath('/make-sale');
     } else {
       resolver.next(true);
     }
