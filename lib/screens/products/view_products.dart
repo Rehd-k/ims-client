@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:invease/components/tables/purchases/purchases_table.dart';
+import 'package:provider/provider.dart';
 
 import '../../helpers/providers/token_provider.dart';
 import '../../services/api.service.dart';
@@ -60,98 +61,102 @@ class ViewProductsState extends State<ViewProducts> {
         ? Center(child: CircularProgressIndicator())
         : Column(
             children: [
-              Expanded(
-                  child: MainTable(
-                      isLoading: isLoading,
-                      data: filteredProducts,
-                      columnDefs: [
-                        {
-                          'name': 'Title',
-                          'sortable': true,
-                          'type': 'text',
-                          'field': 'title'
-                        },
-                        {
-                          'name': 'Category',
-                          'sortable': true,
-                          'type': 'text',
-                          'field': 'category'
-                        },
-                        {
-                          'name': 'Price',
-                          'sortable': true,
-                          'type': 'money',
-                          'field': 'price'
-                        },
-                        {
-                          'name': 'ROQ',
-                          'sortable': false,
-                          'type': 'number',
-                          'field': 'roq'
-                        },
-                        {
-                          'name': 'Quantity',
-                          'sortable': true,
-                          'type': 'number',
-                          'field': 'quantity'
-                        },
-                        {
-                          'name': 'Description',
-                          'sortable': false,
-                          'type': 'text',
-                          'field': 'description'
-                        },
-                        {
-                          'name': 'Brand',
-                          'sortable': false,
-                          'type': 'text',
-                          'field': 'brand'
-                        },
-                        {
-                          'name': 'Weight',
-                          'sortable': false,
-                          'type': 'number',
-                          'field': 'weight'
-                        },
-                        {
-                          'name': 'Unit',
-                          'sortable': false,
-                          'type': 'string',
-                          'field': 'unit'
-                        },
-                        {
-                          'name': 'Available',
-                          'sortable': false,
-                          'type': 'string',
-                          'field': 'isAvailable'
-                        },
-                        {
-                          'name': 'Initiator',
-                          'sortable': false,
-                          'type': 'string',
-                          'field': 'initiator'
-                        },
-                        {
-                          'name': 'Added On',
-                          'sortable': false,
-                          'type': 'string',
-                          'field': 'createdAt'
-                        },
-                        // {
-                        //   'name': 'Actions',
-                        //   'sortable': false,
-                        //   'type': 'string',
-                        //   'field': 'transactionId'
-                        // }
-                      ],
-                      sortableColumns: {},
-                      actions: [],
-                      title: '',
-                      range: SizedBox.shrink(),
-                      showCheckboxColumn: false,
-                      allowMultipleSelection: false,
-                      returnSelection: () {},
-                      longPress: true)),
+              Expanded(child: Consumer<TokenNotifier>(
+                  builder: (context, tokenNotifier, child) {
+                return MainTable(
+                    isLoading: isLoading,
+                    data: filteredProducts,
+                    columnDefs: [
+                      {
+                        'name': 'Title',
+                        'sortable': true,
+                        'type': 'text',
+                        'field': 'title'
+                      },
+                      {
+                        'name': 'Category',
+                        'sortable': true,
+                        'type': 'text',
+                        'field': 'category'
+                      },
+                      {
+                        'name': 'Price',
+                        'sortable': true,
+                        'type': 'money',
+                        'field': 'price'
+                      },
+                      {
+                        'name': 'ROQ',
+                        'sortable': false,
+                        'type': 'number',
+                        'field': 'roq'
+                      },
+                      {
+                        'name': 'Quantity',
+                        'sortable': true,
+                        'type': 'number',
+                        'field': 'quantity'
+                      },
+                      {
+                        'name': 'Description',
+                        'sortable': false,
+                        'type': 'text',
+                        'field': 'description'
+                      },
+                      {
+                        'name': 'Brand',
+                        'sortable': false,
+                        'type': 'text',
+                        'field': 'brand'
+                      },
+                      {
+                        'name': 'Weight',
+                        'sortable': false,
+                        'type': 'number',
+                        'field': 'weight'
+                      },
+                      {
+                        'name': 'Unit',
+                        'sortable': false,
+                        'type': 'string',
+                        'field': 'unit'
+                      },
+                      {
+                        'name': 'Available',
+                        'sortable': false,
+                        'type': 'string',
+                        'field': 'isAvailable'
+                      },
+                      {
+                        'name': 'Initiator',
+                        'sortable': false,
+                        'type': 'string',
+                        'field': 'initiator'
+                      },
+                      {
+                        'name': 'Added On',
+                        'sortable': false,
+                        'type': 'string',
+                        'field': 'createdAt'
+                      },
+                      // {
+                      //   'name': 'Actions',
+                      //   'sortable': false,
+                      //   'type': 'string',
+                      //   'field': 'transactionId'
+                      // }
+                    ],
+                    sortableColumns: {},
+                    actions: [],
+                    title: '',
+                    range: SizedBox.shrink(),
+                    showCheckboxColumn: false,
+                    allowMultipleSelection: false,
+                    returnSelection: () {},
+                    longPress: tokenNotifier.decodedToken!['role'] == 'cashier'
+                        ? false
+                        : true);
+              }))
             ],
           );
   }

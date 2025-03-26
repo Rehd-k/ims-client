@@ -20,11 +20,11 @@ class ErrorScreen extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               Lottie.asset(
-                'lottie/network_error.json', // Add an animated error illustration
-                width: 250,
-                height: 250,
-                fit: BoxFit.cover,
-              ),
+                  'lottie/network_error.json', // Add an animated error illustration
+                  width: 250,
+                  height: 250,
+                  fit: BoxFit.cover,
+                  repeat: false),
               const SizedBox(height: 20),
               Text(
                 "Oops! Something went wrong",

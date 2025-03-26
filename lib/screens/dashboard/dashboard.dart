@@ -1,5 +1,6 @@
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/svg.dart';
 import 'package:invease/helpers/providers/token_provider.dart';
 import 'package:invease/services/api.service.dart';
 import 'package:provider/provider.dart';
@@ -98,6 +99,9 @@ class DashboardState extends State<DashboardScreen> {
         builder: (context, themeNotifier, tokenNotifier, child) {
       return Scaffold(
         appBar: AppBar(
+            title: SvgPicture.asset(
+              'vectors/logo.svg',
+            ),
             actions: [...actions(context, themeNotifier, tokenNotifier)]),
         drawer: smallScreen
             ? Drawer(
@@ -119,7 +123,26 @@ class DashboardState extends State<DashboardScreen> {
                     SizedBox(height: 20),
                     CustomerInsight(data: dashboardInfo[3]),
                     SizedBox(height: 20),
-                    Financialsummary()
+                    Financialsummary(),
+                    SizedBox(height: 20),
+                    Container(
+                      padding: EdgeInsets.symmetric(vertical: 5),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceAround,
+                        children: [
+                          Text(
+                            'Powered by Vessel-Labs',
+                            style: TextStyle(
+                                fontSize: 14, fontWeight: FontWeight.w500),
+                          ),
+                          Text(
+                            'Reserved @ ${DateTime.now().year}',
+                            style: TextStyle(
+                                fontSize: 14, fontWeight: FontWeight.w500),
+                          ),
+                        ],
+                      ),
+                    )
                   ]),
                 )),
       );

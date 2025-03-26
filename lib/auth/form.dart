@@ -24,7 +24,11 @@ Form loginForm(
             children: <Widget>[
               Padding(
                 padding: const EdgeInsets.all(8.0),
-                child: SvgPicture.asset('vectors/logo.svg'),
+                child: SvgPicture.asset(
+                  height: 200,
+                  width: 200,
+                  'vectors/logo.svg',
+                ),
               ),
               SizedBox(height: 100),
               TextFormField(
