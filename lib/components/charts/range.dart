@@ -4,14 +4,12 @@ enum RangeLabel {
   lastSevenDays('Last 7 Days'),
   thisMonth('This Month'),
   lastWeek('Last Week'),
-  nextMonth('Next Month'),
   lastMonth('Last Month'),
   firstQuarter('First Quarter'),
   secondQuarter('Second Quarter'),
   thirdQuarter('Third Quarter'),
   fourthQuarter('Fourth Quarter'),
-  thisYear('This Year'),
-  custom('Custom');
+  thisYear('This Year');
 
   const RangeLabel(this.label);
   final String label;

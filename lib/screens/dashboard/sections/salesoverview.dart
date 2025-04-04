@@ -1,14 +1,54 @@
+import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 
-import '../../../components/chart.dart';
+import '../../../components/charts/line_chart.dart';
+import '../../../components/charts/range.dart';
 import '../../../components/info_card.dart';
+import '../../../services/api.service.dart';
 
-class Salesoverview extends StatelessWidget {
+class Salesoverview extends StatefulWidget {
   final num totalSales;
   final Map topSellingProducts;
 
   const Salesoverview(
       {super.key, required this.totalSales, required this.topSellingProducts});
+
+  @override
+  SalesoverviewState createState() => SalesoverviewState();
+}
+
+class SalesoverviewState extends State<Salesoverview> {
+  dynamic rangeInfo;
+  String selectedRange = 'Today';
+  ApiService apiService = ApiService();
+  List<FlSpot> spots = [];
+
+  @override
+  void initState() {
+    getChartData('Today');
+    super.initState();
+  }
+
+  handleRangeChanged(String rangeLabel) {
+    setState(() {
+      selectedRange = rangeLabel;
+    });
+    getChartData(selectedRange);
+  }
+
+  Future getChartData(dateRange) async {
+    final range = getDateRange(dateRange);
+    var data = await apiService
+        .getRequest('analytics/get-sales-chart?filter=$dateRange');
+
+    setState(() {
+      spots.clear();
+      data.data.forEach((item) {
+        spots.add(FlSpot(item['for'], item['totalSales']));
+      });
+      rangeInfo = range;
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -52,7 +92,14 @@ class Salesoverview extends StatelessWidget {
                   color: Theme.of(context).colorScheme.onPrimary,
                 ),
                 SizedBox(height: 5),
-                Expanded(child: SalesLineChart())
+                Expanded(
+                    child: MainLineChart(
+                  onRangeChanged: handleRangeChanged,
+                  rangeInfo: rangeInfo,
+                  selectedRange: selectedRange,
+                  spots: spots,
+                  isCurved: true,
+                ))
               ],
             )));
   }
@@ -70,7 +117,7 @@ class Salesoverview extends StatelessWidget {
             title: 'Today\'s Total Sales',
             icon: Icons.payments_outlined,
             currency: false,
-            value: totalSales.toString(),
+            value: widget.totalSales.toString(),
             fontSize: isBigScreen ? 20 : 10,
             color: Theme.of(context).colorScheme.onPrimary,
           ),
@@ -78,8 +125,8 @@ class Salesoverview extends StatelessWidget {
             title: 'Top-Selling Products \n Today',
             icon: Icons.trending_up,
             currency: false,
-            value: topSellingProducts['topSellingToday'].isNotEmpty
-                ? topSellingProducts['topSellingToday'][0]['title']
+            value: widget.topSellingProducts['topSellingToday'].isNotEmpty
+                ? widget.topSellingProducts['topSellingToday'][0]['title']
                 : 'No Sale Today',
             fontSize: isBigScreen ? 20 : 10,
             color: Theme.of(context).colorScheme.onPrimary,
@@ -88,8 +135,8 @@ class Salesoverview extends StatelessWidget {
             title: 'Top-Selling Products \n Weekly',
             icon: Icons.trending_up,
             currency: false,
-            value: topSellingProducts['topSellingWeekly'].isNotEmpty
-                ? topSellingProducts['topSellingWeekly'][0]['title']
+            value: widget.topSellingProducts['topSellingWeekly'].isNotEmpty
+                ? widget.topSellingProducts['topSellingWeekly'][0]['title']
                 : 'No Sale This Week',
             fontSize: isBigScreen ? 20 : 10,
             color: Theme.of(context).colorScheme.onPrimary,
@@ -98,8 +145,8 @@ class Salesoverview extends StatelessWidget {
             title: 'Top-Selling Products \n Monthly',
             icon: Icons.trending_up,
             currency: false,
-            value: topSellingProducts['topSellingMonthly'].isNotEmpty
-                ? topSellingProducts['topSellingMonthly'][0]['title']
+            value: widget.topSellingProducts['topSellingMonthly'].isNotEmpty
+                ? widget.topSellingProducts['topSellingMonthly'][0]['title']
                 : 'No Sale This Month',
             fontSize: isBigScreen ? 20 : 10,
             color: Theme.of(context).colorScheme.onPrimary,

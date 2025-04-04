@@ -28,7 +28,7 @@ class SalesLineChart extends StatefulWidget {
 class ChartState extends State<SalesLineChart> {
   final List<FlSpot> salesData = [
     FlSpot(0, 10), // Monday sales: 3.5k
-    FlSpot(1, 5), // Tuesday sales: 5k
+    FlSpot(1, 0), // Tuesday sales: 5k
     FlSpot(2, 20), // Wednesday sales: 4.2k
     FlSpot(3, 7), // Thursday sales: 6.5k
     FlSpot(4, 7), // Friday sales: 7k
@@ -89,7 +89,6 @@ class ChartState extends State<SalesLineChart> {
             Expanded(
               child: LineChart(
                 LineChartData(
-                  gridData: FlGridData(show: false),
                   titlesData: FlTitlesData(
                     topTitles: AxisTitles(sideTitles: SideTitles()),
                     rightTitles: AxisTitles(sideTitles: SideTitles()),
@@ -139,9 +138,7 @@ class ChartState extends State<SalesLineChart> {
                       ),
                     ),
                     leftTitles: AxisTitles(
-                      axisNameWidget: Text('No Of Sales'),
                       sideTitles: SideTitles(
-                        interval: 5,
                         showTitles: true,
                         reservedSize: 40,
                         getTitlesWidget: (value, meta) {
@@ -154,32 +151,28 @@ class ChartState extends State<SalesLineChart> {
                     ),
                   ),
                   borderData: FlBorderData(
-                    show: true,
-                    border: Border(
-                        bottom: BorderSide(
-                            color: Theme.of(context).colorScheme.surface,
-                            width: 3),
-                        left: BorderSide(
-                            color: Theme.of(context).colorScheme.surface,
-                            width: 3)),
-                  ),
+                      border: Border(
+                          top: BorderSide(width: 0.01),
+                          left: BorderSide(
+                            color: Colors.blue,
+                          ),
+                          right: BorderSide(width: 0.01),
+                          bottom: BorderSide(
+                            color: Colors.blue,
+                          ))),
                   lineBarsData: [
                     LineChartBarData(
                       spots: salesData,
                       isCurved: true,
                       color: Colors.blue,
-                      barWidth: 4,
-                      dotData: FlDotData(show: true),
+                      preventCurveOverShooting: true,
+                      dotData: FlDotData(show: false),
                       belowBarData: BarAreaData(
                         show: true,
                         color: Colors.blue.withAlpha(2),
                       ),
                     ),
                   ],
-                  minX: 0,
-                  maxX: 14,
-                  minY: 0,
-                  maxY: 80,
                 ),
               ),
             )

@@ -49,7 +49,6 @@ class DashboardState extends State<DashboardScreen> {
         fetchCustomerInsight(),
         fetchFinancialSummary()
       ]);
-
       setState(() {
         dashboardInfo = results;
       });
@@ -88,7 +87,8 @@ class DashboardState extends State<DashboardScreen> {
   }
 
   Future<void> fetchFinancialSummary() async {
-    // Your API call for Financial Summary
+    var data = await apiService.getRequest('analytics/sales-data');
+    return data.data;
   }
 
   @override
@@ -123,7 +123,7 @@ class DashboardState extends State<DashboardScreen> {
                     SizedBox(height: 20),
                     CustomerInsight(data: dashboardInfo[3]),
                     SizedBox(height: 20),
-                    Financialsummary(),
+                    Financialsummary(salesData: dashboardInfo[4]),
                     SizedBox(height: 20),
                     Container(
                       padding: EdgeInsets.symmetric(vertical: 5),

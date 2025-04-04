@@ -2,44 +2,60 @@ import 'package:flutter/material.dart';
 import 'package:fl_chart/fl_chart.dart';
 
 import '../../../components/dashboardcomponenets/barchart.dart';
-import '../../../components/dashboardcomponenets/linegraph.dart';
 
 class Financialsummary extends StatefulWidget {
-  const Financialsummary({super.key});
+  final List salesData;
+  const Financialsummary({super.key, required this.salesData});
 
   @override
   FinancialsummaryState createState() => FinancialsummaryState();
 }
 
 class FinancialsummaryState extends State<Financialsummary> {
-  // Example data
-  final List<FlSpot> revenueData = [
-    FlSpot(0, 1200000),
-    FlSpot(1, 1300000),
-    FlSpot(2, 1250000),
-  ];
-  final List<FlSpot> expensesData = [
-    FlSpot(0, 800000),
-    FlSpot(1, 850000),
-    FlSpot(2, 820000),
-  ];
-  final List<FlSpot> profitData = [
-    FlSpot(0, 400000),
-    FlSpot(1, 450000),
-    FlSpot(2, 430000),
-  ];
-  final List<BarChartGroupData> cashInData = [
-    BarChartGroupData(
-        x: 0, barRods: [BarChartRodData(color: Colors.green, toY: 1000000)]),
-    BarChartGroupData(
-        x: 1, barRods: [BarChartRodData(color: Colors.green, toY: 1100000)]),
-  ];
-  final List<BarChartGroupData> cashOutData = [
-    BarChartGroupData(
-        x: 0, barRods: [BarChartRodData(color: Colors.red, toY: 500000)]),
-    BarChartGroupData(
-        x: 1, barRods: [BarChartRodData(color: Colors.red, toY: 600000)]),
-  ];
+  List<BarChartGroupData> barGroups = [];
+  List<String> weekDays = [];
+  @override
+  void initState() {
+// Define the days of the week in the correct order
+    weekDays = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+
+// Create a map of day to totalSales from salesData, defaulting missing days to 0
+    Map<String, double> salesMap = {
+      for (var day in weekDays) day: 0.0
+    }; // Initialize to 0
+    Map<String, double> expensesMap = {for (var day in weekDays) day: 0.0};
+
+    for (var entry in widget.salesData) {
+      salesMap[entry['day']] = entry['totalSales'].toDouble();
+      expensesMap[entry['day']] = entry['expenses'].toDouble();
+    }
+
+// Create a list of BarChartGroupData with toY matching totalSales for each day
+    barGroups = weekDays.map((day) {
+      return BarChartGroupData(x: weekDays.indexOf(day), barRods: [
+        BarChartRodData(
+          toY: salesMap[day] as double, // Use the totalSales from the map
+          gradient: LinearGradient(
+            begin: Alignment.bottomCenter,
+            end: Alignment.topCenter,
+            colors: salesMap[day]! > 0
+                ? [Colors.greenAccent, Colors.green]
+                : [Colors.grey, Colors.black], // Grey gradient for 0 sales
+          ),
+        ),
+        BarChartRodData(
+          toY: expensesMap[day] as double,
+          gradient: LinearGradient(
+            begin: Alignment.bottomCenter,
+            end: Alignment.topCenter,
+            colors: [Colors.redAccent, Colors.red],
+          ),
+        ),
+      ]);
+    }).toList();
+
+    super.initState();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -49,17 +65,8 @@ class FinancialsummaryState extends State<Financialsummary> {
       ),
       child: Column(
         children: [
-          Linegraph(
-            revenueData: revenueData,
-            expensesData: expensesData,
-            profitData: profitData,
-            period: 'this month',
-          ),
           Barchart(
-            cashInData: cashInData,
-            cashOutData: cashOutData,
-            period: 'this week',
-          ),
+              cashData: barGroups, period: 'this week', weekDays: weekDays),
         ],
       ),
     );

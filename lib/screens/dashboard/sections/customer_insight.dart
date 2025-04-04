@@ -199,7 +199,9 @@ class CustomerInsight extends StatelessWidget {
             title: 'Total Customers',
             icon: Icons.payments_outlined,
             currency: false,
-            value: data['totalCustomers'][0]['totalCustomers'].toString(),
+            value: data['totalCustomers'].isNotEmpty
+                ? data['totalCustomers'][0]['totalCustomers'].toString()
+                : '0',
             fontSize: isBigScreen ? 20 : 10,
             color: Theme.of(context).colorScheme.onPrimary,
           ),
@@ -207,8 +209,10 @@ class CustomerInsight extends StatelessWidget {
             title: 'Customer Retention',
             icon: Icons.trending_up,
             currency: false,
-            value: data['retentionCurrentMonth'][0]['customerRetention']
-                .toString(),
+            value: data['retentionCurrentMonth'].isNotEmpty
+                ? data['retentionCurrentMonth'][0]['customerRetention']
+                    .toString()
+                : '0',
             fontSize: isBigScreen ? 20 : 10,
             color: Theme.of(context).colorScheme.onPrimary,
           )

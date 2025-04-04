@@ -100,7 +100,9 @@ class Inventorysummery extends StatelessWidget {
             title: 'Fast-Moving',
             icon: Icons.trending_up,
             currency: false,
-            value: data['fastestMovingProduct']['title'],
+            value: data['fastestMovingProduct'] != null
+                ? data['fastestMovingProduct']['title']
+                : '0',
             fontSize: isBigScreen ? 20 : 10,
             color: Theme.of(context).colorScheme.onPrimary,
           ),
@@ -108,7 +110,9 @@ class Inventorysummery extends StatelessWidget {
             title: ' Slow-Moving ',
             icon: Icons.trending_up,
             currency: false,
-            value: data['slowestMovingProduct']['title'],
+            value: data['slowestMovingProduct'] != null
+                ? data['slowestMovingProduct']['title']
+                : '0',
             fontSize: isBigScreen ? 20 : 10,
             color: Theme.of(context).colorScheme.onPrimary,
           ),

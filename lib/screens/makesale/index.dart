@@ -341,6 +341,7 @@ class MakeSaleIndexState extends State<MakeSaleIndex> {
                         // height: MediaQuery.of(context).size.height * 0.8,
                         padding: const EdgeInsets.all(8.0),
                         child: CartSection(
+                          isSmallScreen: smallScreen,
                           saveCart: saveCartToStorage,
                           emptyCart: emptycart,
                           cart: cart,
@@ -374,6 +375,7 @@ class MakeSaleIndexState extends State<MakeSaleIndex> {
                 smallScreen
                     ? SizedBox.shrink()
                     : CartSection(
+                        isSmallScreen: smallScreen,
                         cart: cart,
                         cartTotal: getCartTotal(),
                         decrementCartQuantity: decrementCartQuantity,

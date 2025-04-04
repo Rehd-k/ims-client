@@ -10,14 +10,24 @@ import 'helpers/providers/token_provider.dart';
 import 'services/navigation.service.dart';
 
 void main() async {
-  // Handle Synchronous Errors
   FlutterError.onError = (FlutterErrorDetails details) {
-    // Log the error to console (or send it to an error tracking service)
-    debugPrint('Flutter Error: ${details.exceptionAsString()}');
+    if (details.exceptionAsString().contains('RenderFlex')) {
+      debugPrint('RenderFlex Error: ${details.exceptionAsString()}');
+      NavigationService.goToErrorPage(
+          {'message': details.exceptionAsString()}, null);
+    } else {
+      FlutterError.presentError(details);
+    }
+  };
 
-    // Prevent the app from crashing by navigating to the error page
-    NavigationService.goToErrorPage(
-        {'message': details.exceptionAsString()}, null);
+  FlutterError.onError = (FlutterErrorDetails details) {
+    if (details.exceptionAsString().contains('RenderFlex')) {
+      FlutterError.presentError(details);
+    } else {
+      FlutterError.presentError(details);
+      NavigationService.goToErrorPage(
+          {'message': details.exceptionAsString()}, null);
+    }
   };
 
   // Handle Platform and Framework Errors

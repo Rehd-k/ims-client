@@ -15,7 +15,7 @@ A new Flutter project.
 8) extracting tables to excel and pdf
 9) Do chart
 10) Crash reports
-11) Hand;e Big Table Pagination
+11) Handle Big Table Pagination
 
 
 for deleting orders (pruchases)

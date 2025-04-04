@@ -320,10 +320,12 @@ class ProductDashboardState extends State<ProductDashboard> {
                                           color: Theme.of(context)
                                               .colorScheme
                                               .surface,
-                                          child: LineChartSample1(
+                                          child: MainLineChart(
                                             onRangeChanged: handleRangeChanged,
                                             rangeInfo: rangeInfo,
                                             selectedRange: selectedRange,
+                                            spots: [],
+                                            isCurved: false,
                                           ),
                                         )),
                                     SizedBox(width: 5),
@@ -338,10 +340,12 @@ class ProductDashboardState extends State<ProductDashboard> {
                                       elevation: 3,
                                       color:
                                           Theme.of(context).colorScheme.surface,
-                                      child: LineChartSample1(
+                                      child: MainLineChart(
                                         onRangeChanged: handleRangeChanged,
                                         rangeInfo: rangeInfo,
                                         selectedRange: selectedRange,
+                                        spots: [],
+                                        isCurved: false,
                                       ),
                                     )),
                                     SizedBox(height: 50),

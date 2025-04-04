@@ -4,40 +4,26 @@ import 'range.dart';
 
 import '../../theme.dart';
 
-class LineChartSample1 extends StatelessWidget {
+class MainLineChart extends StatelessWidget {
   final Function(String) onRangeChanged;
   final dynamic rangeInfo;
   final String selectedRange;
+  final List<FlSpot> spots;
+  final bool isCurved;
 
-  const LineChartSample1({
-    super.key,
-    required this.onRangeChanged,
-    required this.rangeInfo,
-    required this.selectedRange,
-  });
+  const MainLineChart(
+      {super.key,
+      required this.onRangeChanged,
+      required this.rangeInfo,
+      required this.selectedRange,
+      required this.spots,
+      required this.isCurved});
 
   @override
   Widget build(BuildContext context) {
     late List<ChartTitle> bottomTitles;
-    late List<ChartTitle> leftTitles;
 
-    // Example data - replace with your backend call
-    bottomTitles = rangeInfo.titles;
-
-    leftTitles = [
-      ChartTitle(value: 1, label: '1m'),
-      ChartTitle(value: 2, label: '2m'),
-      ChartTitle(value: 3, label: '3m'),
-      ChartTitle(value: 4, label: '5m'),
-      ChartTitle(value: 5, label: '6m'),
-      ChartTitle(value: 6, label: '7m'),
-      ChartTitle(value: 7, label: '8m'),
-      ChartTitle(value: 8, label: '9m'),
-      ChartTitle(value: 9, label: '10m'),
-      ChartTitle(value: 10, label: '11m'),
-      ChartTitle(value: 11, label: '12m'),
-      ChartTitle(value: 12, label: '13m'),
-    ];
+    bottomTitles = rangeInfo?.titles ?? [];
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -78,13 +64,16 @@ class LineChartSample1 extends StatelessWidget {
         ),
         Expanded(
           child: Padding(
-            padding: const EdgeInsets.only(right: 8, left: 8),
-            child: _LineChart(
-              bottomTitlesData: bottomTitles,
-              leftTitlesData: leftTitles,
-              xAxis: rangeInfo.xAxis,
-            ),
-          ),
+              padding: const EdgeInsets.only(right: 8, left: 8),
+              child: rangeInfo == null
+                  ? Center(
+                      child: CircularProgressIndicator(),
+                    )
+                  : _LineChart(
+                      bottomTitlesData: bottomTitles,
+                      xAxis: rangeInfo.xAxis,
+                      spots: spots,
+                      isCurved: isCurved)),
         ),
       ],
     );
@@ -93,79 +82,73 @@ class LineChartSample1 extends StatelessWidget {
 
 class _LineChart extends StatelessWidget {
   final List<ChartTitle> bottomTitlesData;
-  final List<ChartTitle> leftTitlesData;
   final double xAxis;
+  final List<FlSpot> spots;
+  final bool isCurved;
 
-  const _LineChart({
-    required this.bottomTitlesData,
-    required this.leftTitlesData,
-    required this.xAxis,
-  });
+  const _LineChart(
+      {required this.bottomTitlesData,
+      required this.xAxis,
+      required this.spots,
+      required this.isCurved});
 
   @override
   Widget build(BuildContext context) {
     return LineChart(
-      sampleData2,
-      duration: const Duration(milliseconds: 250),
-    );
-  }
-
-  LineChartData get sampleData2 => LineChartData(
-        lineTouchData: LineTouchData(),
-        gridData: gridData,
-        titlesData: titlesData2,
-        borderData: borderData,
-        lineBarsData: [lineChartBarData2_3],
+      LineChartData(
+        gridData: const FlGridData(show: true),
+        titlesData: FlTitlesData(
+          bottomTitles: AxisTitles(
+            sideTitles: SideTitles(
+              showTitles: true,
+              reservedSize: 40,
+              interval: 1,
+              getTitlesWidget: bottomTitleWidgets,
+            ),
+          ),
+          rightTitles: const AxisTitles(
+            sideTitles: SideTitles(showTitles: false),
+          ),
+          topTitles: const AxisTitles(
+            sideTitles: SideTitles(showTitles: false),
+          ),
+          leftTitles: AxisTitles(
+            sideTitles: SideTitles(
+              showTitles: true,
+              reservedSize: 50,
+            ),
+          ),
+        ),
+        borderData: FlBorderData(
+          show: true,
+          border: Border(
+            bottom: BorderSide(
+                color: AppColors.primary.withValues(alpha: 0.2), width: 4),
+            left: BorderSide(
+                color: AppColors.primary.withValues(alpha: 0.2), width: 4),
+            right: const BorderSide(color: Colors.transparent),
+            top: const BorderSide(color: Colors.transparent),
+          ),
+        ),
+        lineBarsData: [
+          LineChartBarData(
+            isCurved: true,
+            color: AppColors.primaryVariant.withValues(alpha: 0.5),
+            barWidth: 2,
+            isStrokeCapRound: true,
+            dotData: const FlDotData(show: true),
+            belowBarData: BarAreaData(show: false),
+            spots: spots,
+          )
+        ],
         minX: 0,
-        maxX: xAxis,
-        maxY: 12,
+        maxX: xAxis + 1,
         minY: 0,
-      );
-
-  FlTitlesData get titlesData2 => FlTitlesData(
-        bottomTitles: AxisTitles(
-          sideTitles: bottomTitles,
-        ),
-        rightTitles: const AxisTitles(
-          sideTitles: SideTitles(showTitles: false),
-        ),
-        topTitles: const AxisTitles(
-          sideTitles: SideTitles(showTitles: false),
-        ),
-        leftTitles: AxisTitles(
-          sideTitles: leftTitles(),
-        ),
-      );
-
-  Widget leftTitleWidgets(double value, TitleMeta meta) {
-    const style = TextStyle(
-      fontWeight: FontWeight.bold,
-      fontSize: 14,
-    );
-
-    final title = leftTitlesData.firstWhere(
-      (element) => element.value == value.toInt(),
-      orElse: () => ChartTitle(value: -1, label: ''),
-    );
-
-    if (title.value == -1) return Container();
-
-    return SideTitleWidget(
-      meta: meta,
-      child: Text(
-        title.label,
-        style: style,
-        textAlign: TextAlign.center,
       ),
+      duration: const Duration(milliseconds: 500),
+      curve: Curves.linear,
     );
   }
-
-  SideTitles leftTitles() => SideTitles(
-        getTitlesWidget: leftTitleWidgets,
-        showTitles: true,
-        interval: 1,
-        reservedSize: 40,
-      );
 
   Widget bottomTitleWidgets(double value, TitleMeta meta) {
     const style = TextStyle(
@@ -187,35 +170,15 @@ class _LineChart extends StatelessWidget {
     );
   }
 
-  SideTitles get bottomTitles => SideTitles(
-        showTitles: true,
-        reservedSize: 40,
-        interval: 1,
-        getTitlesWidget: bottomTitleWidgets,
-      );
-
-  FlGridData get gridData => const FlGridData(show: true);
-
-  FlBorderData get borderData => FlBorderData(
-        show: true,
-        border: Border(
-          bottom: BorderSide(
-              color: AppColors.primary.withValues(alpha: 0.2), width: 4),
-          left: BorderSide(
-              color: AppColors.primary.withValues(alpha: 0.2), width: 4),
-          right: const BorderSide(color: Colors.transparent),
-          top: const BorderSide(color: Colors.transparent),
-        ),
-      );
-
-  LineChartBarData get lineChartBarData2_3 => LineChartBarData(
-        isCurved: true,
-        curveSmoothness: 0,
-        color: AppColors.primaryVariant.withValues(alpha: 0.5),
-        barWidth: 2,
-        isStrokeCapRound: true,
-        dotData: const FlDotData(show: true),
-        belowBarData: BarAreaData(show: false),
-        spots: const [FlSpot(1, 3.8), FlSpot(2, 1.9), FlSpot(3, 5)],
-      );
+  // FlBorderData get borderData => FlBorderData(
+  //       show: true,
+  //       border: Border(
+  //         bottom: BorderSide(
+  //             color: AppColors.primary.withValues(alpha: 0.2), width: 4),
+  //         left: BorderSide(
+  //             color: AppColors.primary.withValues(alpha: 0.2), width: 4),
+  //         right: const BorderSide(color: Colors.transparent),
+  //         top: const BorderSide(color: Colors.transparent),
+  //       ),
+  //     );
 }
