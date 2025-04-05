@@ -155,7 +155,7 @@ class AddUserState extends State<AddUser> {
                     controller: role,
 
                     requestFocusOnTap: true,
-                    label: const Text('Category'),
+                    label: const Text('Role'),
                     // onSelected: (ColorLabel? color) {
                     //   setState(() {
                     //     selectedColor = color;

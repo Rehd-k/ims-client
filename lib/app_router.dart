@@ -6,12 +6,14 @@ import 'helpers/auth_guards/login_gaurd.dart';
 
 @AutoRouterConfig()
 class AppRouter extends RootStackRouter {
+  bool isWindows = true;
   @override
   List<AutoRoute> get routes => [
+        AutoRoute(page: SplashRoute.page, keepHistory: false, initial: true),
         AutoRoute(
             page: LoginRoute.page,
             keepHistory: false,
-            initial: true,
+            initial: isWindows ? false : true,
             guards: [LoginGaurd()]),
         AutoRoute(page: ErrorRoute.page),
         AutoRoute(path: '/', page: MainMenuRoute.page, children: [

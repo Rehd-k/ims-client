@@ -25,7 +25,7 @@ List<Widget> actions(BuildContext context, ThemeNotifier themeNotifier,
       onPressed: () {
         jwtService.clearToken();
         tokenNotifier.logout();
-        context.router.replaceAll([LoginRoute()]);
+        context.replaceRoute(LoginRoute());
       },
     ),
   ];

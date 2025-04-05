@@ -50,6 +50,7 @@ dependencies:
   fluttertoast: ^8.2.12
   lottie: ^3.3.1
   flutter_native_splash: ^2.4.4
+  flutter_launcher_icons: ^0.14.3
 
 dev_dependencies:
   flutter_test:
@@ -79,6 +80,8 @@ flutter:
   assets:
     - assets/vectors/
     - assets/fonts/
+    - assets/vectors/logo.png
+    - assets/icon/icon.png
   #   - images/a_dot_ham.jpeg
 
   # An image asset can refer to one or more resolution-specific "variants", see
@@ -117,6 +120,25 @@ flutter:
         - asset: assets/fonts/Poppins-BoldItalic.ttf
           weight: 700
           style: italic
+
+          
+flutter_native_splash:
+  color: "#ffffff"
+  color_dark: "#000000"
+  image: assets/vectors/logo.png
+  android: true
+  ios: true
+  web: false
+  fullscreen: true
+
+  android_gravity: center
+  ios_content_mode: center
+
+  android_12:
+    image: assets/vectors/logo.png
+    color: "#ffffff"
+    color_dark: "#000000"
+
   #
   # For details regarding fonts from package dependencies,
   # see https://flutter.dev/to/font-from-package

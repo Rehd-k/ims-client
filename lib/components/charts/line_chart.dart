@@ -94,6 +94,20 @@ class _LineChart extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    String formatNumber(double number) {
+      if (number < 1000) {
+        return number.toString();
+      } else if (number >= 1000 && number < 1000000) {
+        double value = number / 1000;
+        return '${value.toStringAsFixed(value % 1 == 0 ? 0 : 1)}k';
+      } else if (number >= 1000000) {
+        double value = number / 1000000;
+        return '${value.toStringAsFixed(value % 1 == 0 ? 0 : 1)}m';
+      }
+      return number
+          .toString(); // In case something goes wrong, default to the original number
+    }
+
     return LineChart(
       LineChartData(
         gridData: const FlGridData(show: true),
@@ -102,7 +116,6 @@ class _LineChart extends StatelessWidget {
             sideTitles: SideTitles(
               showTitles: true,
               reservedSize: 40,
-              interval: 1,
               getTitlesWidget: bottomTitleWidgets,
             ),
           ),
@@ -115,7 +128,20 @@ class _LineChart extends StatelessWidget {
           leftTitles: AxisTitles(
             sideTitles: SideTitles(
               showTitles: true,
-              reservedSize: 50,
+              reservedSize: MediaQuery.of(context).size.width < 600 ? 40 : 50,
+              getTitlesWidget: (value, meta) {
+                final style = TextStyle(
+                  fontWeight: FontWeight.bold,
+                  fontSize: MediaQuery.of(context).size.width < 600 ? 10 : 14,
+                );
+                return SideTitleWidget(
+                  meta: meta,
+                  child: Text(
+                    formatNumber(value),
+                    style: style,
+                  ),
+                );
+              },
             ),
           ),
         ),
