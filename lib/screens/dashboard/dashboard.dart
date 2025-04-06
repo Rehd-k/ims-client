@@ -100,7 +100,7 @@ class DashboardState extends State<DashboardScreen> {
       return Scaffold(
         appBar: AppBar(
             title: SvgPicture.asset(
-              'vectors/logo.svg',
+              'assets/vectors/logo.svg',
             ),
             actions: [...actions(context, themeNotifier, tokenNotifier)]),
         drawer: smallScreen

@@ -27,7 +27,7 @@ Form loginForm(
                 child: SvgPicture.asset(
                   height: 200,
                   width: 200,
-                  'vectors/logo.svg',
+                  'assets/vectors/logo.svg',
                 ),
               ),
               SizedBox(height: 100),

@@ -171,7 +171,7 @@ class _LoginFormState extends State<LoginScreen> {
                       ? Expanded(
                           flex: 7,
                           child: Image(
-                            image: AssetImage('images/banner.png'),
+                            image: AssetImage('assets/images/banner.png'),
                             fit: BoxFit.fill,
                           ),
                         )

@@ -115,7 +115,7 @@ class _SplashPageState extends State<SplashScreen>
                   SlideTransition(
                     position: _logoOffset,
                     child: SvgPicture.asset(
-                      'vectors/logo.svg',
+                      'assets/vectors/logo.svg',
                       width: 200,
                       height: 200,
                     ),
