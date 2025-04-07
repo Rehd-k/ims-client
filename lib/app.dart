@@ -19,7 +19,7 @@ class MyApp extends StatelessWidget {
       return MaterialApp.router(
         routerConfig: NavigationService.router.config(),
         debugShowCheckedModeBanner: false,
-        title: 'Flutter Demo',
+        title: 'Shelf Sense',
         theme: lightTheme,
         darkTheme: darkTheme,
         themeMode: themeNotifier.themeMode,

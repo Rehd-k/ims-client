@@ -77,7 +77,7 @@ class AddProductsState extends State<AddProducts> {
 
   handleQuantityChange(String innerQuantity) {
     setState(() {
-      quantity = int.parse(innerQuantity);
+      quantity = int.tryParse(innerQuantity) ?? 0;
     });
   }
 
@@ -148,8 +148,18 @@ class AddProductsState extends State<AddProducts> {
                   //     selectedColor = color;
                   //   });
                   // },
-                  dropdownMenuEntries: ['No Brand', '1', '2', '3', '4']
-                      .map<DropdownMenuEntry<String>>((category) {
+                  dropdownMenuEntries: [
+                    'Electronics',
+                    'Clothing',
+                    'Home Appliances',
+                    'Books',
+                    'Toys',
+                    'Groceries',
+                    'Beauty Products',
+                    'Sports Equipment',
+                    'Automotive',
+                    'Furniture'
+                  ].map<DropdownMenuEntry<String>>((category) {
                     return DropdownMenuEntry(value: category, label: category);
                   }).toList(),
                 ),

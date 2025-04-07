@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:ui';
 
 import 'package:flutter/material.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 import 'package:provider/provider.dart';
 
 import 'app.dart';
@@ -10,49 +11,70 @@ import 'helpers/providers/token_provider.dart';
 import 'services/navigation.service.dart';
 
 void main() async {
-  FlutterError.onError = (FlutterErrorDetails details) {
-    if (details.exceptionAsString().contains('RenderFlex')) {
-      debugPrint('RenderFlex Error: ${details.exceptionAsString()}');
-      NavigationService.goToErrorPage(
-          {'message': details.exceptionAsString()}, null);
-    } else {
-      FlutterError.presentError(details);
-    }
-  };
-
-  FlutterError.onError = (FlutterErrorDetails details) {
-    if (details.exceptionAsString().contains('RenderFlex')) {
-      FlutterError.presentError(details);
-    } else {
-      FlutterError.presentError(details);
-      NavigationService.goToErrorPage(
-          {'message': details.exceptionAsString()}, null);
-    }
-  };
-
-  // Handle Platform and Framework Errors
-  PlatformDispatcher.instance.onError = (error, stack) {
-    debugPrint('Platform Error: $error');
-    NavigationService.goToErrorPage({'message': error.toString()}, null);
-    return true; // Prevent crash
-  };
-
 // Handle Asynchronous Errors
   runZonedGuarded(() async {
     WidgetsFlutterBinding.ensureInitialized();
 
-    // Initialize your providers asynchronously before running the app
-    final tokenNotifier = TokenNotifier();
-    await tokenNotifier.initializePreferences();
+    // Catch Flutter framework (widget tree) errors
+    FlutterError.onError = (FlutterErrorDetails details) {
+      FlutterError.presentError(details);
 
-    final themeNotifier = ThemeNotifier();
-    await themeNotifier.initializePreferences();
+      final errorString = details.exceptionAsString();
+      final isNonCritical = _isNonCriticalError(errorString);
+
+      if (isNonCritical) {
+        _showToast('Error: $errorString');
+      } else {
+        NavigationService.goToErrorPage({'message': errorString}, null);
+      }
+    };
+
+    // Catch platform, async & isolate-level errors
+    PlatformDispatcher.instance.onError = (error, stack) {
+      final errorString = error.toString();
+      final isNonCritical = _isNonCriticalError(errorString);
+
+      if (isNonCritical) {
+        _showToast('Error: $errorString');
+      } else {
+        NavigationService.goToErrorPage({'message': errorString}, null);
+      }
+
+      return true; // prevent app crash
+    };
+
     runApp(MultiProvider(providers: [
       ChangeNotifierProvider(create: (_) => ThemeNotifier()),
       ChangeNotifierProvider(create: (_) => TokenNotifier()..tryAutoLogin())
     ], child: MyApp()));
   }, (error, stack) {
-    debugPrint('Async Error: $error');
-    NavigationService.goToErrorPage({'message': error.toString()}, null);
+    final errorString = error.toString();
+    final isNonCritical = _isNonCriticalError(errorString);
+
+    if (isNonCritical) {
+      _showToast('Error: $errorString');
+    } else {
+      NavigationService.goToErrorPage({'message': errorString}, null);
+    }
   });
+}
+
+bool _isNonCriticalError(String error) {
+  return error.contains('Image') ||
+      error.contains('Unable to load asset') ||
+      error.contains('SocketException') ||
+      error.contains('TimeoutException') ||
+      error.contains('RenderFlex');
+}
+
+void _showToast(String message) {
+  Fluttertoast.showToast(
+    msg: message,
+    toastLength: Toast.LENGTH_SHORT,
+    gravity: ToastGravity.BOTTOM,
+    timeInSecForIosWeb: 3,
+    backgroundColor: Colors.black87,
+    textColor: Colors.white,
+    fontSize: 14.0,
+  );
 }

@@ -91,9 +91,9 @@ class AddOrderState extends State<AddOrder> {
   }
 
   void calculatePercentage() {
-    int cash = int.parse(cashController.text);
-    int card = int.parse(cardController.text);
-    int transfer = int.parse(transferController.text);
+    int cash = int.tryParse(cashController.text) ?? 0;
+    int card = int.tryParse(cardController.text) ?? 0;
+    int transfer = int.tryParse(transferController.text) ?? 0;
     int totalAmountPaid = cash + card + transfer;
     double diff = (totalAmountPaid / total) * 100;
     setState(() {
@@ -103,9 +103,9 @@ class AddOrderState extends State<AddOrder> {
   }
 
   int getTotalPaid() {
-    int cash = int.parse(cashController.text);
-    int card = int.parse(cardController.text);
-    int transfer = int.parse(transferController.text);
+    int cash = int.tryParse(cashController.text) ?? 0;
+    int card = int.tryParse(cardController.text) ?? 0;
+    int transfer = int.tryParse(transferController.text) ?? 0;
     int totalAmountPaid = cash + card + transfer;
     return totalAmountPaid;
   }
@@ -143,9 +143,9 @@ class AddOrderState extends State<AddOrder> {
     var formData = {
       'initiator': initiatorController.text,
       'productId': widget.productId,
-      'quantity': int.parse(quanitityController.text),
-      'price': int.parse(priceController.text),
-      'total': (total + int.parse(discountController.text)),
+      'quantity': int.tryParse(quanitityController.text) ?? 0,
+      'price': int.tryParse(priceController.text) ?? 0,
+      'total': total + (int.tryParse(discountController.text) ?? 0),
       'totalPayable': total,
       'purchaseDate': selectedPurchaseDate.toString(),
       'status': status,
@@ -154,11 +154,11 @@ class AddOrderState extends State<AddOrder> {
       'notes': notesController.text,
       'supplier': supplier,
       'expiryDate': selectedExpiryDate.toString(),
-      'transfer': int.parse(transferController.text),
-      'cash': int.parse(cashController.text),
-      'card': int.parse(cardController.text),
+      'transfer': int.tryParse(transferController.text) ?? 0,
+      'cash': int.tryParse(cashController.text) ?? 0,
+      'card': int.tryParse(cardController.text) ?? 0,
       'debt': total - getTotalPaid(),
-      'discount': int.parse(discountController.text),
+      'discount': int.tryParse(discountController.text) ?? 0,
       'deliveryDate': selectedDeliveryDate.toString(),
     };
     try {
@@ -186,7 +186,7 @@ class AddOrderState extends State<AddOrder> {
 
     setState(() {
       suppliers = dbsuppliers.data;
-      supplier = suppliers[0]['_id'];
+      supplier = suppliers.isNotEmpty ? suppliers[0]['_id'] : '';
       isSuppliersLoading = false;
     });
   }
@@ -206,9 +206,9 @@ class AddOrderState extends State<AddOrder> {
 
   void calculateTotal() {
     setState(() {
-      total = (int.parse(priceController.text) *
-              int.parse(quanitityController.text)) -
-          int.parse(discountController.text);
+      total = (int.tryParse(priceController.text) ??
+              0 * (int.tryParse(quanitityController.text) ?? 0)) -
+          (int.tryParse(discountController.text) ?? 0);
     });
   }
 
@@ -446,7 +446,7 @@ class AddOrderState extends State<AddOrder> {
       isSuppliersLoading
           ? SizedBox(height: 10, width: 10, child: CircularProgressIndicator())
           : DropdownButtonFormField<String>(
-              value: suppliers[0]['_id'],
+              value: supplier,
               decoration: InputDecoration(
                 suffix: TextButton(
                     onPressed: () {

@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-void openBox(BuildContext context) {
+void openBox(BuildContext context, doDelete) {
   showDialog(
     context: context,
     builder: (BuildContext context) {
@@ -71,7 +71,10 @@ void openBox(BuildContext context) {
                                           style: TextStyle(color: Colors.red),
                                         ),
                                       ),
-                                      onTap: () {})),
+                                      onTap: () async {
+                                        await doDelete();
+                                        Navigator.of(context).pop();
+                                      })),
                             ],
                           )
                         ]),

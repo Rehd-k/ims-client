@@ -20,7 +20,7 @@ class ErrorScreen extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               Lottie.asset(
-                  'lottie/network_error.json', // Add an animated error illustration
+                  'assets/lottie/error.json', // Add an animated error illustration
                   width: 250,
                   height: 250,
                   fit: BoxFit.cover,

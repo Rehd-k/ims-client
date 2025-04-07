@@ -148,20 +148,20 @@ class _SplashPageState extends State<SplashScreen>
                 ],
               ),
             ),
-            Positioned(
-              bottom: 20,
-              left: 0,
-              right: 0,
-              child: const Center(
-                child: Text(
-                  'From Vessel',
-                  style: TextStyle(
-                    fontSize: 14,
-                    fontWeight: FontWeight.w500,
-                  ),
-                ),
-              ),
-            ),
+            // Positioned(
+            //   bottom: 20,
+            //   left: 0,
+            //   right: 0,
+            //   child: const Center(
+            //     child: Text(
+            //       'From Vessel',
+            //       style: TextStyle(
+            //         fontSize: 14,
+            //         fontWeight: FontWeight.w500,
+            //       ),
+            //     ),
+            //   ),
+            // ),
           ],
         ),
       ),

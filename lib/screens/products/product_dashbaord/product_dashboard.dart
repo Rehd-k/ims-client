@@ -72,6 +72,17 @@ class ProductDashboardState extends State<ProductDashboard> {
     await getPurchases();
   }
 
+  Future deleteProduct() async {
+    try {
+      await apiService.deleteRequest('products/delete/${widget.productId}');
+      context.router.pop();
+    } catch (err) {
+      setState(() {
+        hasError = true;
+      });
+    }
+  }
+
   Future getDashboardData() async {
     try {
       final dynamic response =
@@ -214,7 +225,7 @@ class ProductDashboardState extends State<ProductDashboard> {
                   icon: Icon(Icons.add_box_outlined)),
               IconButton(
                 onPressed: () {
-                  openBox(context);
+                  openBox(context, deleteProduct);
                 },
                 icon: Icon(Icons.delete_outline),
               ),

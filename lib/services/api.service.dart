@@ -15,7 +15,8 @@ class ApiService {
       onError: (error, handler) {
         if (error.type == DioExceptionType.connectionError) {
           NavigationService.goToErrorPage({
-            'message': 'The Server is Unreachable Check your network connection'
+            'message':
+                'The Server is Unreachable Check your network connection ${error.toString()}',
           }, null);
         }
         return handler.next(error);

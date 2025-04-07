@@ -8,7 +8,7 @@ extension FinancialFormat on String {
 
     final formatNumber = replaceAllMapped(reg, mathFunc);
     if (isMoneySymbol) {
-      return '₦$formatNumber';
+      return '\u20A6 $formatNumber';
     }
     return formatNumber;
   }

@@ -38,7 +38,9 @@ class InfoCard extends StatelessWidget {
                         ? '0'
                         : value.formatToFinancial(isMoneySymbol: currency),
                     style: TextStyle(
-                        fontSize: fontSize, fontWeight: FontWeight.bold),
+                        fontSize: fontSize,
+                        fontWeight: FontWeight.bold,
+                        fontFamily: ''),
                     overflow: TextOverflow.ellipsis,
                   ),
                   Text(
