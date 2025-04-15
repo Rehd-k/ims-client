@@ -1,5 +1,6 @@
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 
 import '../../../components/info_card.dart';
@@ -25,6 +26,7 @@ class IncomeReportsScreenState extends State<IncomeReportsScreen> {
   final apiService = ApiService();
   List filteredsales = [];
   bool loadingTable = true;
+  bool loading = true;
   final TextEditingController _searchController = TextEditingController();
   late List sales = [];
   DateTime? _fromDate = DateTime.now();
@@ -41,10 +43,30 @@ class IncomeReportsScreenState extends State<IncomeReportsScreen> {
   String? selectedAccount = '';
   List cashiers = [''];
 
+  String formatDate(String isoDate) {
+    final DateTime parsedDate = DateTime.parse(isoDate);
+    return DateFormat('dd-MM-yyyy').format(parsedDate);
+  }
+
   // Search logic
   void searchThroughSales(String query) async {
-    setState(() {
-      loadingTable = true;
+    if (query.isEmpty) return;
+
+    // Debounce logic
+    Future.delayed(Duration(milliseconds: 300), () {
+      if (query == _searchController.text) {
+        setState(() {
+          loadingTable = true;
+        });
+        // Only proceed if the query hasn't changed during the debounce period
+        apiService
+            .getRequest(
+          'sales?filter={"$searchFeild" : {"\$regex" : "${query.toLowerCase()}"}}&limit=0&sort={"transactionDate":-1}&startDate=$_fromDate&endDate=$_toDate',
+        )
+            .then((dbsales) {
+          updateFilter(dbsales);
+        });
+      }
     });
     var dbsales = await apiService.getRequest(
       'sales?filter={"$searchFeild" : {"\$regex" : "${query.toLowerCase()}"}}&limit=0&sort={"transactionDate":-1}&startDate=$_fromDate&endDate=$_toDate',
@@ -64,9 +86,30 @@ class IncomeReportsScreenState extends State<IncomeReportsScreen> {
   }
 
   void updateTransaction() async {
-    await apiService.putRequest(
-        'sales/${selectedItem[0]['_id']}', transactionUpdate);
-    getSales();
+    final userRole = context.read<TokenNotifier>().decodedToken;
+    final scaffoldMessenger = ScaffoldMessenger.of(context);
+    if (userRole != null) {
+      if (userRole['role'] == 'admin' || userRole['role'] == 'god') {
+        await apiService.putRequest(
+            'sales/${selectedItem[0]['_id']}', transactionUpdate);
+        getSales();
+      } else {
+        await apiService.postRequest('todo', {
+          'title': 'Back Date',
+          'description':
+              'Change the date of transaction with Id  ${selectedItem[0]['transactionId']} to ${formatDate(transactionUpdate['transactionDate'])}',
+          'from': userRole['username'],
+        });
+
+        scaffoldMessenger.showSnackBar(
+          SnackBar(
+            content: Text(
+                'A request has been sent to the Manager, and will be effected soon'),
+            backgroundColor: Theme.of(context).colorScheme.primary,
+          ),
+        );
+      }
+    }
   }
 
   handleUpdate(updateInfo) {
@@ -120,20 +163,6 @@ class IncomeReportsScreenState extends State<IncomeReportsScreen> {
     }
   }
 
-  // Future updatesalesList() async {
-  //   setState(() {
-  //     loadingTable = true;
-  //   });
-  //   var dbsales = await apiService.getRequest(
-  //     'sales?skip=${sales.length}',
-  //   );
-  //   setState(() {
-  //     sales.addAll(dbsales.data['sales']);
-  //     filteredsales = List.from(sales);
-  //     loadingTable = false;
-  //   });
-  // }
-
   Future getSales() async {
     setState(() {
       loadingTable = true;
@@ -161,9 +190,6 @@ class IncomeReportsScreenState extends State<IncomeReportsScreen> {
   }
 
   handleRangeChange(String select, DateTime picked) async {
-    setState(() {
-      loadingTable = true;
-    });
     if (select == 'from') {
       setState(() {
         _fromDate = picked;
@@ -188,6 +214,7 @@ class IncomeReportsScreenState extends State<IncomeReportsScreen> {
       cashiers.insert(0, '');
 
       loadingTable = false;
+      loading = false;
     });
   }
 
@@ -301,7 +328,7 @@ class IncomeReportsScreenState extends State<IncomeReportsScreen> {
                   SizedBox(
                       width: double.infinity,
                       height: isBigScreen ? 450 : 400,
-                      child: loadingTable
+                      child: loading
                           ? Center(
                               child: SizedBox(
                                   width: 50,
@@ -407,7 +434,7 @@ class IncomeReportsScreenState extends State<IncomeReportsScreen> {
                                   duration: Duration(milliseconds: 600),
                                   width: selectedItem.isNotEmpty
                                       ? isBigScreen
-                                          ? 600.0
+                                          ? 650.0
                                           : double.infinity
                                       : 0.00,
                                   child: selectedItem.isNotEmpty

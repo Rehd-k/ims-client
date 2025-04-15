@@ -1,16 +1,21 @@
 import 'package:flutter/material.dart';
 import 'package:invease/services/api.service.dart';
+import 'package:provider/provider.dart';
+
+import '../../../helpers/providers/token_provider.dart';
 
 class MakeReturn extends StatefulWidget {
   final List<Map<String, dynamic>> sales;
   final String id;
   final Function updatePageInfo;
+  final String transactionId;
 
   const MakeReturn(
       {super.key,
       required this.sales,
       required this.id,
-      required this.updatePageInfo});
+      required this.updatePageInfo,
+      required this.transactionId});
 
   @override
   MakeReturnState createState() => MakeReturnState();
@@ -51,27 +56,73 @@ class MakeReturnState extends State<MakeReturn> {
   }
 
   void doReturns() async {
-    // Capture the context before the async gap
-    final scaffoldMessenger = ScaffoldMessenger.of(context);
-    await apiService.putRequest('sales/return/${widget.id}', {
-      'id': widget.id,
-      'returns': _updatedProducts,
-    });
-    widget.updatePageInfo();
+    final userRole = context.read<TokenNotifier>().decodedToken;
+    if (userRole == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('User role not found.'),
+          backgroundColor: Colors.red,
+        ),
+      );
+      return;
+    }
+    if (userRole['role'] == 'admin' || userRole['role'] == 'god') {
+      // Capture the context before the async gap
+      if (!mounted) return;
+      final scaffoldMessenger = ScaffoldMessenger.of(context);
+      await apiService.putRequest('sales/return/${widget.id}', {
+        'id': widget.id,
+        'returns': _updatedProducts,
+      });
+      widget.updatePageInfo();
 
-    // Check if widget is still mounted before showing message
-    if (!mounted) return;
+      // Check if widget is still mounted before showing message
+      if (!mounted) return;
 
-    // Use captured scaffoldMessenger
-    scaffoldMessenger.showSnackBar(
-      SnackBar(
-        content: Text('Returned Successfully'),
-        backgroundColor: Theme.of(context).colorScheme.primary,
-      ),
-    );
+      // Use captured scaffoldMessenger
+      scaffoldMessenger.showSnackBar(
+        SnackBar(
+          content: Text('Returned Successfully'),
+          backgroundColor: Theme.of(context).colorScheme.primary,
+        ),
+      );
 
-    // Use captured router
-    Navigator.of(context).pop();
+      // Use captured router
+      Navigator.of(context).pop();
+    } else {
+      try {
+        await Future.wait(_updatedProducts.map((product) async {
+          var info = await apiService.postRequest('todo', {
+            'title': 'Do Returns',
+            'description':
+                'Return "${product['quantity']}" of the ${product['title']}  product for transaction with id ${widget.transactionId}',
+            'from': userRole['username'],
+          });
+          if (info.statusCode >= 200 && info.statusCode <= 300) {
+            if (!mounted) return;
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text(
+                    'Manager have been notified, Review is being made, Return will be made shorty'),
+                backgroundColor: Colors.green,
+              ),
+            );
+            return;
+          } else {
+            throw Exception('Failed to create todo: $info');
+          }
+        }));
+      } catch (e) {
+        if (!mounted) return;
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Failed to create todo. $e'),
+            backgroundColor: Colors.red,
+          ),
+        );
+        return;
+      }
+    }
   }
 
   void _deleteProduct(String productName) {

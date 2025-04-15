@@ -12,6 +12,7 @@ import 'sections/customer_insight.dart';
 import 'sections/financialsummary.dart';
 import 'sections/inventorysummery.dart';
 import 'sections/salesoverview.dart';
+import 'sections/todo.dart';
 
 @RoutePage()
 class DashboardScreen extends StatefulWidget {
@@ -117,6 +118,11 @@ class DashboardState extends State<DashboardScreen> {
                     Salesoverview(
                       totalSales: dashboardInfo[0]['totalRevenue'],
                       topSellingProducts: dashboardInfo[1],
+                    ),
+                    SizedBox(height: 20),
+                    Container(
+                      constraints: BoxConstraints(maxHeight: 400),
+                      child: TodoTable(),
                     ),
                     SizedBox(height: 20),
                     Inventorysummery(data: dashboardInfo[2]),

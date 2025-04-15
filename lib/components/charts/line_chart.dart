@@ -116,6 +116,7 @@ class _LineChart extends StatelessWidget {
             sideTitles: SideTitles(
               showTitles: true,
               reservedSize: 40,
+              interval: 1,
               getTitlesWidget: bottomTitleWidgets,
             ),
           ),
@@ -168,7 +169,9 @@ class _LineChart extends StatelessWidget {
           )
         ],
         minX: 0,
-        maxX: xAxis + 1,
+        maxX: MediaQuery.of(context).size.width < 600
+            ? getMaxX(xAxis)
+            : getMaxX(xAxis) + 1,
         minY: 0,
       ),
       duration: const Duration(milliseconds: 500),
@@ -196,6 +199,13 @@ class _LineChart extends StatelessWidget {
     );
   }
 
+  double getMaxX(xAxis) {
+    if (xAxis < 4) {
+      return 7;
+    } else {
+      return xAxis.toDouble();
+    }
+  }
   // FlBorderData get borderData => FlBorderData(
   //       show: true,
   //       border: Border(

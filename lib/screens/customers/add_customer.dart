@@ -50,11 +50,27 @@ class AddCustomerState extends State<AddCustomer> {
 
       if (response.statusCode! >= 200 && response.statusCode! <= 300) {
         if (widget.updateCustomer != null) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('Customer Created Successfully'),
+              backgroundColor: Theme.of(context).colorScheme.tertiary,
+            ),
+          );
           widget.updateCustomer!();
         }
-      } else {}
+      } else {
+        throw Exception(
+            'Failed to create customer: ${response.statusCode} ${response.data['message']}');
+      }
       // ignore: empty_catches
-    } catch (e) {}
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Error: $e'),
+          backgroundColor: Theme.of(context).colorScheme.error,
+        ),
+      );
+    }
   }
 
   @override
@@ -136,7 +152,10 @@ class AddCustomerState extends State<AddCustomer> {
                       if (_formKey.currentState!.validate()) {
                         // Process data
                         ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(content: Text('Processing Data')),
+                          SnackBar(
+                            content: Text('Processing Data'),
+                            duration: Duration(seconds: 1),
+                          ),
                         );
                       }
                     },

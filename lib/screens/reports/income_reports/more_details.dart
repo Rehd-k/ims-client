@@ -46,25 +46,25 @@ class ShowDetails extends StatelessWidget {
               child: table(context, data, [
                 {
                   'name': 'Title',
-                  'size': ColumnSize.L,
+                  'size': ColumnSize.S,
                   'field': 'title',
                   'type': 'string'
                 },
                 {
                   'name': 'Quantity',
-                  'size': ColumnSize.L,
+                  'size': ColumnSize.S,
                   'field': 'quantity',
                   'type': 'number'
                 },
                 {
                   'name': 'Price',
-                  'size': ColumnSize.L,
+                  'size': ColumnSize.S,
                   'field': 'price',
                   'type': 'money'
                 },
                 {
                   'name': 'Total',
-                  'size': ColumnSize.L,
+                  'size': ColumnSize.S,
                   'field': 'total',
                   'type': 'money'
                 },
@@ -94,37 +94,37 @@ class ShowDetails extends StatelessWidget {
                   child: table(context, returns, [
                     {
                       'name': 'Title',
-                      'size': ColumnSize.L,
+                      'size': ColumnSize.S,
                       'field': 'title',
                       'type': 'string'
                     },
                     {
                       'name': 'Quantity',
-                      'size': ColumnSize.L,
+                      'size': ColumnSize.S,
                       'field': 'quantity',
                       'type': 'number'
                     },
                     {
                       'name': 'Price',
-                      'size': ColumnSize.L,
+                      'size': ColumnSize.S,
                       'field': 'price',
                       'type': 'money'
                     },
                     {
                       'name': 'Total',
-                      'size': ColumnSize.L,
+                      'size': ColumnSize.S,
                       'field': 'total',
                       'type': 'money'
                     },
                     {
                       'name': 'Date',
-                      'size': ColumnSize.L,
+                      'size': ColumnSize.S,
                       'field': 'returnedAt',
                       'type': 'date'
                     },
                     {
                       'name': 'Handler',
-                      'size': ColumnSize.L,
+                      'size': ColumnSize.S,
                       'field': 'handler',
                       'type': 'string'
                     },
@@ -136,7 +136,7 @@ class ShowDetails extends StatelessWidget {
           Container(
             decoration: BoxDecoration(
                 border: Border(top: BorderSide(color: Colors.grey[300]!))),
-            height: isBigScreen ? 120 : 400,
+            height: isBigScreen ? 95 : 400,
             padding: EdgeInsets.symmetric(horizontal: 10),
             child: isBigScreen
                 ? Row(
@@ -165,9 +165,8 @@ class ShowDetails extends StatelessWidget {
 
   Padding handleButtons(BuildContext context, List<Map<String, dynamic>> data) {
     return Padding(
-      padding: const EdgeInsets.only(left: 5.0),
+      padding: const EdgeInsets.only(left: 5.0, top: 5),
       child: Column(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -179,6 +178,7 @@ class ShowDetails extends StatelessWidget {
                               updatePageInfo: updatePageInfo,
                               sales: data,
                               id: dataList[0]['_id'],
+                              transactionId: dataList[0]['transactionId'],
                             )));
                   },
                   child: Text('Return')),
@@ -190,6 +190,7 @@ class ShowDetails extends StatelessWidget {
                               updatePageInfo: updatePageInfo,
                               sales: data,
                               id: dataList[0]['_id'],
+                              transactionId: dataList[0]['transactionId'],
                             )));
                   },
                   child: Text('Refund')),
@@ -287,22 +288,22 @@ class ShowDetails extends StatelessWidget {
     );
   }
 
-  DataTable2 table(BuildContext context, List<Map<String, dynamic>> data,
+  DataTable table(BuildContext context, List<Map<String, dynamic>> data,
       List<Map<String, dynamic>> columns) {
     String formatDate(String isoDate) {
       final DateTime parsedDate = DateTime.parse(isoDate);
       return DateFormat('dd-MM-yyyy').format(parsedDate);
     }
 
-    return DataTable2(
-      dataRowHeight: 35,
+    return DataTable(
+      dataRowMinHeight: 35,
       columns: [
         ...columns.map((column) {
           return DataColumn2(label: Text(column['name']), size: column['size']);
         })
       ],
-      rows: data.map<DataRow2>((item) {
-        return DataRow2(
+      rows: data.map<DataRow>((item) {
+        return DataRow(
           color: WidgetStateProperty.resolveWith<Color?>(
             (Set<WidgetState> states) {
               if (data.indexOf(item) % 2 == 1) {
