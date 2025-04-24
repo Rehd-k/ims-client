@@ -203,7 +203,7 @@ class CustomerInsight extends StatelessWidget {
                 ? data['totalCustomers'][0]['totalCustomers'].toString()
                 : '0',
             fontSize: isBigScreen ? 20 : 10,
-            color: Theme.of(context).colorScheme.onPrimary,
+            color: Theme.of(context).colorScheme.surface,
           ),
           InfoCard(
             title: 'Customer Retention',
@@ -214,7 +214,7 @@ class CustomerInsight extends StatelessWidget {
                     .toString()
                 : '0',
             fontSize: isBigScreen ? 20 : 10,
-            color: Theme.of(context).colorScheme.onPrimary,
+            color: Theme.of(context).colorScheme.surface,
           )
         ]);
   }

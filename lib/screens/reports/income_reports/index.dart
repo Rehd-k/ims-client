@@ -105,6 +105,7 @@ class IncomeReportsScreenState extends State<IncomeReportsScreen> {
           SnackBar(
             content: Text(
                 'A request has been sent to the Manager, and will be effected soon'),
+            // ignore: use_build_context_synchronously
             backgroundColor: Theme.of(context).colorScheme.primary,
           ),
         );

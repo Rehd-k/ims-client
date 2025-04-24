@@ -1,7 +1,7 @@
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:invease/helpers/financial_string_formart.dart';
+import '../../helpers/financial_string_formart.dart';
 
 import '../../services/api.service.dart';
 import '../customers/add_customer.dart';
@@ -254,12 +254,14 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
         children: [
           Expanded(
             child: Tooltip(
-              message: label == 'Transfer' && accountNumber == null
+              message: (label == 'Transfer' || label == 'Card') &&
+                      accountNumber == null
                   ? 'Select bank first'
                   : '',
               child: TextField(
                 controller: controller,
-                enabled: !(label == 'Transfer' && accountNumber == null),
+                enabled: !((label == 'Transfer' || label == 'Card') &&
+                    accountNumber == null),
                 keyboardType: TextInputType.number,
                 inputFormatters: [
                   FilteringTextInputFormatter.allow(RegExp(r'^\d+\.?\d{0,2}')),
@@ -277,7 +279,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
               ),
             ),
           ),
-          if (label == 'Transfer') ...[
+          if (label == 'Transfer' || label == 'Card') ...[
             SizedBox(width: 10),
             Expanded(
               child: DropdownButtonFormField<String>(

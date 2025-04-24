@@ -1,7 +1,6 @@
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:fl_chart/fl_chart.dart';
-import 'package:invease/services/api.service.dart';
 import 'package:modal_bottom_sheet/modal_bottom_sheet.dart';
 
 import '../../../components/charts/line_chart.dart';
@@ -10,6 +9,7 @@ import '../../../components/info_card.dart';
 import '../../../components/tables/purchases/purchases_table.dart';
 import '../../../globals/dialog.dart';
 import '../../../globals/error.dart';
+import '../../../services/api.service.dart';
 import 'add_order.dart';
 import 'header.dart';
 import 'helpers/damaged_goods.dart';
@@ -34,6 +34,7 @@ class ProductDashboardState extends State<ProductDashboard> {
   bool loadingTable = true;
   bool loadingCharts = true;
   late List purchases;
+  List<FlSpot> spots = [];
   DateTime? _fromDate = DateTime(2010, 1, 1);
   DateTime? _toDate = DateTime.now();
   dynamic rangeInfo;
@@ -75,6 +76,7 @@ class ProductDashboardState extends State<ProductDashboard> {
   Future deleteProduct() async {
     try {
       await apiService.deleteRequest('products/delete/${widget.productId}');
+      // ignore: use_build_context_synchronously
       context.router.pop();
     } catch (err) {
       setState(() {
@@ -136,14 +138,15 @@ class ProductDashboardState extends State<ProductDashboard> {
 
   Future getChartData(dateRange) async {
     final range = getDateRange(dateRange);
-    setState(() {
-      rangeInfo = range;
-    });
+
     final response = await apiService.getRequest(
         'sales/getchart/$productId?filter={"sorter":"$dateRange"}&startDate=${range.startDate}&endDate=${range.endDate}');
-
     setState(() {
-      purchases = response.data;
+      spots.clear();
+      response.data.forEach((item) {
+        spots.add(FlSpot(item['for'], item['totalSales']));
+      });
+      rangeInfo = range;
       loadingCharts = false;
     });
   }
@@ -335,8 +338,8 @@ class ProductDashboardState extends State<ProductDashboard> {
                                             onRangeChanged: handleRangeChanged,
                                             rangeInfo: rangeInfo,
                                             selectedRange: selectedRange,
-                                            spots: [],
-                                            isCurved: false,
+                                            spots: spots,
+                                            isCurved: true,
                                           ),
                                         )),
                                     SizedBox(width: 5),

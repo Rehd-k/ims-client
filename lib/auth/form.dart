@@ -14,7 +14,8 @@ Form loginForm(
     emptyErrorMessage,
     hidePassword,
     toggleHideShowPassword,
-    isLoading) {
+    isLoading,
+    branches) {
   return Form(
       key: formKey,
       autovalidateMode: AutovalidateMode.always,
@@ -25,8 +26,8 @@ Form loginForm(
               Padding(
                 padding: const EdgeInsets.all(8.0),
                 child: SvgPicture.asset(
-                  height: 200,
-                  width: 200,
+                  height: 100,
+                  width: 100,
                   'assets/vectors/logo.svg',
                 ),
               ),
@@ -76,7 +77,7 @@ Form loginForm(
                   }
                 },
               ),
-              SizedBox(height: 40),
+              SizedBox(height: 10),
               TextFormField(
                 onChanged: (value) {
                   emptyErrorMessage();
@@ -128,6 +129,34 @@ Form loginForm(
                   return null;
                 },
               ),
+              SizedBox(height: 10),
+              // DropdownButtonFormField<String>(
+              //   decoration: InputDecoration(
+              //     labelText: 'Select Location',
+              //     border: OutlineInputBorder(
+              //       borderRadius: BorderRadius.circular(10.0),
+              //     ),
+              //   ),
+              //   items: branches.map<DropdownMenuItem<String>>((branch) {
+              //     return DropdownMenuItem<String>(
+              //       value: branch['_id']
+              //           .toString(), // Assuming 'id' is the key for the value
+              //       child: Text(branch[
+              //           'name']), // Assuming 'name' is the key for the display text
+              //     );
+              //   }).toList(),
+              //   onChanged: (value) {
+              //     // Handle the selected value
+              //     print('Selected location ID: $value');
+              //   },
+              //   validator: (value) {
+              //     if (value == null || value.isEmpty) {
+              //       return 'Please select a location';
+              //     }
+              //     return null;
+              //   },
+              // ),
+
               SizedBox(height: 40),
               isLoading
                   ? CircularProgressIndicator.adaptive()

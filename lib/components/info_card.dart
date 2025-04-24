@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:invease/helpers/financial_string_formart.dart';
+import '../helpers/financial_string_formart.dart';
 
 class InfoCard extends StatelessWidget {
   final String title;
@@ -60,10 +60,7 @@ class InfoCard extends StatelessWidget {
                 decoration: BoxDecoration(
                     color: Theme.of(context).primaryColor,
                     borderRadius: BorderRadius.circular(10)),
-                child: Icon(
-                  icon,
-                  color: Colors.white,
-                ),
+                child: Icon(icon),
               ),
             ),
           )

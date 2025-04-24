@@ -89,7 +89,7 @@ class SalesoverviewState extends State<Salesoverview> {
                     child: grids(isBigScreen, context)),
                 SizedBox(height: 1),
                 Divider(
-                  color: Theme.of(context).colorScheme.onPrimary,
+                  color: Theme.of(context).colorScheme.surface,
                 ),
                 SizedBox(height: 5),
                 Expanded(
@@ -119,7 +119,7 @@ class SalesoverviewState extends State<Salesoverview> {
             currency: false,
             value: widget.totalSales.toString(),
             fontSize: isBigScreen ? 20 : 10,
-            color: Theme.of(context).colorScheme.onPrimary,
+            color: Theme.of(context).colorScheme.surface,
           ),
           InfoCard(
             title: 'Top-Selling Products \n Today',
@@ -129,7 +129,7 @@ class SalesoverviewState extends State<Salesoverview> {
                 ? widget.topSellingProducts['topSellingToday'][0]['title']
                 : 'No Sale Today',
             fontSize: isBigScreen ? 20 : 10,
-            color: Theme.of(context).colorScheme.onPrimary,
+            color: Theme.of(context).colorScheme.surface,
           ),
           InfoCard(
             title: 'Top-Selling Products \n Weekly',
@@ -139,7 +139,7 @@ class SalesoverviewState extends State<Salesoverview> {
                 ? widget.topSellingProducts['topSellingWeekly'][0]['title']
                 : 'No Sale This Week',
             fontSize: isBigScreen ? 20 : 10,
-            color: Theme.of(context).colorScheme.onPrimary,
+            color: Theme.of(context).colorScheme.surface,
           ),
           InfoCard(
             title: 'Top-Selling Products \n Monthly',
@@ -149,7 +149,7 @@ class SalesoverviewState extends State<Salesoverview> {
                 ? widget.topSellingProducts['topSellingMonthly'][0]['title']
                 : 'No Sale This Month',
             fontSize: isBigScreen ? 20 : 10,
-            color: Theme.of(context).colorScheme.onPrimary,
+            color: Theme.of(context).colorScheme.surface,
           ),
         ]);
   }

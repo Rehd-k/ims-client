@@ -2,7 +2,7 @@ import 'package:data_table_2/data_table_2.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
-import 'package:invease/helpers/financial_string_formart.dart';
+import '../../helpers/financial_string_formart.dart';
 import 'package:modal_bottom_sheet/modal_bottom_sheet.dart';
 
 import '../../services/api.service.dart';

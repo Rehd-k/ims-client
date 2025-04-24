@@ -1,13 +1,14 @@
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
-import 'package:invease/helpers/providers/token_provider.dart';
-import 'package:invease/services/api.service.dart';
+
 import 'package:provider/provider.dart';
 
 import '../../globals/actions.dart';
 import '../../globals/sidebar.dart';
 import '../../helpers/providers/theme_notifier.dart';
+import '../../helpers/providers/token_provider.dart';
+import '../../services/api.service.dart';
 import 'sections/customer_insight.dart';
 import 'sections/financialsummary.dart';
 import 'sections/inventorysummery.dart';

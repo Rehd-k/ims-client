@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:toastification/toastification.dart';
 
 import 'helpers/providers/theme_notifier.dart';
 import 'helpers/providers/token_provider.dart';
@@ -16,14 +17,15 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return Consumer2<ThemeNotifier, TokenNotifier>(
         builder: (context, themeNotifier, tokenNotifier, child) {
-      return MaterialApp.router(
+      return ToastificationWrapper(
+          child: MaterialApp.router(
         routerConfig: NavigationService.router.config(),
         debugShowCheckedModeBanner: false,
         title: 'Shelf Sense',
-        theme: lightTheme,
-        darkTheme: darkTheme,
+        theme: AppTheme.lightTheme,
+        darkTheme: AppTheme.darkTheme,
         themeMode: themeNotifier.themeMode,
-      );
+      ));
     });
   }
 }

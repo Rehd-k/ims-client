@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:invease/components/tables/purchases/purchases_table.dart';
 import 'package:provider/provider.dart';
 
+import '../../components/tables/purchases/purchases_table.dart';
 import '../../helpers/providers/token_provider.dart';
 import '../../services/api.service.dart';
 
@@ -160,73 +160,4 @@ class ViewProductsState extends State<ViewProducts> {
             ],
           );
   }
-
-// class ProductDataSource extends DataTableSource {
-//   final List products;
-//   final BuildContext context;
-
-//   Color getRowColor(Map<String, dynamic> product) {
-//     if (!product['isAvailable']) return Colors.red.withValues(alpha: 0.3);
-//     if (product['quantity'] <= product['roq']) {
-//       return Colors.yellow.withValues(alpha: 0.3);
-//     }
-
-//     return Colors.green.withValues(alpha: 0.3);
-//   }
-
-//   String formatDate(String isoDate) {
-//     final DateTime parsedDate = DateTime.parse(isoDate);
-//     return DateFormat('dd-MM-yyyy').format(parsedDate);
-//   }
-
-//   ProductDataSource({required this.products, required this.context});
-
-//   @override
-//   DataRow? getRow(int index) {
-//     if (index >= products.length) return null;
-//     final product = products[index];
-//     return DataRow(
-//       onLongPress: () {
-//         context.router.push(ProductDashboard(productId: product['_id']));
-//       },
-//       color: WidgetStateProperty.resolveWith(
-//         (states) => getRowColor(product),
-//       ),
-//       cells: [
-//         DataCell(Text(product['title'])),
-//         DataCell(Text(product['category'])),
-//         DataCell(Text(product['price']
-//             .toString()
-//             .formatToFinancial(isMoneySymbol: true))),
-//         DataCell(Text(product['roq'].toString())),
-//         DataCell(Text(product['quantity'].toString())),
-//         //
-//         DataCell(Text(product['description'])),
-//         DataCell(Text(product['brand'])),
-//         DataCell(Text(product['weight'].toString())),
-//         //
-//         DataCell(Text(product['unit'])),
-//         DataCell(Text(product['isAvailable'] ? "Yes" : "No")),
-//         DataCell(Text(product['initiator'])),
-//         DataCell(Text(formatDate(product['createdAt']))),
-//         DataCell(Column(
-//           mainAxisAlignment: MainAxisAlignment.spaceAround,
-//           children: [
-//             // OutlinedButton(onPressed: () {}, child: Text('Update'))
-//             // OutlinedButton(onPressed: () {}, child: Text('Delete'))
-//           ],
-//         ))
-//       ],
-//     );
-//   }
-
-//   @override
-//   bool get isRowCountApproximate => false;
-
-//   @override
-//   int get rowCount => products.length;
-
-//   @override
-//   int get selectedRowCount => 0;
-// }
 }

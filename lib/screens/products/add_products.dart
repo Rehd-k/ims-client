@@ -2,8 +2,8 @@ import 'dart:math';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:invease/helpers/providers/token_provider.dart';
 
+import '../../helpers/providers/token_provider.dart';
 import '../../services/api.service.dart';
 
 class AddProducts extends StatefulWidget {

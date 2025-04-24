@@ -60,7 +60,7 @@ class Inventorysummery extends StatelessWidget {
             currency: false,
             value: data['totalProducts'].toString(),
             fontSize: isBigScreen ? 20 : 10,
-            color: Theme.of(context).colorScheme.onPrimary,
+            color: Theme.of(context).colorScheme.surface,
           ),
           InfoCard(
             title: 'Total Stock',
@@ -68,7 +68,7 @@ class Inventorysummery extends StatelessWidget {
             currency: false,
             value: data['totalQuantity'].toString(),
             fontSize: isBigScreen ? 20 : 10,
-            color: Theme.of(context).colorScheme.onPrimary,
+            color: Theme.of(context).colorScheme.surface,
           ),
           InfoCard(
             title: 'Total Stock Value',
@@ -76,7 +76,7 @@ class Inventorysummery extends StatelessWidget {
             currency: true,
             value: data['totalValue'].toString(),
             fontSize: isBigScreen ? 20 : 10,
-            color: Theme.of(context).colorScheme.onPrimary,
+            color: Theme.of(context).colorScheme.surface,
           ),
           InfoCard(
             title: 'Low Stock',
@@ -104,7 +104,7 @@ class Inventorysummery extends StatelessWidget {
                 ? data['fastestMovingProduct']['title']
                 : '0',
             fontSize: isBigScreen ? 20 : 10,
-            color: Theme.of(context).colorScheme.onPrimary,
+            color: Theme.of(context).colorScheme.surface,
           ),
           InfoCard(
             title: ' Slow-Moving ',
@@ -114,7 +114,7 @@ class Inventorysummery extends StatelessWidget {
                 ? data['slowestMovingProduct']['title']
                 : '0',
             fontSize: isBigScreen ? 20 : 10,
-            color: Theme.of(context).colorScheme.onPrimary,
+            color: Theme.of(context).colorScheme.surface,
           ),
         ]);
   }

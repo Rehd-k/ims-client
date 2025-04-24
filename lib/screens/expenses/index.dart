@@ -1,8 +1,8 @@
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
-import 'package:invease/globals/actions.dart';
 import 'package:provider/provider.dart';
 
+import '../../globals/actions.dart';
 import '../../globals/sidebar.dart';
 import '../../helpers/providers/theme_notifier.dart';
 import '../../helpers/providers/token_provider.dart';

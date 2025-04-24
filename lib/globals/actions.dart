@@ -1,7 +1,7 @@
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
-import 'package:invease/app_router.gr.dart';
 
+import '../app_router.gr.dart';
 import '../helpers/providers/theme_notifier.dart';
 import '../helpers/providers/token_provider.dart';
 import '../services/token.service.dart';

@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:invease/helpers/financial_string_formart.dart';
-import 'package:invease/screens/supplier/add_supplier.dart';
+import '../../../helpers/financial_string_formart.dart';
 import 'package:provider/provider.dart';
 
 import '../../../helpers/providers/token_provider.dart';
 import '../../../services/api.service.dart';
+import '../../supplier/add_supplier.dart';
 
 class AddOrder extends StatefulWidget {
   final String productId;
@@ -20,11 +20,11 @@ class AddOrderState extends State<AddOrder> {
   final apiService = ApiService();
   final _formKey = GlobalKey<FormState>();
 
-  final quanitityController = TextEditingController()..text = '0';
+  final quanitityController = TextEditingController();
 
-  final priceController = TextEditingController()..text = '0';
+  final priceController = TextEditingController();
 
-  final discountController = TextEditingController()..text = '0';
+  final discountController = TextEditingController();
 
   final shippingAddressController = TextEditingController();
 
@@ -205,10 +205,11 @@ class AddOrderState extends State<AddOrder> {
   }
 
   void calculateTotal() {
+    var quant = int.tryParse(quanitityController.text) ?? 0;
+    var price = int.tryParse(priceController.text) ?? 0;
+    var discount = int.tryParse(discountController.text) ?? 0;
     setState(() {
-      total = (int.tryParse(priceController.text) ??
-              0 * (int.tryParse(quanitityController.text) ?? 0)) -
-          (int.tryParse(discountController.text) ?? 0);
+      total = (quant * price) - discount;
     });
   }
 

@@ -73,6 +73,7 @@ void openBox(BuildContext context, doDelete) {
                                       ),
                                       onTap: () async {
                                         await doDelete();
+                                        // ignore: use_build_context_synchronously
                                         Navigator.of(context).pop();
                                       })),
                             ],

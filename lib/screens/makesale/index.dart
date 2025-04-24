@@ -3,11 +3,12 @@ import 'dart:math';
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:infinite_scroll_pagination/infinite_scroll_pagination.dart';
-import 'package:invease/globals/actions.dart';
+
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:convert';
 
+import '../../globals/actions.dart';
 import '../../globals/sidebar.dart';
 
 import '../../helpers/providers/theme_notifier.dart';

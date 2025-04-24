@@ -1,13 +1,14 @@
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
-import 'package:invease/globals/actions.dart';
-import 'package:invease/screens/products/category/add_category.dart';
-import 'package:invease/screens/products/category/view_category.dart';
+
 import 'package:provider/provider.dart';
 
+import '../../../globals/actions.dart';
 import '../../../globals/sidebar.dart';
 import '../../../helpers/providers/theme_notifier.dart';
 import '../../../helpers/providers/token_provider.dart';
+import 'add_category.dart';
+import 'view_category.dart';
 
 @RoutePage()
 class CategoryIndex extends StatefulWidget {

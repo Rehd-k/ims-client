@@ -1,5 +1,6 @@
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/svg.dart';
 
 import '../helpers/providers/token_provider.dart';
 
@@ -62,6 +63,28 @@ List fullMenu = [
       {
         'title': 'Expenses Report',
         'link': '/expenses_report',
+        'icon': Icons.request_quote_outlined
+      }
+    ]
+  },
+  {
+    'icon': Icons.receipt_long_outlined,
+    'title': 'Invoices',
+    'link': '/invoice',
+    'children': [
+      {
+        'title': 'Add Invoice',
+        'link': '/create_invoice',
+        'icon': Icons.add_outlined
+      },
+      {
+        'title': 'Invoices',
+        'link': '/view_invoices',
+        'icon': Icons.more_vert_outlined
+      },
+      {
+        'title': 'Recurring Invoices',
+        'link': '/recurring_invoices',
         'icon': Icons.request_quote_outlined
       }
     ]
@@ -141,9 +164,11 @@ class SideBarState extends State<SideBar> {
       return Column(children: [
         SizedBox(
           width: double.infinity,
-          height: 110,
+          height: 60,
           child: Center(
-            child: Text(widget.tokenNotifier.decodedToken?['username']),
+            child: SvgPicture.asset(
+              'assets/vectors/logo.svg',
+            ),
           ),
         ),
         Expanded(

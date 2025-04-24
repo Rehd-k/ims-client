@@ -50,9 +50,11 @@ class AddCustomerState extends State<AddCustomer> {
 
       if (response.statusCode! >= 200 && response.statusCode! <= 300) {
         if (widget.updateCustomer != null) {
+          // ignore: use_build_context_synchronously
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
               content: Text('Customer Created Successfully'),
+              // ignore: use_build_context_synchronously
               backgroundColor: Theme.of(context).colorScheme.tertiary,
             ),
           );
@@ -64,9 +66,11 @@ class AddCustomerState extends State<AddCustomer> {
       }
       // ignore: empty_catches
     } catch (e) {
+      // ignore: use_build_context_synchronously
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text('Error: $e'),
+          // ignore: use_build_context_synchronously
           backgroundColor: Theme.of(context).colorScheme.error,
         ),
       );

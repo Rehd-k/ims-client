@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:invease/services/api.service.dart';
+
+import '../../../../services/api.service.dart';
 
 class EditProduct extends StatefulWidget {
   final Function updatePageInfo;

@@ -2,10 +2,11 @@ import 'package:auto_route/auto_route.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
-import 'package:invease/app_router.gr.dart';
-import 'package:invease/helpers/providers/token_provider.dart';
+
 import 'package:provider/provider.dart';
 
+import '../app_router.gr.dart';
+import '../helpers/providers/token_provider.dart';
 import '../services/api.service.dart';
 import '../services/token.service.dart';
 import 'form.dart';
@@ -30,12 +31,15 @@ class _LoginFormState extends State<LoginScreen> {
   late String usernameErrorMessage = '';
   bool hidePassword = true;
   bool isLoading = false;
+  late List branches = [];
   final ApiService apiServices = ApiService();
   final JwtService jwtService = JwtService();
   bool loggedIn = false;
+  bool showForm = true;
   @override
   void initState() {
     super.initState();
+    // getSettingnsAndBranch();
     usernameFocus = FocusNode();
     passwordFocus = FocusNode();
   }
@@ -45,6 +49,14 @@ class _LoginFormState extends State<LoginScreen> {
     usernameFocus.dispose();
     passwordFocus.dispose();
     super.dispose();
+  }
+
+  void getSettingnsAndBranch() async {
+    var responce = await apiServices.getRequest('location');
+    setState(() {
+      branches = responce.data;
+      showForm = true;
+    });
   }
 
   void toggleHideShowPassword() {
@@ -151,20 +163,25 @@ class _LoginFormState extends State<LoginScreen> {
                     flex: constraints.maxWidth > 600 ? 4 : 1,
                     child: Padding(
                       padding: const EdgeInsets.all(8.0),
-                      child: loginForm(
-                          context,
-                          _formKey,
-                          _userController,
-                          _passwordController,
-                          _submit,
-                          passwordErrorMessage,
-                          usernameErrorMessage,
-                          usernameFocus,
-                          passwordFocus,
-                          emptyErrorMessage,
-                          hidePassword,
-                          toggleHideShowPassword,
-                          isLoading),
+                      child: !showForm
+                          ? const Center(
+                              child: CircularProgressIndicator(),
+                            )
+                          : loginForm(
+                              context,
+                              _formKey,
+                              _userController,
+                              _passwordController,
+                              _submit,
+                              passwordErrorMessage,
+                              usernameErrorMessage,
+                              usernameFocus,
+                              passwordFocus,
+                              emptyErrorMessage,
+                              hidePassword,
+                              toggleHideShowPassword,
+                              isLoading,
+                              branches),
                     ),
                   ),
                   constraints.maxWidth > 600

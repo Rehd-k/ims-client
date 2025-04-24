@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:infinite_scroll_pagination/infinite_scroll_pagination.dart';
 // import 'package:infinite_scroll_pagination/infinite_scroll_pagination.dart';
-import 'package:invease/helpers/financial_string_formart.dart';
+import '../../helpers/financial_string_formart.dart';
 
 class ProductGrid extends StatelessWidget {
   final bool smallScreen;
