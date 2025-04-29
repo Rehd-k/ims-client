@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_to_pdf/flutter_to_pdf.dart';
+
 import '../../../helpers/financial_string_formart.dart';
 
 import '../../../components/dotted_lines.dart';
@@ -7,14 +7,11 @@ import 'infinite_table.dart';
 
 class InvoicePage extends StatelessWidget {
   final Invoice invoice;
-  final ExportDelegate exportDelegate;
-  final Function(dynamic document, String name) saveFile;
 
-  const InvoicePage(
-      {super.key,
-      required this.invoice,
-      required this.exportDelegate,
-      required this.saveFile});
+  const InvoicePage({
+    super.key,
+    required this.invoice,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -27,11 +24,7 @@ class InvoicePage extends StatelessWidget {
             TextButton(
               child: Text("INVOICE",
                   style: TextStyle(fontSize: 32, fontWeight: FontWeight.bold)),
-              onPressed: () async {
-                final pdf =
-                    await exportDelegate.exportToPdfDocument('invoicePDF');
-                saveFile(pdf, 'invoice');
-              },
+              onPressed: () async {},
             ),
             SizedBox(height: 16),
             MySeparator(),

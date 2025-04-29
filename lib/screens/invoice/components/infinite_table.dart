@@ -1,6 +1,5 @@
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_to_pdf/flutter_to_pdf.dart';
 import 'package:intl/intl.dart';
 import 'package:invease/helpers/financial_string_formart.dart';
 
@@ -78,9 +77,7 @@ class InvoiceTablePage extends StatelessWidget {
   final ScrollController scrollController;
   final bool isLoading;
   final bool hasMore;
-  final ExportDelegate exportDelegate;
   final Function(String id) handleSendMessage;
-  final Function(dynamic document, String name) saveFile;
   final Function(String id, String transactionId) updateInvoice;
 
   const InvoiceTablePage(
@@ -89,8 +86,6 @@ class InvoiceTablePage extends StatelessWidget {
       required this.scrollController,
       required this.isLoading,
       required this.hasMore,
-      required this.exportDelegate,
-      required this.saveFile,
       required this.handleSendMessage,
       required this.updateInvoice});
 
@@ -281,13 +276,8 @@ class InvoiceTablePage extends StatelessWidget {
                             showModalBottomSheet(
                                 context: context,
                                 builder: (BuildContext context) {
-                                  return ExportFrame(
-                                    frameId: 'invoicePDF',
-                                    exportDelegate: exportDelegate,
-                                    child: InvoicePage(
-                                        invoice: invoice,
-                                        exportDelegate: exportDelegate,
-                                        saveFile: saveFile),
+                                  return InvoicePage(
+                                    invoice: invoice,
                                   );
                                 },
                                 isScrollControlled: true)

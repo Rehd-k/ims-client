@@ -1,10 +1,7 @@
 import 'dart:convert';
-import 'dart:io';
 
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_to_pdf/flutter_to_pdf.dart';
-import 'package:path_provider/path_provider.dart';
 import 'package:provider/provider.dart';
 
 import '../../globals/actions.dart';
@@ -35,8 +32,6 @@ class ViewInvoicesState extends State<ViewInvoices> {
   DateTime? _toDate = DateTime.now();
   static const _pageSize = 20;
   final ScrollController _scrollController = ScrollController();
-  final ExportDelegate exportDelegate =
-      ExportDelegate(ttfFonts: {'Poppins': 'assets/fonts/Poppins-Regular.ttf'});
 
   String currentFrameId = 'invoicePDF';
   List<Invoice> _invoices = [];
@@ -92,14 +87,6 @@ class ViewInvoicesState extends State<ViewInvoices> {
     });
 
     _fetchInvoices();
-  }
-
-  Future<void> saveFile(document, String name) async {
-    final Directory? dir = await getDownloadsDirectory();
-    final File file = File('${dir!.path}/$name.pdf');
-
-    await file.writeAsBytes(await document.save());
-    debugPrint('Saved exported PDF at: ${file.path}');
   }
 
   @override
@@ -338,8 +325,6 @@ class ViewInvoicesState extends State<ViewInvoices> {
                       scrollController: _scrollController,
                       isLoading: _isLoading,
                       hasMore: _hasMore,
-                      exportDelegate: exportDelegate,
-                      saveFile: saveFile,
                       handleSendMessage: _handleSendMessage,
                       updateInvoice: _updateInvoice),
                 ),
