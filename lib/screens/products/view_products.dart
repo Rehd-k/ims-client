@@ -136,7 +136,7 @@ class ViewProductsState extends State<ViewProducts> {
                       {
                         'name': 'Added On',
                         'sortable': false,
-                        'type': 'string',
+                        'type': 'date',
                         'field': 'createdAt'
                       },
                       // {

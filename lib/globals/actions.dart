@@ -11,7 +11,7 @@ List<Widget> actions(BuildContext context, ThemeNotifier themeNotifier,
   JwtService jwtService = JwtService();
   return [
     IconButton(
-      icon: const Icon(Icons.remove_red_eye),
+      icon: const Icon(Icons.light_mode_outlined),
       onPressed: () {
         if (themeNotifier.themeMode == ThemeMode.light) {
           themeNotifier.setTheme(ThemeMode.dark);

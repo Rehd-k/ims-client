@@ -44,10 +44,7 @@ class CartSection extends StatelessWidget {
       Container(
         decoration: BoxDecoration(
           gradient: LinearGradient(
-            colors: [
-              Theme.of(context).colorScheme.tertiary,
-              Theme.of(context).colorScheme.tertiary,
-            ],
+            colors: [Colors.green, Colors.lightGreen],
             begin: Alignment.centerLeft,
             end: Alignment.centerRight,
           ),

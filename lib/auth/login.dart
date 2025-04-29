@@ -29,17 +29,18 @@ class _LoginFormState extends State<LoginScreen> {
   late FocusNode passwordFocus;
   late String passwordErrorMessage = '';
   late String usernameErrorMessage = '';
+  late String locations = '';
   bool hidePassword = true;
   bool isLoading = false;
   late List branches = [];
   final ApiService apiServices = ApiService();
   final JwtService jwtService = JwtService();
   bool loggedIn = false;
-  bool showForm = true;
+  bool showForm = false;
   @override
   void initState() {
     super.initState();
-    // getSettingnsAndBranch();
+    getSettingnsAndBranch();
     usernameFocus = FocusNode();
     passwordFocus = FocusNode();
   }
@@ -81,6 +82,12 @@ class _LoginFormState extends State<LoginScreen> {
       webShowClose: true,
       fontSize: 16.0);
 
+  handleAddLocation(String location) {
+    setState(() {
+      locations = location;
+    });
+  }
+
   Future<void> handleSubmit(context) async {
     setState(() {
       isLoading = true;
@@ -89,7 +96,9 @@ class _LoginFormState extends State<LoginScreen> {
       final response = await apiServices.postRequest('auth/login', {
         'username': _userController.text,
         'password': _passwordController.text,
+        'location': locations,
       });
+
       if (response.statusCode! >= 200 && response.statusCode! <= 300) {
         token = response.data['access_token'];
         if (!mounted) return;
@@ -112,7 +121,7 @@ class _LoginFormState extends State<LoginScreen> {
 
             passwordFocus.requestFocus();
           }
-          if (result == 'User not found') {
+          if (result == 'User not found in this location') {
             setState(() {
               usernameErrorMessage = result;
               isLoading = false;
@@ -181,7 +190,8 @@ class _LoginFormState extends State<LoginScreen> {
                               hidePassword,
                               toggleHideShowPassword,
                               isLoading,
-                              branches),
+                              branches,
+                              handleAddLocation),
                     ),
                   ),
                   constraints.maxWidth > 600

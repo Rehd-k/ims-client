@@ -17,6 +17,7 @@ List fullMenu = [
     'children': [
       {'title': 'Users', 'link': '/users', 'icon': Icons.emoji_people_outlined},
       {'title': 'Banks', 'link': '/banks', 'icon': Icons.business_outlined},
+      {'title': 'Locations', 'link': '/location', 'icon': Icons.place_outlined},
     ]
   },
   {

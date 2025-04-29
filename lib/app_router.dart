@@ -22,6 +22,7 @@ class AppRouter extends RootStackRouter {
               page: DashboardRoute.page,
               guards: [LogedinGuard()]),
           AutoRoute(path: 'users', page: UserManagementRoute.page),
+          AutoRoute(path: 'location', page: LocationIndex.page),
           AutoRoute(
             path: 'products',
             page: ProductsIndex.page,
@@ -29,7 +30,7 @@ class AppRouter extends RootStackRouter {
           AutoRoute(page: ProductDashboard.page, path: 'product-dashboard'),
           AutoRoute(path: 'customers', page: CustomerRoute.page),
           AutoRoute(path: 'categories', page: CategoryIndex.page),
-          AutoRoute(path: 'suppliers', page: SupplierIndex.page),
+          AutoRoute(path: 'suppliers', page: SupplierRoute.page),
           AutoRoute(path: 'make-sale', page: MakeSaleIndex.page),
           AutoRoute(path: 'checkout', page: CheckoutRoute.page),
           AutoRoute(path: 'payment_report', page: PaymentReportsRoute.page),

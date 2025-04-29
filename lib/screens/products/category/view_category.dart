@@ -105,111 +105,107 @@ class ViewCategoryState extends State<ViewCategory> {
       children: [
         smallScreen ? searchBox(smallScreen) : Container(),
         Expanded(
-          child: Container(
-            color: Theme.of(context).colorScheme.onSecondary,
-            child: PaginatedDataTable2(
-              fixedCornerColor: Theme.of(context).colorScheme.onSecondary,
-              columnSpacing: 12,
-              horizontalMargin: 12,
-              sortColumnIndex: getColumnIndex(sortBy),
-              sortAscending: ascending,
-              rowsPerPage: rowsPerPage,
-              onRowsPerPageChanged: (value) {
-                setState(() {
-                  rowsPerPage = value ?? rowsPerPage;
-                });
-              },
-              // empty: Text('No Products Yet'),
-              // minWidth: 500,
-              actions: [
-                DropdownButton(
-                    elevation: 0,
-                    hint: Padding(
-                      padding: const EdgeInsets.all(8.0),
-                      child: Text(
-                        'Filter',
-                        style: TextStyle(
-                            fontSize: 10, fontWeight: FontWeight.w100),
-                      ),
+          child: PaginatedDataTable2(
+            fixedCornerColor: Theme.of(context).colorScheme.onSecondary,
+            columnSpacing: 12,
+            horizontalMargin: 12,
+            sortColumnIndex: getColumnIndex(sortBy),
+            sortAscending: ascending,
+            rowsPerPage: rowsPerPage,
+            onRowsPerPageChanged: (value) {
+              setState(() {
+                rowsPerPage = value ?? rowsPerPage;
+              });
+            },
+            // empty: Text('No Products Yet'),
+            // minWidth: 500,
+            actions: [
+              DropdownButton(
+                  elevation: 0,
+                  hint: Padding(
+                    padding: const EdgeInsets.all(8.0),
+                    child: Text(
+                      'Filter',
+                      style:
+                          TextStyle(fontSize: 10, fontWeight: FontWeight.w100),
                     ),
-                    borderRadius: BorderRadius.circular(10),
-                    icon: Icon(Icons.filter_alt_outlined, size: 10),
-                    // value: 'all',
-                    items: [
-                      DropdownMenuItem(
-                        value: 'all',
-                        child: Text('All'),
-                      ),
-                      DropdownMenuItem(
-                        value: 'low stock',
-                        child: Text('Low Stock'),
-                      ),
-                      DropdownMenuItem(
-                        value: 'no   stock',
-                        child: Text('No Stock'),
-                      )
-                    ],
-                    onChanged: (v) {}),
-                FilledButton.icon(
-                  onPressed: () {},
-                  icon: Icon(
-                    Icons.exit_to_app,
-                    size: 10,
                   ),
-                  label: Text(
-                    'Extract',
-                    style: TextStyle(fontWeight: FontWeight.w100, fontSize: 10),
-                  ),
-                )
-              ],
-              header: smallScreen
-                  ? SizedBox(
-                      width: 10,
-                      child: FilledButton.icon(
-                        onPressed: () => showBarModalBottomSheet(
-                          expand: true,
-                          context: context,
-                          backgroundColor: Colors.transparent,
-                          builder: (context) => AddCategory(
-                              updateCategory: widget.updateCategory),
-                        ),
-                        label: Text('Add Product'),
-                        icon: Icon(Icons.add_box_outlined),
-                      ),
+                  borderRadius: BorderRadius.circular(10),
+                  icon: Icon(Icons.filter_alt_outlined, size: 10),
+                  // value: 'all',
+                  items: [
+                    DropdownMenuItem(
+                      value: 'all',
+                      child: Text('All'),
+                    ),
+                    DropdownMenuItem(
+                      value: 'low stock',
+                      child: Text('Low Stock'),
+                    ),
+                    DropdownMenuItem(
+                      value: 'no   stock',
+                      child: Text('No Stock'),
                     )
-                  : Row(
-                      children: [searchBox(smallScreen)],
+                  ],
+                  onChanged: (v) {}),
+              FilledButton.icon(
+                onPressed: () {},
+                icon: Icon(
+                  Icons.exit_to_app,
+                  size: 10,
+                ),
+                label: Text(
+                  'Extract',
+                  style: TextStyle(fontWeight: FontWeight.w100, fontSize: 10),
+                ),
+              )
+            ],
+            header: smallScreen
+                ? SizedBox(
+                    width: 10,
+                    child: FilledButton.icon(
+                      onPressed: () => showBarModalBottomSheet(
+                        expand: true,
+                        context: context,
+                        backgroundColor: Colors.transparent,
+                        builder: (context) =>
+                            AddCategory(updateCategory: widget.updateCategory),
+                      ),
+                      label: Text('Add Product'),
+                      icon: Icon(Icons.add_box_outlined),
                     ),
-              columns: [
-                DataColumn2(
-                    label: Text("Title"),
-                    size: ColumnSize.L,
-                    onSort: (index, ascending) {
-                      setState(() {
-                        sortBy = 'title';
-                        this.ascending = ascending;
-                      });
-                    }),
-                DataColumn2(label: Text("Description"), size: ColumnSize.L),
-                DataColumn2(label: Text("Initiator")),
-                DataColumn2(
-                  label: Text('Added On'),
+                  )
+                : Row(
+                    children: [searchBox(smallScreen)],
+                  ),
+            columns: [
+              DataColumn2(
+                  label: Text("Title"),
                   size: ColumnSize.L,
                   onSort: (index, ascending) {
                     setState(() {
-                      sortBy = 'createdAt';
+                      sortBy = 'title';
                       this.ascending = ascending;
                     });
-                  },
-                ),
-                DataColumn2(label: Text('Actions'))
-              ],
-              source:
-                  CategoryDataSource(categories: getFilteredAndSortedRows()),
-              border: TableBorder(
-                horizontalInside: BorderSide.none,
-                verticalInside: BorderSide.none,
+                  }),
+              DataColumn2(label: Text("Description"), size: ColumnSize.L),
+              DataColumn2(label: Text("Initiator")),
+              DataColumn2(
+                label: Text('Added On'),
+                size: ColumnSize.L,
+                onSort: (index, ascending) {
+                  setState(() {
+                    sortBy = 'createdAt';
+                    this.ascending = ascending;
+                  });
+                },
               ),
+              DataColumn2(label: Text('Actions'))
+            ],
+            source: CategoryDataSource(categories: getFilteredAndSortedRows()),
+            border: TableBorder(
+              horizontalInside: BorderSide.none,
+              verticalInside: BorderSide.none,
             ),
           ),
         ),

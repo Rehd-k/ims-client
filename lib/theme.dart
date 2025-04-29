@@ -191,7 +191,7 @@ class AppTheme {
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(4)),
       ),
       dividerColor: AppColors.lightGrayVariant,
-      iconTheme: const IconThemeData(color: AppColors.darkOnBackground),
+      iconTheme: const IconThemeData(color: AppColors.onPrimary),
       snackBarTheme: const SnackBarThemeData(
         backgroundColor: AppColors.primary,
         contentTextStyle: TextStyle(color: AppColors.onPrimary),
@@ -323,7 +323,7 @@ class AppTheme {
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(4)),
       ),
       dividerColor: AppColors.darkGrayVariant,
-      iconTheme: const IconThemeData(color: AppColors.onBackground),
+      iconTheme: const IconThemeData(color: AppColors.darkOnPrimary),
       snackBarTheme: const SnackBarThemeData(
         backgroundColor: AppColors.darkPrimary,
         contentTextStyle: TextStyle(color: AppColors.darkOnPrimary),

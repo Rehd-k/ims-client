@@ -15,7 +15,8 @@ Form loginForm(
     hidePassword,
     toggleHideShowPassword,
     isLoading,
-    branches) {
+    branches,
+    handleAddLocation) {
   return Form(
       key: formKey,
       autovalidateMode: AutovalidateMode.always,
@@ -130,33 +131,31 @@ Form loginForm(
                 },
               ),
               SizedBox(height: 10),
-              // DropdownButtonFormField<String>(
-              //   decoration: InputDecoration(
-              //     labelText: 'Select Location',
-              //     border: OutlineInputBorder(
-              //       borderRadius: BorderRadius.circular(10.0),
-              //     ),
-              //   ),
-              //   items: branches.map<DropdownMenuItem<String>>((branch) {
-              //     return DropdownMenuItem<String>(
-              //       value: branch['_id']
-              //           .toString(), // Assuming 'id' is the key for the value
-              //       child: Text(branch[
-              //           'name']), // Assuming 'name' is the key for the display text
-              //     );
-              //   }).toList(),
-              //   onChanged: (value) {
-              //     // Handle the selected value
-              //     print('Selected location ID: $value');
-              //   },
-              //   validator: (value) {
-              //     if (value == null || value.isEmpty) {
-              //       return 'Please select a location';
-              //     }
-              //     return null;
-              //   },
-              // ),
-
+              DropdownButtonFormField<String>(
+                decoration: InputDecoration(
+                  labelText: 'Select Location',
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(10.0),
+                  ),
+                ),
+                items: branches.map<DropdownMenuItem<String>>((branch) {
+                  return DropdownMenuItem<String>(
+                    value: branch['_id']
+                        .toString(), // Assuming 'id' is the key for the value
+                    child: Text(branch[
+                        'name']), // Assuming 'name' is the key for the display text
+                  );
+                }).toList(),
+                onChanged: (value) {
+                  handleAddLocation(value!);
+                },
+                validator: (value) {
+                  if (value == null || value.isEmpty) {
+                    return 'Please select a location';
+                  }
+                  return null;
+                },
+              ),
               SizedBox(height: 40),
               isLoading
                   ? CircularProgressIndicator.adaptive()

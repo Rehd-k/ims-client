@@ -1,10 +1,16 @@
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_to_pdf/flutter_to_pdf.dart';
 import 'package:path_provider/path_provider.dart';
+import 'package:provider/provider.dart';
 
+import '../../globals/actions.dart';
+import '../../globals/sidebar.dart';
+import '../../helpers/providers/theme_notifier.dart';
+import '../../helpers/providers/token_provider.dart';
 import '../../services/api.service.dart';
 import 'components/filters.dart';
 import 'components/infinite_table.dart';
@@ -19,6 +25,7 @@ class ViewInvoices extends StatefulWidget {
 
 class ViewInvoicesState extends State<ViewInvoices> {
   ApiService apiService = ApiService();
+  final JsonEncoder jsonEncoder = JsonEncoder();
   String selectedDateField = 'createdAt';
   String selectedForSearch = 'invoiceNumber';
   String searchParams = '';
@@ -138,17 +145,19 @@ class ViewInvoicesState extends State<ViewInvoices> {
 
     return data.map<Invoice>((item) {
       return Invoice(
+          id: item['_id'],
           invoiceNumber: item['invoiceNumber'],
-          customer: item['customer']['name'],
-          issueDate: '2025-04-01',
-          dueDate: '2025-04-10',
-          recurringCycle: 'Monthly',
+          customer: item['customer'],
+          issueDate: item['issuedDate'],
+          dueDate: item['dueDate'],
+          recurringCycle: item['recurring'],
           total: item['totalAmount'],
-          amountPaid: 0,
+          amountPaid: item['transactionId'],
           status: item['status'],
           items: item['items'],
           discount: item['discount'],
-          tax: item['tax']);
+          tax: item['tax'],
+          bank: item['bank']);
     });
   }
 
@@ -244,61 +253,101 @@ class ViewInvoicesState extends State<ViewInvoices> {
     );
   }
 
+  Future<void> _handleSendMessage(String id) async {
+    await apiService.getRequest('invoice/send-whatsapp/$id');
+  }
+
+  Future<void> _updateInvoice(String id, String transactionId) async {
+    try {
+      final response = await apiService.putRequest(
+        'invoice/update/${jsonEncoder.convert({'_id': id})}',
+        {'status': 'paid', 'transactionId': transactionId},
+      );
+      if (response.statusCode == 200) {
+        setState(() {
+          _invoices = _invoices.map((invoice) {
+            if (invoice.id == id) {
+              return invoice.copyWith(
+                  status: 'paid', transactionId: transactionId);
+            }
+            return invoice;
+          }).toList();
+        });
+        debugPrint('Invoice updated successfully.');
+      } else {
+        debugPrint('Failed to update invoice: ${response.data}');
+      }
+    } catch (e) {
+      debugPrint('Error updating invoice: $e');
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final isSmallScreen = MediaQuery.of(context).size.width < 600;
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Invoices'),
-      ),
-      body: SingleChildScrollView(
-        child: Padding(
-          padding: EdgeInsets.all(isSmallScreen ? 2 : 16),
-          child: Column(
-            children: [
-              SizedBox(height: !isSmallScreen ? 40 : 20),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text(
-                    'Invoice list',
-                    style: TextStyle(
-                        fontSize: isSmallScreen ? 30 : 54,
-                        fontWeight: FontWeight.w100,
-                        color: Theme.of(context).primaryColor),
-                  ),
-                  OutlinedButton.icon(
-                      onPressed: () {},
-                      label: const Text('Add Invoice'),
-                      icon: const Icon(Icons.add)),
-                ],
-              ),
-              const SizedBox(height: 20),
-              FilterHeader(
-                  selectedDateField: selectedDateField,
-                  selectedForSearch: selectedForSearch,
-                  selectedStatus: selectedStatus,
-                  onFieldChange: onFieldChange,
-                  onInputChange: onInputChange,
-                  onSelectStatus: onSelectStatus,
-                  suggestions: suggestions,
-                  dateRangeHolder: dateRangeHolder,
-                  onSearchParamsChange: onSearchParamsChange),
-              const SizedBox(height: 20),
-              Container(
-                constraints: BoxConstraints(maxHeight: 500, minHeight: 200),
-                child: InvoiceTablePage(
-                    invoices: _invoices,
-                    scrollController: _scrollController,
-                    isLoading: _isLoading,
-                    hasMore: _hasMore,
-                    exportDelegate: exportDelegate,
-                    saveFile: saveFile),
-              ),
-            ],
+    return Consumer2<ThemeNotifier, TokenNotifier>(
+        builder: (context, themeNotifier, tokenNotifier, child) {
+      return Scaffold(
+        appBar: AppBar(
+          title: const Text('Invoices'),
+          actions: [...actions(context, themeNotifier, tokenNotifier)],
+        ),
+        drawer: isSmallScreen
+            ? Drawer(
+                backgroundColor: Theme.of(context).drawerTheme.backgroundColor,
+                child: SideBar(tokenNotifier: tokenNotifier))
+            : null,
+        body: SingleChildScrollView(
+          child: Padding(
+            padding: EdgeInsets.all(isSmallScreen ? 2 : 16),
+            child: Column(
+              children: [
+                SizedBox(height: !isSmallScreen ? 40 : 20),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      'Invoice list',
+                      style: TextStyle(
+                          fontSize: isSmallScreen ? 30 : 54,
+                          fontWeight: FontWeight.w100,
+                          color: Theme.of(context).primaryColor),
+                    ),
+                    OutlinedButton.icon(
+                        onPressed: () {},
+                        label: const Text('Add Invoice'),
+                        icon: const Icon(Icons.add)),
+                  ],
+                ),
+                const SizedBox(height: 20),
+                FilterHeader(
+                    selectedDateField: selectedDateField,
+                    selectedForSearch: selectedForSearch,
+                    selectedStatus: selectedStatus,
+                    onFieldChange: onFieldChange,
+                    onInputChange: onInputChange,
+                    onSelectStatus: onSelectStatus,
+                    suggestions: suggestions,
+                    dateRangeHolder: dateRangeHolder,
+                    onSearchParamsChange: onSearchParamsChange),
+                const SizedBox(height: 20),
+                Container(
+                  constraints: BoxConstraints(maxHeight: 500, minHeight: 200),
+                  child: InvoiceTablePage(
+                      invoices: _invoices,
+                      scrollController: _scrollController,
+                      isLoading: _isLoading,
+                      hasMore: _hasMore,
+                      exportDelegate: exportDelegate,
+                      saveFile: saveFile,
+                      handleSendMessage: _handleSendMessage,
+                      updateInvoice: _updateInvoice),
+                ),
+              ],
+            ),
           ),
         ),
-      ),
-    );
+      );
+    });
   }
 }

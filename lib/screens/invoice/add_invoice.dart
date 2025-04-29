@@ -1,11 +1,16 @@
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:provider/provider.dart';
+import '../../globals/actions.dart';
+import '../../globals/sidebar.dart';
 import '../../helpers/financial_string_formart.dart';
 import 'package:toastification/toastification.dart';
 
 import '../../components/inputs/customer_finder.dart';
 import '../../components/inputs/product_finder.dart';
+import '../../helpers/providers/theme_notifier.dart';
+import '../../helpers/providers/token_provider.dart';
 import '../../services/api.service.dart';
 
 @RoutePage()
@@ -20,6 +25,7 @@ class AddInvoiceState extends State<AddInvoice> {
   final List<String> taxes = List.generate(10, (index) => 'Tax $index');
   final TextEditingController productController = TextEditingController();
   final TextEditingController nameController = TextEditingController();
+  final TextEditingController noteController = TextEditingController();
   List<TextEditingController> quantityControllers = [];
 
   String? selectedCustomer;
@@ -28,15 +34,18 @@ class AddInvoiceState extends State<AddInvoice> {
   DateTime dueDate = DateTime.now();
 
   String referenceNumber = 'INV-001';
-  bool isRecurring = false;
+  String? isRecurring = 'none';
   String? selectedTemplate;
   List<Map> selectedProducts = [];
-  String? discountType;
+  String? discountType = '';
   double discountValue = 0;
   double receivedAmount = 0;
   ApiService apiService = ApiService(); // Assuming you have an ApiService class
   List filteredProducts = [];
   Map? selectedName;
+  bool isBankLoading = true;
+  List<dynamic> banks = [];
+  late Map bank;
 
   Future<List<Map>> _fetchProducts(String query) async {
     final response = await apiService.getRequest(
@@ -61,10 +70,9 @@ class AddInvoiceState extends State<AddInvoice> {
 
   void updateQuantity(int index, int newQuantity) {
     setState(() {
-      if (newQuantity <= selectedProducts[index]['quantity']) {
-        selectedProducts[index]['buying_quantity'] = newQuantity;
-        selectedProducts[index]['amount'] = selectedProducts[index]
-                ['buying_quantity'] *
+      if (newQuantity <= selectedProducts[index]['remaining']) {
+        selectedProducts[index]['quantity'] = newQuantity;
+        selectedProducts[index]['total'] = selectedProducts[index]['quantity'] *
             selectedProducts[index]['price'];
         quantityControllers[index].text = newQuantity.toString();
       }
@@ -77,6 +85,20 @@ class AddInvoiceState extends State<AddInvoice> {
   }
 
   void handleSave() async {
+    // Validate required fields
+    if (selectedName == null ||
+        selectedProducts.isEmpty ||
+        referenceNumber.isEmpty) {
+      toastification.show(
+        title: Text('Error'),
+        description: Text('Please fill in all required fields.'),
+        type: ToastificationType.error,
+        style: ToastificationStyle.flatColored,
+        autoCloseDuration: const Duration(seconds: 3),
+      );
+      return;
+    }
+
     toastification.show(
       title: Text('Loading...'),
       type: ToastificationType.info,
@@ -85,18 +107,22 @@ class AddInvoiceState extends State<AddInvoice> {
     );
 
     Map<String, dynamic> info = {
-      'customer': selectedName,
+      'customer': selectedName?['_id'],
       'issuedDate': issueDate.toIso8601String(),
       'dueDate': dueDate.toIso8601String(),
       'invoiceNumber': referenceNumber,
       'recurring': isRecurring,
       'items': selectedProducts,
-      'discount': discountValue,
+      'discount': _calculateDiscount(),
       'totalAmount': _calculateDueAmount(),
+      'bank': bank['_id'],
       'tax': 0, //add selected tax values later,
       'previouslyPaidAmount': receivedAmount,
-      'note': 'note'
+      'note': noteController.text == ''
+          ? 'Thank you for your business'
+          : noteController.text
     };
+
     var response = await apiService.postRequest('invoice', info);
     if (response.statusCode! >= 200 && response.statusCode! <= 300) {
       toastification.show(
@@ -111,16 +137,31 @@ class AddInvoiceState extends State<AddInvoice> {
   @override
   void initState() {
     super.initState();
+    updateBankList();
     quantityControllers = List.generate(
       selectedProducts.length,
       (index) => TextEditingController(
-        text: selectedProducts[index]['buying_quantity'].toString(),
+        text: selectedProducts[index]['quantity'].toString(),
       ),
     );
 
     // Initialize random reference number
     referenceNumber =
         'INV-${DateTime.now().millisecondsSinceEpoch.toString().padLeft(10, '0').substring(0, 10)}';
+  }
+
+  Future updateBankList() async {
+    setState(() {
+      isBankLoading = true;
+    });
+    var dbbanks = await apiService.getRequest(
+      'banks?skip=${banks.length}',
+    );
+    setState(() {
+      banks = dbbanks.data;
+      bank = banks[0];
+      isBankLoading = false;
+    });
   }
 
   @override
@@ -136,6 +177,16 @@ class AddInvoiceState extends State<AddInvoice> {
     setState(() {
       selectedName = suggestion;
       nameController.clear();
+    });
+  }
+
+  void updateBankByAccountNumber(String accountNumber) {
+    final matchingBank = banks.firstWhere(
+      (bank) => bank['accountNumber'] == accountNumber,
+      orElse: () => {},
+    );
+    setState(() {
+      bank = matchingBank;
     });
   }
 
@@ -157,12 +208,11 @@ class AddInvoiceState extends State<AddInvoice> {
         selectedProducts.removeAt(existingIndex);
         quantityControllers.removeAt(existingIndex);
       } else {
-        suggestion['buying_quantity'] = 1;
-        suggestion['amount'] =
-            suggestion['buying_quantity'] * suggestion['price'];
+        suggestion['quantity'] = 1;
+        suggestion['total'] = suggestion['quantity'] * suggestion['price'];
         selectedProducts.add(suggestion);
         quantityControllers.add(
-          TextEditingController(text: suggestion['buying_quantity'].toString()),
+          TextEditingController(text: suggestion['quantity'].toString()),
         );
       }
       // selectedProducts.add(suggestion);
@@ -172,280 +222,348 @@ class AddInvoiceState extends State<AddInvoice> {
 
   @override
   Widget build(BuildContext context) {
-    final isSmallScreen = MediaQuery.of(context).size.width < 600;
-
-    return Scaffold(
-      appBar: AppBar(title: const Text('Add Invoice')),
-      body: SingleChildScrollView(
-        child: Padding(
-          padding: isSmallScreen
-              ? const EdgeInsets.symmetric(vertical: 8.0, horizontal: 4.0)
-              : const EdgeInsets.all(16.0),
-          child: Column(
-            children: [
-              Row(
-                children: [
-                  Text('Create Invoice',
-                      style: TextStyle(
-                          fontSize: isSmallScreen ? 20 : 30,
-                          fontWeight: FontWeight.bold,
-                          color: Theme.of(context).colorScheme.primary)),
-                ],
-              ),
-              // First Card
-              Card(
-                child: Padding(
-                  padding: const EdgeInsets.all(16.0),
-                  child: Column(
-                    children: [
-                      // Form
-                      LayoutBuilder(
-                        builder: (context, constraints) {
-                          final isWide = constraints.maxWidth > 600;
-                          return Wrap(
-                            spacing: 20,
-                            runSpacing: 20,
-                            children: [
-                              // Customer Dropdown
-                              SizedBox(
-                                width: isWide
-                                    ? constraints.maxWidth / 3
-                                    : constraints.maxWidth,
-                                child: buildNameInput(
-                                    selectedName,
-                                    nameController,
-                                    _fetchNames,
-                                    selectUserFromSugestion,
-                                    deselectUserFromSugestion,
-                                    onchange),
-                              ),
-                              // Issue Date
-                              SizedBox(
-                                width: isWide
-                                    ? constraints.maxWidth / 3.5
-                                    : constraints.maxWidth,
-                                child: TextFormField(
-                                  decoration: const InputDecoration(
-                                      labelText: 'Issue Date'),
-                                  readOnly: true,
-                                  onTap: () async {
-                                    final date = await showDatePicker(
-                                      context: context,
-                                      initialDate: DateTime.now(),
-                                      firstDate: DateTime(2000),
-                                      lastDate: DateTime(2100),
-                                    );
-                                    if (date != null) {
-                                      setState(() => issueDate = date);
-                                    }
-                                  },
-                                  controller: TextEditingController(
-                                    text: issueDate.toString().split(' ')[0],
+    double width = MediaQuery.sizeOf(context).width;
+    bool smallScreen = width <= 1200;
+    return Consumer2<ThemeNotifier, TokenNotifier>(
+        builder: (context, themeNotifier, tokenNotifier, child) {
+      return Scaffold(
+        appBar: AppBar(actions: [
+          IconButton(onPressed: () {}, icon: Icon(Icons.add_box_outlined)),
+          ...actions(context, themeNotifier, tokenNotifier),
+          IconButton(onPressed: () {}, icon: Icon(Icons.live_help_outlined)),
+        ]),
+        drawer: smallScreen
+            ? Drawer(
+                backgroundColor: Theme.of(context).drawerTheme.backgroundColor,
+                child: SideBar(tokenNotifier: tokenNotifier))
+            : null,
+        body: SingleChildScrollView(
+          child: Padding(
+            padding: smallScreen
+                ? const EdgeInsets.symmetric(vertical: 8.0, horizontal: 4.0)
+                : const EdgeInsets.all(16.0),
+            child: Column(
+              children: [
+                Row(
+                  children: [
+                    Text('Create Invoice',
+                        style: TextStyle(
+                            fontSize: smallScreen ? 20 : 30,
+                            fontWeight: FontWeight.bold,
+                            color: Theme.of(context).colorScheme.primary)),
+                  ],
+                ),
+                // First Card
+                Card(
+                  child: Padding(
+                    padding: const EdgeInsets.all(16.0),
+                    child: Column(
+                      children: [
+                        // Form
+                        LayoutBuilder(
+                          builder: (context, constraints) {
+                            final isWide = constraints.maxWidth > 600;
+                            return Wrap(
+                              spacing: 20,
+                              runSpacing: 20,
+                              children: [
+                                // Customer Dropdown
+                                SizedBox(
+                                  width: isWide
+                                      ? constraints.maxWidth / 3
+                                      : constraints.maxWidth,
+                                  child: buildNameInput(
+                                      selectedName,
+                                      nameController,
+                                      _fetchNames,
+                                      selectUserFromSugestion,
+                                      deselectUserFromSugestion,
+                                      onchange),
+                                ),
+                                // Issue Date
+                                SizedBox(
+                                  width: isWide
+                                      ? constraints.maxWidth / 3.5
+                                      : constraints.maxWidth,
+                                  child: TextFormField(
+                                    decoration: const InputDecoration(
+                                        labelText: 'Issue Date'),
+                                    readOnly: true,
+                                    onTap: () async {
+                                      final date = await showDatePicker(
+                                        context: context,
+                                        initialDate: DateTime.now(),
+                                        firstDate: DateTime(2000),
+                                        lastDate: DateTime(2100),
+                                      );
+                                      if (date != null) {
+                                        setState(() => issueDate = date);
+                                      }
+                                    },
+                                    controller: TextEditingController(
+                                      text: issueDate.toString().split(' ')[0],
+                                    ),
                                   ),
                                 ),
-                              ),
-                              // Due Date
-                              SizedBox(
-                                width: isWide
-                                    ? constraints.maxWidth / 3.5
-                                    : constraints.maxWidth,
-                                child: TextFormField(
-                                  decoration: const InputDecoration(
-                                      labelText: 'Due Date'),
-                                  readOnly: true,
-                                  onTap: () async {
-                                    final date = await showDatePicker(
-                                      context: context,
-                                      initialDate: DateTime.now(),
-                                      firstDate: DateTime(2000),
-                                      lastDate: DateTime(2100),
-                                    );
-                                    if (date != null) {
-                                      setState(() => dueDate = date);
-                                    }
-                                  },
-                                  controller: TextEditingController(
-                                      text: dueDate.toString().split(' ')[0]),
+                                // Due Date
+                                SizedBox(
+                                  width: isWide
+                                      ? constraints.maxWidth / 3.5
+                                      : constraints.maxWidth,
+                                  child: TextFormField(
+                                    decoration: const InputDecoration(
+                                        labelText: 'Due Date'),
+                                    readOnly: true,
+                                    onTap: () async {
+                                      final date = await showDatePicker(
+                                        context: context,
+                                        initialDate: DateTime.now(),
+                                        firstDate: DateTime(2000),
+                                        lastDate: DateTime(2100),
+                                      );
+                                      if (date != null) {
+                                        setState(() => dueDate = date);
+                                      }
+                                    },
+                                    controller: TextEditingController(
+                                        text: dueDate.toString().split(' ')[0]),
+                                  ),
                                 ),
-                              ),
-                              // Reference Number
-                              SizedBox(
-                                width: isWide
-                                    ? constraints.maxWidth / 3
-                                    : constraints.maxWidth,
-                                child: TextFormField(
-                                  decoration: const InputDecoration(
-                                      labelText: 'Reference Number'),
-                                  readOnly: true,
-                                  initialValue: referenceNumber,
+                                // Reference Number
+                                SizedBox(
+                                  width: isWide
+                                      ? constraints.maxWidth / 3
+                                      : constraints.maxWidth,
+                                  child: TextFormField(
+                                    decoration: const InputDecoration(
+                                        labelText: 'Reference Number'),
+                                    readOnly: true,
+                                    initialValue: referenceNumber,
+                                  ),
                                 ),
-                              ),
-                              // Recurring
-                              SizedBox(
-                                width: isWide
-                                    ? constraints.maxWidth / 3
-                                    : constraints.maxWidth,
-                                child: Row(
+
+                                // Recurring Dropdown
+                                SizedBox(
+                                  width: isWide
+                                      ? constraints.maxWidth / 3
+                                      : constraints.maxWidth,
+                                  child: DropdownButtonFormField<String>(
+                                    decoration: const InputDecoration(
+                                        labelText: 'Recurring'),
+                                    value: isRecurring,
+                                    items: const [
+                                      DropdownMenuItem(
+                                          value: 'none', child: Text('None')),
+                                      DropdownMenuItem(
+                                          value: 'daily', child: Text('Daily')),
+                                      DropdownMenuItem(
+                                          value: 'weekly',
+                                          child: Text('Weekly')),
+                                      DropdownMenuItem(
+                                          value: 'monthly',
+                                          child: Text('Monthly')),
+                                      DropdownMenuItem(
+                                          value: 'quarterly',
+                                          child: Text('Quarterly')),
+                                      DropdownMenuItem(
+                                          value: 'bi-yearly',
+                                          child: Text('Bi-Yearly')),
+                                      DropdownMenuItem(
+                                          value: 'yearly',
+                                          child: Text('Yearly')),
+                                    ],
+                                    onChanged: (value) {
+                                      setState(() {
+                                        isRecurring = value;
+                                        selectedTemplate = value;
+                                      });
+                                    },
+                                  ),
+                                ),
+
+                                // Bank Dropdown
+
+                                SizedBox(
+                                  width: isWide
+                                      ? constraints.maxWidth / 3.5
+                                      : constraints.maxWidth,
+                                  child: isBankLoading
+                                      ? Center(
+                                          child: CircularProgressIndicator(),
+                                        )
+                                      : DropdownButtonFormField<String>(
+                                          value: bank['accountNumber'],
+                                          decoration: InputDecoration(
+                                            labelText: 'Select Bank',
+                                            border: OutlineInputBorder(
+                                              borderRadius:
+                                                  BorderRadius.circular(10),
+                                            ),
+                                          ),
+                                          items: [
+                                            ...banks.map((bank) =>
+                                                DropdownMenuItem(
+                                                  value: bank['accountNumber'],
+                                                  child: Text(bank['name']!),
+                                                )),
+                                          ],
+                                          onChanged: (value) {
+                                            updateBankByAccountNumber(value!);
+                                          },
+                                        ),
+                                ),
+
+                                // Invoice Template
+                                SizedBox(
+                                  width: isWide
+                                      ? constraints.maxWidth / 4
+                                      : constraints.maxWidth,
+                                  child: SizedBox(),
+                                ),
+                                // Products Dropdown
+                                SizedBox(
+                                    width: constraints.maxWidth,
+                                    child: buildProductInput(
+                                        productController,
+                                        onchange,
+                                        _fetchProducts,
+                                        selectProduct)),
+                              ],
+                            );
+                          },
+                        ),
+                        const SizedBox(height: 16),
+                        // Table
+                        SingleChildScrollView(
+                          scrollDirection: Axis.horizontal,
+                          child: DataTable(
+                            columnSpacing: !smallScreen ? 140 : 90,
+                            dataRowMinHeight: 48,
+                            columns: const [
+                              DataColumn(label: Text('Product')),
+                              DataColumn(label: Text('Quantity')),
+                              DataColumn(label: Text('Unit Price')),
+                              DataColumn(label: Text('Amount')),
+                              DataColumn(label: Text('Action')),
+                            ],
+                            rows: selectedProducts.asMap().entries.map((entry) {
+                              final index = entry.key;
+                              final product = entry.value;
+                              return DataRow(cells: [
+                                DataCell(Text(product['title'])),
+                                DataCell(Row(
                                   children: [
-                                    const Text('Recurring:'),
-                                    Expanded(
-                                      child: RadioListTile<bool>(
-                                        title: const Text('Yes'),
-                                        value: true,
-                                        groupValue: isRecurring,
-                                        onChanged: (value) => setState(
-                                            () => isRecurring = value!),
+                                    IconButton(
+                                      icon: Icon(Icons.remove,
+                                          color: Theme.of(context)
+                                              .colorScheme
+                                              .onSecondary),
+                                      onPressed: () {
+                                        updateQuantity(
+                                            index, product['quantity'] - 1);
+                                      },
+                                    ),
+                                    SizedBox(
+                                      width: 60,
+                                      child: TextFormField(
+                                        inputFormatters: [
+                                          FilteringTextInputFormatter
+                                              .digitsOnly,
+                                        ],
+                                        validator: (value) {
+                                          final intValue =
+                                              int.tryParse(value ?? '');
+                                          if (intValue == null) {
+                                            return 'Enter a valid number';
+                                          } else if (intValue < 1) {
+                                            return 'Minimum value is 1';
+                                          } else if (intValue >
+                                              selectedProducts[index]
+                                                  ['remaining']) {
+                                            return 'Maximum value is ${selectedProducts[index]['remaining']}';
+                                          }
+                                          return null;
+                                        },
+                                        controller: quantityControllers[index],
+                                        textAlign: TextAlign.center,
+                                        keyboardType: TextInputType.number,
+                                        onChanged: (val) {
+                                          final newQty = int.tryParse(val);
+                                          if (newQty != null && newQty >= 0) {
+                                            updateQuantity(index, newQty);
+                                          }
+                                        },
                                       ),
                                     ),
-                                    Expanded(
-                                      child: RadioListTile<bool>(
-                                        title: const Text('No'),
-                                        value: false,
-                                        groupValue: isRecurring,
-                                        onChanged: (value) => setState(
-                                            () => isRecurring = value!),
-                                      ),
+                                    IconButton(
+                                      icon: Icon(Icons.add,
+                                          color: Theme.of(context)
+                                              .colorScheme
+                                              .onSecondary),
+                                      onPressed: () {
+                                        updateQuantity(
+                                            index, product['quantity'] + 1);
+                                      },
                                     ),
                                   ],
-                                ),
-                              ),
-                              // Invoice Template
-                              SizedBox(
-                                width: isWide
-                                    ? constraints.maxWidth / 4
-                                    : constraints.maxWidth,
-                                child: SizedBox(),
-                              ),
-                              // Products Dropdown
-                              SizedBox(
-                                  width: constraints.maxWidth,
-                                  child: buildProductInput(productController,
-                                      onchange, _fetchProducts, selectProduct)),
-                            ],
-                          );
-                        },
-                      ),
-                      const SizedBox(height: 16),
-                      // Table
-                      SingleChildScrollView(
-                        scrollDirection: Axis.horizontal,
-                        child: DataTable(
-                          columnSpacing: !isSmallScreen ? 140 : 90,
-                          dataRowMinHeight: 48,
-                          columns: const [
-                            DataColumn(label: Text('Product')),
-                            DataColumn(label: Text('Quantity')),
-                            DataColumn(label: Text('Unit Price')),
-                            DataColumn(label: Text('Amount')),
-                            DataColumn(label: Text('Action')),
-                          ],
-                          rows: selectedProducts.asMap().entries.map((entry) {
-                            final index = entry.key;
-                            final product = entry.value;
-                            return DataRow(cells: [
-                              DataCell(Text(product['title'])),
-                              DataCell(Row(
-                                children: [
-                                  IconButton(
-                                    icon: const Icon(Icons.remove),
-                                    onPressed: () {
-                                      updateQuantity(index,
-                                          product['buying_quantity'] - 1);
-                                    },
-                                  ),
-                                  SizedBox(
-                                    width: 60,
-                                    child: TextFormField(
-                                      inputFormatters: [
-                                        FilteringTextInputFormatter.digitsOnly,
-                                      ],
-                                      validator: (value) {
-                                        final intValue =
-                                            int.tryParse(value ?? '');
-                                        if (intValue == null) {
-                                          return 'Enter a valid number';
-                                        } else if (intValue < 1) {
-                                          return 'Minimum value is 1';
-                                        } else if (intValue >
-                                            selectedProducts[index]
-                                                ['quantity']) {
-                                          return 'Maximum value is ${selectedProducts[index]['quantity']}';
-                                        }
-                                        return null;
-                                      },
-                                      controller: quantityControllers[index],
-                                      textAlign: TextAlign.center,
-                                      keyboardType: TextInputType.number,
-                                      onChanged: (val) {
-                                        final newQty = int.tryParse(val);
-                                        if (newQty != null && newQty >= 0) {
-                                          updateQuantity(index, newQty);
-                                        }
-                                      },
-                                    ),
-                                  ),
-                                  IconButton(
-                                    icon: const Icon(Icons.add),
-                                    onPressed: () {
-                                      updateQuantity(index,
-                                          product['buying_quantity'] + 1);
-                                    },
-                                  ),
-                                ],
-                              )),
-                              DataCell(Text(product['price']
-                                  .toString()
-                                  .formatToFinancial(isMoneySymbol: true))),
-                              DataCell(Text(product['amount']
-                                  .toString()
-                                  .formatToFinancial(isMoneySymbol: true))),
-                              DataCell(IconButton(
-                                icon: const Icon(Icons.delete),
-                                onPressed: () {
-                                  setState(
-                                      () => selectedProducts.remove(product));
-                                },
-                              )),
-                            ]);
-                          }).toList(),
-                        ),
-                      )
-                    ],
+                                )),
+                                DataCell(Text(product['price']
+                                    .toString()
+                                    .formatToFinancial(isMoneySymbol: true))),
+                                DataCell(Text(product['total']
+                                    .toString()
+                                    .formatToFinancial(isMoneySymbol: true))),
+                                DataCell(IconButton(
+                                  icon: Icon(Icons.delete,
+                                      color: Theme.of(context)
+                                          .colorScheme
+                                          .onSecondary),
+                                  onPressed: () {
+                                    setState(
+                                        () => selectedProducts.remove(product));
+                                  },
+                                )),
+                              ]);
+                            }).toList(),
+                          ),
+                        )
+                      ],
+                    ),
                   ),
                 ),
-              ),
 
-              const SizedBox(height: 16),
+                const SizedBox(height: 16),
 
-              !isSmallScreen
-                  ? Row(
-                      children: [
-                        // Second Card
-                        Expanded(
-                          child: discountNote(isSmallScreen),
-                        ),
+                !smallScreen
+                    ? Row(
+                        children: [
+                          // Second Card
+                          Expanded(
+                            child: discountNote(smallScreen),
+                          ),
 
-                        const SizedBox(width: 16),
-                        // Third Card
-                        Expanded(
-                          child: totals(),
-                        ),
-                      ],
-                    )
-                  : Column(
-                      children: [
-                        // Second Card
-                        discountNote(isSmallScreen),
-                        const SizedBox(height: 16),
-                        // Third Card
-                        totals(),
-                      ],
-                    )
-            ],
+                          const SizedBox(width: 16),
+                          // Third Card
+                          Expanded(
+                            child: totals(),
+                          ),
+                        ],
+                      )
+                    : Column(
+                        children: [
+                          // Second Card
+                          discountNote(smallScreen),
+                          const SizedBox(height: 16),
+                          // Third Card
+                          totals(),
+                        ],
+                      )
+              ],
+            ),
           ),
         ),
-      ),
-    );
+      );
+    });
   }
 
   Card totals() {
@@ -515,8 +633,11 @@ class AddInvoiceState extends State<AddInvoice> {
               const Spacer(),
               Expanded(
                   child: TextFormField(
-                decoration: const InputDecoration(labelText: 'Received Amount'),
                 keyboardType: TextInputType.number,
+                inputFormatters: <TextInputFormatter>[
+                  FilteringTextInputFormatter.digitsOnly
+                ],
+                decoration: const InputDecoration(labelText: 'Received Amount'),
                 onChanged: (value) {
                   final parsed = double.tryParse(value);
                   if (parsed != null) {
@@ -597,9 +718,13 @@ class AddInvoiceState extends State<AddInvoice> {
                       // Discount Value
                       Expanded(
                           child: TextFormField(
+                        enabled: discountType == '' ? false : true,
                         decoration:
                             const InputDecoration(labelText: 'Discount Value'),
                         keyboardType: TextInputType.number,
+                        inputFormatters: <TextInputFormatter>[
+                          FilteringTextInputFormatter.digitsOnly
+                        ],
                         onChanged: (value) {
                           final parsed = double.tryParse(value);
                           if (parsed != null) {
@@ -629,10 +754,13 @@ class AddInvoiceState extends State<AddInvoice> {
                         Spacer(),
                         // Discount Value
                         TextFormField(
-                          enabled: false,
+                          enabled: discountType == '' ? false : true,
+                          keyboardType: TextInputType.number,
+                          inputFormatters: <TextInputFormatter>[
+                            FilteringTextInputFormatter.digitsOnly
+                          ],
                           decoration: const InputDecoration(
                               labelText: 'Discount Value'),
-                          keyboardType: TextInputType.number,
                           onChanged: (value) {
                             final parsed = double.tryParse(value);
                             if (parsed != null) {
@@ -650,6 +778,7 @@ class AddInvoiceState extends State<AddInvoice> {
             const SizedBox(height: 5),
             // WYSIWYG Input
             TextFormField(
+              controller: noteController,
               decoration: const InputDecoration(labelText: 'Additional Notes'),
               maxLines: 5,
             ),
@@ -660,7 +789,7 @@ class AddInvoiceState extends State<AddInvoice> {
   }
 
   double _calculateSubtotal() {
-    return selectedProducts.fold(0, (sum, product) => sum + product['amount']);
+    return selectedProducts.fold(0, (sum, product) => sum + product['total']);
   }
 
   double _calculateDiscount() {

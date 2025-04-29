@@ -25,8 +25,10 @@ class AddUserState extends State<AddUser> {
   final password = TextEditingController();
 
   final role = TextEditingController();
-
+  late List branches = [];
+  late String locations;
   late FocusNode usernameFocus;
+  bool showForm = false;
 
   final userController = TextEditingController();
   late String usernameErrorMessage = '';
@@ -44,7 +46,22 @@ class AddUserState extends State<AddUser> {
   @override
   void initState() {
     super.initState();
+    getLocations();
     usernameFocus = FocusNode();
+  }
+
+  void getLocations() async {
+    var responce = await apiService.getRequest('/location');
+    setState(() {
+      showForm = true;
+      branches = responce.data;
+    });
+  }
+
+  handleAddLocation(String location) {
+    setState(() {
+      locations = location;
+    });
   }
 
   void handleSubmit(BuildContext context) async {
@@ -55,7 +72,8 @@ class AddUserState extends State<AddUser> {
         'username': username.text,
         'password': password.text,
         'role': role.text,
-        'initiator': userController.text
+        'initiator': userController.text,
+        'location': locations
       });
       if (response.statusCode! >= 200 && response.statusCode! <= 300) {
         widget.updateUserList!();
@@ -136,7 +154,7 @@ class AddUserState extends State<AddUser> {
                       errorText: usernameErrorMessage,
                     ),
                   ),
-                  SizedBox(height: 10),
+                  // SizedBox(height: 10),
                   TextFormField(
                     controller: password,
                     decoration: InputDecoration(
@@ -172,6 +190,32 @@ class AddUserState extends State<AddUser> {
                     }).toList(),
                   ),
                   SizedBox(height: 10),
+                  DropdownButtonFormField<String>(
+                    decoration: InputDecoration(
+                      labelText: 'Select Location',
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(10.0),
+                      ),
+                    ),
+                    items: branches.map<DropdownMenuItem<String>>((branch) {
+                      return DropdownMenuItem<String>(
+                        value: branch['_id']
+                            .toString(), // Assuming 'id' is the key for the value
+                        child: Text(branch[
+                            'name']), // Assuming 'name' is the key for the display text
+                      );
+                    }).toList(),
+                    onChanged: (value) {
+                      handleAddLocation(value!);
+                    },
+                    validator: (value) {
+                      if (value == null || value.isEmpty) {
+                        return 'Please select a location';
+                      }
+                      return null;
+                    },
+                  ),
+                  SizedBox(height: 40),
                   ElevatedButton(
                     onPressed: () {
                       userController.text =

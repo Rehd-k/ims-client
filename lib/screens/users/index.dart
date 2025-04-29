@@ -31,26 +31,32 @@ class UserManagementScreenState extends State<UserManagementScreen> {
     return Consumer2<TokenNotifier, ThemeNotifier>(
         builder: (context, tokenNotifier, themeNotifier, child) {
       return Scaffold(
-        appBar: AppBar(
-            actions: [...actions(context, themeNotifier, tokenNotifier)]),
+        appBar: AppBar(actions: [
+          IconButton(onPressed: () {}, icon: Icon(Icons.add_box_outlined)),
+          ...actions(context, themeNotifier, tokenNotifier),
+          IconButton(onPressed: () {}, icon: Icon(Icons.live_help_outlined)),
+        ]),
         drawer: smallScreen
             ? Drawer(
                 backgroundColor: Theme.of(context).drawerTheme.backgroundColor,
                 child: SideBar(tokenNotifier: tokenNotifier))
             : null,
-        body: Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            smallScreen
-                ? SizedBox.shrink()
-                : Expanded(
-                    flex: 1, child: AddUser(updateUserList: updateUsers)),
-            SizedBox(width: smallScreen ? 0 : 20),
-            Expanded(
-                flex: 2,
-                child:
-                    ViewUsers(key: _viewUserKey, updateUserList: updateUsers))
-          ],
+        body: Padding(
+          padding: const EdgeInsets.only(top: 10),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              smallScreen
+                  ? SizedBox.shrink()
+                  : Expanded(
+                      flex: 1, child: AddUser(updateUserList: updateUsers)),
+              SizedBox(width: smallScreen ? 0 : 20),
+              Expanded(
+                  flex: 2,
+                  child:
+                      ViewUsers(key: _viewUserKey, updateUserList: updateUsers))
+            ],
+          ),
         ),
       );
     });

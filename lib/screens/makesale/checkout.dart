@@ -11,12 +11,20 @@ class CheckoutScreen extends StatefulWidget {
   final double total;
   final List cart;
   final Function handleComplete;
+  final Map? selectedBank;
+  final Map? selectedUser;
+  final num? discount;
+  final String? invoiceId;
 
   const CheckoutScreen(
       {super.key,
       required this.total,
       required this.cart,
-      required this.handleComplete});
+      required this.handleComplete,
+      this.selectedBank,
+      this.selectedUser,
+      this.discount,
+      this.invoiceId});
 
   @override
   State<CheckoutScreen> createState() => _CheckoutScreenState();
@@ -25,7 +33,7 @@ class CheckoutScreen extends StatefulWidget {
 class _CheckoutScreenState extends State<CheckoutScreen> {
   ApiService apiService = ApiService();
   String selectedPaymentMethod = 'cash';
-  String? accountNumber;
+  Map? bank;
   final TextEditingController cashController = TextEditingController();
   final TextEditingController transferController = TextEditingController();
   final TextEditingController cardController = TextEditingController();
@@ -52,21 +60,41 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
   }
 
   Future updateBankList() async {
-    setState(() {
-      isBankLoading = true;
-    });
-    var dbbanks = await apiService.getRequest(
-      'banks?skip=${banks.length}',
-    );
-    setState(() {
-      banks = dbbanks.data;
-      isBankLoading = false;
-    });
+    if (widget.selectedBank == null) {
+      setState(() {
+        isBankLoading = true;
+      });
+      var dbbanks = await apiService.getRequest(
+        'banks?skip=${banks.length}',
+      );
+      setState(() {
+        banks = dbbanks.data;
+        bank = banks[0];
+        isBankLoading = false;
+      });
+    } else {
+      setState(() {
+        banks.add(widget.selectedBank);
+      });
+    }
   }
 
   @override
   void initState() {
     super.initState();
+    if (widget.selectedUser != null) {
+      selectedName = widget.selectedUser;
+    }
+
+    if (widget.discount != null) {
+      discountController.text = widget.discount.toString();
+      discount = widget.discount!.toDouble();
+    }
+
+    if (widget.selectedBank != null) {
+      bank = widget.selectedBank;
+      selectedPaymentMethod = 'transfer';
+    }
     updateBankList();
     _updateAmountPaid();
   }
@@ -99,7 +127,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
             selectedPaymentMethod == 'mixed') &&
         double.tryParse(transferController.text) != null &&
         double.parse(transferController.text) > 0 &&
-        accountNumber == null) {
+        bank == null) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text('Please select a bank for transfer payment'),
@@ -116,11 +144,8 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
       'cash': double.tryParse(cashController.text) ?? 0,
       'transfer': double.tryParse(transferController.text) ?? 0,
       'card': double.tryParse(cardController.text) ?? 0,
-      'accountNumber': accountNumber,
+      'bank': bank?['_id'],
       'products': widget.cart,
-      'accountName': banks.firstWhere(
-          (res) => res["accountNumber"] == accountNumber,
-          orElse: () => {"name": ""})["name"],
       'customer': selectedName?['_id']
     };
 
@@ -128,7 +153,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
     final scaffoldMessenger = ScaffoldMessenger.of(context);
     final router = context.router;
 
-    await apiService.postRequest('sales', paymentData);
+    var responce = await apiService.postRequest('sales', paymentData);
 
     // Check if widget is still mounted before showing message
     if (!mounted) return;
@@ -140,7 +165,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
         backgroundColor: Theme.of(context).colorScheme.primary,
       ),
     );
-    widget.handleComplete();
+    widget.handleComplete(widget.invoiceId, responce.data['transactionId']);
 
     // Use captured router
     router.back();
@@ -238,10 +263,14 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
           )
         : Chip(
             label: Text(selectedName?['name']),
-            deleteIcon: Icon(Icons.close),
+            deleteIcon: widget.selectedUser == null
+                ? Icon(Icons.close)
+                : Icon(Icons.check_box_outlined),
             onDeleted: () {
               setState(() {
-                selectedName = null;
+                if (widget.selectedUser == null) {
+                  selectedName = null;
+                } else {}
               });
             },
           );
@@ -254,14 +283,13 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
         children: [
           Expanded(
             child: Tooltip(
-              message: (label == 'Transfer' || label == 'Card') &&
-                      accountNumber == null
+              message: (label == 'Transfer' || label == 'Card') && bank == null
                   ? 'Select bank first'
                   : '',
               child: TextField(
                 controller: controller,
-                enabled: !((label == 'Transfer' || label == 'Card') &&
-                    accountNumber == null),
+                enabled:
+                    !((label == 'Transfer' || label == 'Card') && bank == null),
                 keyboardType: TextInputType.number,
                 inputFormatters: [
                   FilteringTextInputFormatter.allow(RegExp(r'^\d+\.?\d{0,2}')),
@@ -283,7 +311,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
             SizedBox(width: 10),
             Expanded(
               child: DropdownButtonFormField<String>(
-                value: accountNumber,
+                value: bank?['accountNumber'],
                 decoration: InputDecoration(
                   labelText: 'Select Bank',
                   border: OutlineInputBorder(
@@ -297,9 +325,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                       )),
                 ],
                 onChanged: (value) {
-                  setState(() {
-                    accountNumber = value;
-                  });
+                  updateBankByAccountNumber(value!);
                 },
               ),
             ),
@@ -307,6 +333,18 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
         ],
       ),
     );
+  }
+
+  void updateBankByAccountNumber(String accountNumber) {
+    final matchingBank = banks.firstWhere(
+      (bank) => bank['accountNumber'] == accountNumber,
+      orElse: () => null,
+    );
+    if (matchingBank != null) {
+      setState(() {
+        bank = matchingBank;
+      });
+    }
   }
 
   @override

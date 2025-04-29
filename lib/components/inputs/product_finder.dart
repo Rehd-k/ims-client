@@ -45,6 +45,7 @@ Column buildProductInput(
                         .toString()
                         .formatToFinancial(isMoneySymbol: true)),
                     onTap: () {
+                      suggestion['remaining'] = suggestion['quantity'];
                       selectProduct(suggestion);
                     },
                   );

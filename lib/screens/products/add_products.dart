@@ -75,12 +75,6 @@ class AddProductsState extends State<AddProducts> {
     super.dispose();
   }
 
-  handleQuantityChange(String innerQuantity) {
-    setState(() {
-      quantity = int.tryParse(innerQuantity) ?? 0;
-    });
-  }
-
   Future<void> handleSubmit(BuildContext context) async {
     try {
       final dynamic response = await apiServices.postRequest('/products', {
@@ -88,7 +82,6 @@ class AddProductsState extends State<AddProducts> {
         'category': categoryController.text,
         'price': priceController.text,
         'roq': roqController.text,
-        'quantity': quantity,
         'description': descriptionController.text,
         'brand': brandController.text,
         'weight': weightController.text,
@@ -100,6 +93,7 @@ class AddProductsState extends State<AddProducts> {
 
       if (response.statusCode! >= 200 && response.statusCode! <= 300) {
         widget.updateProducts!();
+        _formKey.currentState!.reset();
       } else {}
       // ignore: empty_catches
     } catch (e) {}
@@ -215,32 +209,6 @@ class AddProductsState extends State<AddProducts> {
                 ),
                 SizedBox(height: 10),
                 TextFormField(
-                  readOnly: true,
-                  keyboardType: TextInputType.number,
-                  onChanged: (val) {
-                    handleQuantityChange(val);
-                  },
-                  inputFormatters: <TextInputFormatter>[
-                    FilteringTextInputFormatter.digitsOnly
-                  ],
-                  // controller: quantityController,
-                  decoration: InputDecoration(
-                    labelText: 'Quantity',
-                    border: OutlineInputBorder(
-                        borderRadius: BorderRadius.all(Radius.circular(5.0)),
-                        borderSide: BorderSide(color: Colors.blue)),
-                    labelStyle: TextStyle(
-                        color: Theme.of(context).hintColor, fontSize: 15),
-                  ),
-                  validator: (value) {
-                    if (value != null && int.parse(value) < 0) {
-                      return 'Quantity Cannot be less than 0';
-                    }
-                    return null;
-                  },
-                ),
-                SizedBox(height: 10),
-                TextFormField(
                   controller: descriptionController,
                   decoration: InputDecoration(
                     labelText: 'Description',
@@ -278,12 +246,6 @@ class AddProductsState extends State<AddProducts> {
                     labelStyle: TextStyle(
                         color: Theme.of(context).hintColor, fontSize: 15),
                   ),
-                  validator: (value) {
-                    if (value != null && int.parse(value) < 0) {
-                      return 'Weight cannot be less than 0';
-                    }
-                    return null;
-                  },
                 ),
                 SizedBox(height: 10),
                 DropdownMenu(

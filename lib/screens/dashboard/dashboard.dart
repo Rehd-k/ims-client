@@ -1,6 +1,5 @@
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_svg/svg.dart';
 
 import 'package:provider/provider.dart';
 
@@ -100,11 +99,11 @@ class DashboardState extends State<DashboardScreen> {
     return Consumer2<ThemeNotifier, TokenNotifier>(
         builder: (context, themeNotifier, tokenNotifier, child) {
       return Scaffold(
-        appBar: AppBar(
-            title: SvgPicture.asset(
-              'assets/vectors/logo.svg',
-            ),
-            actions: [...actions(context, themeNotifier, tokenNotifier)]),
+        appBar: AppBar(actions: [
+          IconButton(onPressed: () {}, icon: Icon(Icons.add_box_outlined)),
+          ...actions(context, themeNotifier, tokenNotifier),
+          IconButton(onPressed: () {}, icon: Icon(Icons.live_help_outlined)),
+        ]),
         drawer: smallScreen
             ? Drawer(
                 backgroundColor: Theme.of(context).drawerTheme.backgroundColor,

@@ -10,14 +10,14 @@ import 'add_supplier.dart';
 import 'view_suppliers.dart';
 
 @RoutePage()
-class SupplierIndex extends StatefulWidget {
-  const SupplierIndex({super.key});
+class SupplierScreen extends StatefulWidget {
+  const SupplierScreen({super.key});
 
   @override
   SupplierIndexState createState() => SupplierIndexState();
 }
 
-class SupplierIndexState extends State<SupplierIndex> {
+class SupplierIndexState extends State<SupplierScreen> {
   final GlobalKey<ViewSuppliersState> _viewSupplierKey =
       GlobalKey<ViewSuppliersState>();
 
