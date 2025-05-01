@@ -51,10 +51,6 @@ class ProductDashboardState extends State<ProductDashboard> {
   dynamic totalSales = 0;
   bool hasError = false;
 
-  // Function(String?) onFieldChange;
-  // Function(String?) onSupplierChange;
-  // Function(String?) onSelectStatus;
-
   @override
   void initState() {
     if (widget.productId != null) {
@@ -144,7 +140,8 @@ class ProductDashboardState extends State<ProductDashboard> {
     setState(() {
       spots.clear();
       response.data.forEach((item) {
-        spots.add(FlSpot(item['for'], item['totalSales']));
+        spots.add(FlSpot((item['for'] as num).toDouble(),
+            (item['totalSales'] as num).toDouble()));
       });
       rangeInfo = range;
       loadingCharts = false;
@@ -164,7 +161,7 @@ class ProductDashboardState extends State<ProductDashboard> {
     });
   }
 
-  handleRangeChange(String select, DateTime picked) async {
+  handleRangeChange(String? select, DateTime? picked) async {
     setState(() {
       loadingTable = true;
     });
@@ -274,7 +271,6 @@ class ProductDashboardState extends State<ProductDashboard> {
                       children: [
                         ProductHeader(
                           selectedField: searchFeild,
-                          dateRangeHolder: dateRangeHolder,
                           selectedSupplier: selectedSupplier,
                           selectedStatus: selectedStatus,
                           onFieldChange: (value) {
@@ -295,6 +291,10 @@ class ProductDashboardState extends State<ProductDashboard> {
                             getPurchases();
                           },
                           suppliers: suppliers,
+                          handleRangeChange: handleRangeChange,
+                          fromDate: _fromDate,
+                          toDate: _toDate,
+                          handleDateReset: handleDateReset,
                         ),
                       ],
                     ),
@@ -613,6 +613,14 @@ class ProductDashboardState extends State<ProductDashboard> {
     return sold.fold(0, (sum, item) => sum + (item["amount"] ?? 0));
   }
 
+  handleDateReset() {
+    setState(() {
+      _fromDate = DateTime.now();
+      _toDate = DateTime.now();
+      // getSales();
+    });
+  }
+
   doAlerts(String message) {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
@@ -622,90 +630,6 @@ class ProductDashboardState extends State<ProductDashboard> {
           message,
           style: Theme.of(context).textTheme.bodyLarge,
         ),
-      ),
-    );
-  }
-
-  Container dateRangeHolder(BuildContext context, isBigScreen) {
-    return Container(
-      padding: EdgeInsets.all(8),
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(10),
-        color: Theme.of(context).colorScheme.surface,
-      ),
-      child: Row(
-        children: [
-          Row(
-            children: [
-              isBigScreen ? Text('From :') : SizedBox.shrink(),
-              IconButton(
-                icon: Icon(Icons.calendar_today),
-                tooltip: 'From date',
-                onPressed: () async {
-                  final DateTime? picked = await showDatePicker(
-                    context: context,
-                    initialDate: _fromDate ?? DateTime.now(),
-                    firstDate: DateTime(2000),
-                    lastDate: _toDate ?? DateTime.now(),
-                  );
-                  if (picked != null) {
-                    handleRangeChange('from', picked);
-                  }
-                },
-              ),
-              Text(
-                _fromDate != null
-                    ? "${_fromDate!.toLocal()}".split(' ')[0]
-                    : "From",
-              ),
-            ],
-          ),
-          SizedBox(width: 16),
-          Row(
-            children: [
-              isBigScreen ? Text('To :') : SizedBox.shrink(),
-              IconButton(
-                icon: Icon(Icons.calendar_today),
-                tooltip: 'To date',
-                onPressed: () async {
-                  final DateTime? picked = await showDatePicker(
-                    context: context,
-                    initialDate: _toDate ?? DateTime.now(),
-                    firstDate: _fromDate ?? DateTime(2000),
-                    lastDate: DateTime.now(),
-                  );
-                  if (picked != null) {
-                    handleRangeChange('to', picked);
-                  }
-                },
-              ),
-              Text(
-                _toDate != null ? "${_toDate!.toLocal()}".split(' ')[0] : "To",
-              ),
-            ],
-          ),
-          Spacer(),
-          isBigScreen
-              ? OutlinedButton(
-                  onPressed: () {
-                    setState(() {
-                      _fromDate = DateTime.now();
-                      _toDate = DateTime.now();
-                      // getSales();
-                    });
-                  },
-                  child: Text('Reset'),
-                )
-              : IconButton(
-                  onPressed: () {
-                    setState(() {
-                      _fromDate = DateTime.now();
-                      _toDate = DateTime.now();
-                      // getSales();
-                    });
-                  },
-                  icon: Icon(Icons.cancel_outlined)),
-        ],
       ),
     );
   }

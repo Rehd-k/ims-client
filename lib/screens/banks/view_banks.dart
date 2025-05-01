@@ -2,10 +2,8 @@ import 'package:data_table_2/data_table_2.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import '../../helpers/financial_string_formart.dart';
-import 'package:modal_bottom_sheet/modal_bottom_sheet.dart';
 
 import '../../services/api.service.dart';
-import 'add_bank.dart';
 
 class ViewBanks extends StatefulWidget {
   final Function()? updateBank;
@@ -102,6 +100,7 @@ class ViewBanksState extends State<ViewBanks> {
         smallScreen ? searchBox(smallScreen) : Container(),
         Expanded(
           child: PaginatedDataTable2(
+            fixedCornerColor: Theme.of(context).colorScheme.onSecondary,
             columnSpacing: 12,
             horizontalMargin: 12,
             sortColumnIndex: getColumnIndex(sortBy),
@@ -113,7 +112,7 @@ class ViewBanksState extends State<ViewBanks> {
               });
             },
             empty: Text('No Banks Recorded'),
-            minWidth: 1500,
+            minWidth: 1000,
             actions: [
               FilledButton.icon(
                 onPressed: () {},
@@ -128,20 +127,21 @@ class ViewBanksState extends State<ViewBanks> {
               )
             ],
             header: smallScreen
-                ? SizedBox(
-                    width: 10,
-                    child: FilledButton.icon(
-                      onPressed: () => showBarModalBottomSheet(
-                        expand: true,
-                        context: context,
-                        backgroundColor: Colors.transparent,
-                        builder: (context) =>
-                            AddBank(updateBank: widget.updateBank),
-                      ),
-                      label: Text('Add Bank'),
-                      icon: Icon(Icons.add_box_outlined),
-                    ),
-                  )
+                ? SizedBox()
+                // ? SizedBox(
+                //     width: 10,
+                //     child: FilledButton.icon(
+                //       onPressed: () => showBarModalBottomSheet(
+                //         expand: true,
+                //         context: context,
+                //         backgroundColor: Colors.transparent,
+                //         builder: (context) =>
+                //             AddBank(updateBank: widget.updateBank),
+                //       ),
+                //       label: Text('Add Bank'),
+                //       icon: Icon(Icons.add_box_outlined),
+                //     ),
+                //   )
                 : Row(
                     children: [searchBox(smallScreen)],
                   ),

@@ -28,8 +28,8 @@ class ViewInvoicesState extends State<ViewInvoices> {
   String searchParams = '';
   String selectedStatus = '';
   List suggestions = [];
-  DateTime? _fromDate = DateTime.now();
-  DateTime? _toDate = DateTime.now();
+  DateTime _fromDate = DateTime.now();
+  DateTime _toDate = DateTime.now();
   static const _pageSize = 20;
   final ScrollController _scrollController = ScrollController();
 
@@ -87,6 +87,14 @@ class ViewInvoicesState extends State<ViewInvoices> {
     });
 
     _fetchInvoices();
+  }
+
+  handleDateReset() {
+    setState(() {
+      _fromDate = DateTime.now();
+      _toDate = DateTime.now();
+      // getSales();
+    });
   }
 
   @override
@@ -170,20 +178,16 @@ class ViewInvoicesState extends State<ViewInvoices> {
                 onPressed: () async {
                   final DateTime? picked = await showDatePicker(
                     context: context,
-                    initialDate: _fromDate ?? DateTime.now(),
+                    initialDate: _fromDate,
                     firstDate: DateTime(2000),
-                    lastDate: _toDate ?? DateTime.now(),
+                    lastDate: _toDate,
                   );
                   if (picked != null) {
                     handleRangeChange('from', picked);
                   }
                 },
               ),
-              Text(
-                _fromDate != null
-                    ? "${_fromDate!.toLocal()}".split(' ')[0]
-                    : "From",
-              ),
+              Text("${_fromDate.toLocal()}".split(' ')[0]),
             ],
           ),
           SizedBox(width: 16),
@@ -200,8 +204,8 @@ class ViewInvoicesState extends State<ViewInvoices> {
                 onPressed: () async {
                   final DateTime? picked = await showDatePicker(
                     context: context,
-                    initialDate: _toDate ?? DateTime.now(),
-                    firstDate: _fromDate ?? DateTime(2000),
+                    initialDate: _toDate,
+                    firstDate: _fromDate,
                     lastDate: DateTime.now(),
                   );
                   if (picked != null) {
@@ -210,7 +214,7 @@ class ViewInvoicesState extends State<ViewInvoices> {
                 },
               ),
               Text(
-                _toDate != null ? "${_toDate!.toLocal()}".split(' ')[0] : "To",
+                "${_toDate.toLocal()}".split(' ')[0],
               ),
             ],
           ),
@@ -308,15 +312,19 @@ class ViewInvoicesState extends State<ViewInvoices> {
                 ),
                 const SizedBox(height: 20),
                 FilterHeader(
-                    selectedDateField: selectedDateField,
-                    selectedForSearch: selectedForSearch,
-                    selectedStatus: selectedStatus,
-                    onFieldChange: onFieldChange,
-                    onInputChange: onInputChange,
-                    onSelectStatus: onSelectStatus,
-                    suggestions: suggestions,
-                    dateRangeHolder: dateRangeHolder,
-                    onSearchParamsChange: onSearchParamsChange),
+                  selectedDateField: selectedDateField,
+                  selectedForSearch: selectedForSearch,
+                  selectedStatus: selectedStatus,
+                  onFieldChange: onFieldChange,
+                  onInputChange: onInputChange,
+                  onSelectStatus: onSelectStatus,
+                  suggestions: suggestions,
+                  onSearchParamsChange: onSearchParamsChange,
+                  handleRangeChange: handleRangeChange,
+                  handleDateReset: handleDateReset,
+                  fromDate: _fromDate,
+                  toDate: _fromDate,
+                ),
                 const SizedBox(height: 20),
                 Container(
                   constraints: BoxConstraints(maxHeight: 500, minHeight: 200),

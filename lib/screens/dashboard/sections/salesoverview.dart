@@ -44,7 +44,8 @@ class SalesoverviewState extends State<Salesoverview> {
     setState(() {
       spots.clear();
       data.data.forEach((item) {
-        spots.add(FlSpot(item['for'], item['totalSales']));
+        spots.add(FlSpot((item['for'] as num).toDouble(),
+            (item['totalSales'] as num).toDouble()));
       });
       rangeInfo = range;
     });
@@ -52,7 +53,7 @@ class SalesoverviewState extends State<Salesoverview> {
 
   @override
   Widget build(BuildContext context) {
-    double width = MediaQuery.sizeOf(context).width;
+    num width = MediaQuery.sizeOf(context).width;
     bool isBigScreen = width >= 1200;
 
     return ConstrainedBox(

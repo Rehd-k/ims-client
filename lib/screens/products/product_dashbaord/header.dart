@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../../../helpers/date_range_helper.dart';
+
 class ProductHeader extends StatelessWidget {
   final String? selectedField;
   final String? selectedSupplier;
@@ -7,21 +9,25 @@ class ProductHeader extends StatelessWidget {
   final Function(String?) onFieldChange;
   final Function(String?) onSupplierChange;
   final Function(String?) onSelectStatus;
+  final Function(String handle, DateTime? picked) handleRangeChange;
+  final Function handleDateReset;
+  final DateTime? fromDate;
+  final DateTime? toDate;
   final List suppliers;
-  final Container Function(BuildContext context, bool isBigScreen)
-      dateRangeHolder;
 
-  const ProductHeader({
-    super.key,
-    required this.selectedField,
-    required this.selectedSupplier,
-    required this.selectedStatus,
-    required this.onFieldChange,
-    required this.onSupplierChange,
-    required this.onSelectStatus,
-    required this.suppliers,
-    required this.dateRangeHolder,
-  });
+  const ProductHeader(
+      {super.key,
+      required this.selectedField,
+      required this.selectedSupplier,
+      required this.selectedStatus,
+      required this.onFieldChange,
+      required this.onSupplierChange,
+      required this.onSelectStatus,
+      required this.suppliers,
+      required this.handleRangeChange,
+      required this.fromDate,
+      required this.toDate,
+      required this.handleDateReset});
 
   @override
   Widget build(BuildContext context) {
@@ -62,7 +68,12 @@ class ProductHeader extends StatelessWidget {
                   value: selectedField,
                 ),
                 SizedBox(height: 16.0),
-                dateRangeHolder(context, isBigScreen),
+                DateRangeHolder(
+                  fromDate: fromDate,
+                  toDate: toDate,
+                  handleRangeChange: handleRangeChange,
+                  handleDateReset: handleDateReset,
+                )
               ],
             )),
             SizedBox(width: isBigScreen ? 30 : 10),

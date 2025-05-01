@@ -31,6 +31,20 @@ class BankScreenState extends State<BankScreen> {
     return Consumer2<ThemeNotifier, TokenNotifier>(
         builder: (context, themeNotifier, tokenNotifier, child) {
       return Scaffold(
+          floatingActionButton: smallScreen
+              ? FloatingActionButton(
+                  onPressed: () {
+                    showModalBottomSheet(
+                      context: context,
+                      builder: (context) => Container(
+                        // height: MediaQuery.of(context).size.height * 0.8,
+                        padding: const EdgeInsets.all(8.0),
+                        child: AddBank(updateBank: updateBanks),
+                      ),
+                    );
+                  },
+                  child: Icon(Icons.add_outlined))
+              : null,
           appBar: AppBar(
             actions: [...actions(context, themeNotifier, tokenNotifier)],
           ),

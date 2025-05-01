@@ -31,6 +31,20 @@ class UserManagementScreenState extends State<UserManagementScreen> {
     return Consumer2<TokenNotifier, ThemeNotifier>(
         builder: (context, tokenNotifier, themeNotifier, child) {
       return Scaffold(
+        floatingActionButton: smallScreen
+            ? FloatingActionButton(
+                onPressed: () {
+                  showModalBottomSheet(
+                    context: context,
+                    builder: (context) => Container(
+                      // height: MediaQuery.of(context).size.height * 0.8,
+                      padding: const EdgeInsets.all(8.0),
+                      child: AddUser(updateUserList: updateUsers),
+                    ),
+                  );
+                },
+                child: Icon(Icons.add_outlined))
+            : null,
         appBar: AppBar(actions: [
           IconButton(onPressed: () {}, icon: Icon(Icons.add_box_outlined)),
           ...actions(context, themeNotifier, tokenNotifier),

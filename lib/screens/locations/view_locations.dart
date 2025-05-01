@@ -45,7 +45,7 @@ class ViewLocations extends StatelessWidget {
               // });
             },
             empty: Text('No Locations Recorded'),
-            minWidth: 1500,
+            minWidth: 1000,
             actions: [
               FilledButton.icon(
                 onPressed: () {},

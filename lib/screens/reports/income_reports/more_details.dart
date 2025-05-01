@@ -24,12 +24,12 @@ class ShowDetails extends StatelessWidget {
     List<Map<String, dynamic>> returns =
         List<Map<String, dynamic>>.from(dataList[0]['returns']);
 
-    double totalSum = dataList[0]['totalAmount'];
-    double totalReturn = returns.fold(0, (sum, item) => sum + item['total']);
-    double totalPaid = totalSum - dataList[0]['discount'];
-    double discount = dataList[0]['discount'];
-    double profit = dataList[0]['profit'];
-    double width = MediaQuery.sizeOf(context).width;
+    num totalSum = dataList[0]['totalAmount'];
+    num totalReturn = returns.fold(0, (sum, item) => sum + item['total']);
+    num totalPaid = totalSum - dataList[0]['discount'];
+    num discount = dataList[0]['discount'];
+    num profit = dataList[0]['profit'];
+    num width = MediaQuery.sizeOf(context).width;
     bool isBigScreen = width >= 1200;
 
     return Container(
@@ -215,8 +215,8 @@ class ShowDetails extends StatelessWidget {
     );
   }
 
-  Column showDetails(double totalSum, double totalPaid, double profit,
-      double discount, double totalReturn) {
+  Column showDetails(
+      num totalSum, num totalPaid, num profit, num discount, num totalReturn) {
     return Column(
       children: [
         Row(

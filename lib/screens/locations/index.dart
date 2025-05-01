@@ -151,6 +151,25 @@ class LocationIndexState extends State<LocationIndex> {
     return Consumer2<ThemeNotifier, TokenNotifier>(
         builder: (context, themeNotifier, tokenNotifier, child) {
       return Scaffold(
+          floatingActionButton: smallScreen
+              ? FloatingActionButton(
+                  onPressed: () {
+                    showModalBottomSheet(
+                      context: context,
+                      builder: (context) => AddLocation(
+                        handleSubmit: handleSubmit,
+                        nameController: nameController,
+                        locationController: locationController,
+                        managerController: managerController,
+                        contactController: contactController,
+                        openingController: openingController,
+                        closingController: closingController,
+                        formKey: _formKey,
+                      ),
+                    );
+                  },
+                  child: Icon(Icons.add_outlined))
+              : null,
           appBar: AppBar(
             actions: [
               SizedBox(

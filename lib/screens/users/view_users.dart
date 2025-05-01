@@ -1,10 +1,8 @@
 import 'package:data_table_2/data_table_2.dart';
 import 'package:intl/intl.dart';
 import 'package:flutter/material.dart';
-import 'package:modal_bottom_sheet/modal_bottom_sheet.dart';
 
 import '../../services/api.service.dart';
-import 'add_user.dart';
 
 class ViewUsers extends StatefulWidget {
   final Function()? updateUserList;
@@ -133,8 +131,8 @@ class ViewUsersState extends State<ViewUsers> {
                 rowsPerPage = value ?? rowsPerPage;
               });
             },
-            // empty: Text('No Users Yet'),
-            // minWidth: 500,
+            empty: Text('No Users Yet'),
+            minWidth: 1000,
             actions: [
               SizedBox(
                 width: 150,
@@ -185,20 +183,21 @@ class ViewUsersState extends State<ViewUsers> {
               ),
             ],
             header: smallScreen
-                ? SizedBox(
-                    width: 10,
-                    child: FilledButton.icon(
-                      onPressed: () => showBarModalBottomSheet(
-                        expand: true,
-                        context: context,
-                        backgroundColor: Colors.transparent,
-                        builder: (context) =>
-                            AddUser(updateUserList: widget.updateUserList),
-                      ),
-                      label: Text('Add User'),
-                      icon: Icon(Icons.add_box_outlined),
-                    ),
-                  )
+                // ? SizedBox(
+                //     width: 10,
+                //     child: FilledButton.icon(
+                //       onPressed: () => showBarModalBottomSheet(
+                //         expand: true,
+                //         context: context,
+                //         backgroundColor: Colors.transparent,
+                //         builder: (context) =>
+                //             AddUser(updateUserList: widget.updateUserList),
+                //       ),
+                //       label: Text('Add User'),
+                //       icon: Icon(Icons.add_box_outlined),
+                //     ),
+                //   )
+                ? SizedBox()
                 : Row(
                     children: [searchBox(smallScreen)],
                   ),

@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../../../helpers/date_range_helper.dart';
+
 class FilterHeader extends StatelessWidget {
   final String? selectedDateField;
   final String? selectedForSearch;
@@ -9,8 +11,10 @@ class FilterHeader extends StatelessWidget {
   final Function(String?) onSelectStatus;
   final Function(String?) onSearchParamsChange;
   final List suggestions;
-  final Container Function(BuildContext context, bool isBigScreen)
-      dateRangeHolder;
+  final Function(String handle, DateTime picked) handleRangeChange;
+  final Function handleDateReset;
+  final DateTime fromDate;
+  final DateTime toDate;
 
   const FilterHeader(
       {super.key,
@@ -21,8 +25,11 @@ class FilterHeader extends StatelessWidget {
       required this.onInputChange,
       required this.onSelectStatus,
       required this.suggestions,
-      required this.dateRangeHolder,
-      required this.onSearchParamsChange});
+      required this.onSearchParamsChange,
+      required this.handleRangeChange,
+      required this.handleDateReset,
+      required this.fromDate,
+      required this.toDate});
 
   @override
   Widget build(BuildContext context) {
@@ -58,7 +65,13 @@ class FilterHeader extends StatelessWidget {
                   value: selectedDateField,
                 )),
                 SizedBox(width: 16.0),
-                Expanded(child: dateRangeHolder(context, isBigScreen))
+                Expanded(
+                    child: DateRangeHolder(
+                  fromDate: fromDate,
+                  toDate: toDate,
+                  handleRangeChange: handleRangeChange,
+                  handleDateReset: handleDateReset,
+                ))
               ],
             ),
             SizedBox(width: isBigScreen ? 30 : 10, height: 10),
