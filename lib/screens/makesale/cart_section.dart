@@ -1,5 +1,6 @@
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
+import 'package:toastification/toastification.dart';
 import '../../helpers/financial_string_formart.dart';
 
 import '../../app_router.gr.dart';
@@ -37,6 +38,15 @@ class CartSection extends StatelessWidget {
         child: mainCart(context),
       );
     }
+  }
+
+  doShowToast(String toastMessage, ToastificationType type) {
+    toastification.show(
+      title: Text(toastMessage),
+      type: type,
+      style: ToastificationStyle.flatColored,
+      autoCloseDuration: const Duration(seconds: 2),
+    );
   }
 
   Column mainCart(BuildContext context) {
@@ -103,7 +113,12 @@ class CartSection extends StatelessWidget {
               child: InkWell(
                 borderRadius: BorderRadius.circular(10),
                 onTap: () {
-                  saveCart();
+                  if (cart.isEmpty) {
+                    doShowToast('Nothing To Save', ToastificationType.info);
+                  } else {
+                    doShowToast('Done', ToastificationType.info);
+                    saveCart();
+                  }
                 },
                 child: Container(
                   height: 40,
@@ -132,7 +147,13 @@ class CartSection extends StatelessWidget {
               child: InkWell(
                 borderRadius: BorderRadius.circular(10),
                 onTap: () {
-                  emptyCart();
+                  if (cart.isNotEmpty) {
+                    doShowToast('Done', ToastificationType.success);
+                    emptyCart();
+                  } else {
+                    doShowToast(
+                        'No Items In Cart To Clean', ToastificationType.info);
+                  }
                 },
                 child: Container(
                   height: 40,
@@ -141,7 +162,7 @@ class CartSection extends StatelessWidget {
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       Text(
-                        'Clean Up',
+                        'Clean Up (${cart.length})',
                         style: TextStyle(
                           color: Theme.of(context).colorScheme.surface,
                         ),
@@ -192,7 +213,9 @@ class CartSection extends StatelessWidget {
                         padding: EdgeInsets.all(8),
                         child: Text(
                           'Name',
-                          style: TextStyle(fontWeight: FontWeight.bold),
+                          style: TextStyle(
+                              fontWeight: FontWeight.bold,
+                              color: Theme.of(context).colorScheme.onPrimary),
                         ),
                       ),
                     ),
@@ -201,7 +224,9 @@ class CartSection extends StatelessWidget {
                         padding: EdgeInsets.all(8),
                         child: Text(
                           'Price',
-                          style: TextStyle(fontWeight: FontWeight.bold),
+                          style: TextStyle(
+                              fontWeight: FontWeight.bold,
+                              color: Theme.of(context).colorScheme.onPrimary),
                           textAlign: TextAlign.right,
                         ),
                       ),
@@ -211,7 +236,9 @@ class CartSection extends StatelessWidget {
                         padding: EdgeInsets.all(8),
                         child: Text(
                           'Quantity',
-                          style: TextStyle(fontWeight: FontWeight.bold),
+                          style: TextStyle(
+                              fontWeight: FontWeight.bold,
+                              color: Theme.of(context).colorScheme.onPrimary),
                           textAlign: TextAlign.right,
                         ),
                       ),
@@ -221,7 +248,9 @@ class CartSection extends StatelessWidget {
                         padding: EdgeInsets.all(8),
                         child: Text(
                           'Total',
-                          style: TextStyle(fontWeight: FontWeight.bold),
+                          style: TextStyle(
+                              fontWeight: FontWeight.bold,
+                              color: Theme.of(context).colorScheme.onPrimary),
                           textAlign: TextAlign.right,
                         ),
                       ),
@@ -289,7 +318,11 @@ class CartSection extends StatelessWidget {
                                             MainAxisAlignment.end,
                                         children: [
                                           IconButton(
-                                            icon: Icon(Icons.remove, size: 16),
+                                            icon: Icon(Icons.remove,
+                                                color: Theme.of(context)
+                                                    .colorScheme
+                                                    .primary,
+                                                size: 16),
                                             padding: EdgeInsets.zero,
                                             constraints: BoxConstraints(
                                               minWidth: 20,
@@ -303,7 +336,11 @@ class CartSection extends StatelessWidget {
                                               .toString()
                                               .formatToFinancial()),
                                           IconButton(
-                                            icon: Icon(Icons.add, size: 16),
+                                            icon: Icon(Icons.add,
+                                                color: Theme.of(context)
+                                                    .colorScheme
+                                                    .primary,
+                                                size: 16),
                                             padding: EdgeInsets.zero,
                                             constraints: BoxConstraints(
                                               minWidth: 20,

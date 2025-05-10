@@ -3,7 +3,7 @@ import 'dart:math';
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:infinite_scroll_pagination/infinite_scroll_pagination.dart';
-
+import 'package:invease/screens/makesale/product_service.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:convert';
@@ -28,56 +28,61 @@ class MakeSaleIndex extends StatefulWidget {
 
 class MakeSaleIndexState extends State<MakeSaleIndex> {
   ApiService apiService = ApiService();
-  final PageController _pageController = PageController();
-  PagingState<int, dynamic> _state = PagingState();
-  final _searchFocusNode = FocusNode();
-  final _searchController = TextEditingController();
-
-  bool isloading = false;
-  late List<dynamic> products = [];
-  List filteredProducts = [];
+  String _searchQuery = '';
   bool isLoading = true;
   int numberOfProducts = 0;
-  static int pageCount = 20;
+  int apiCount = 0;
   List savedCarts = [];
+  List<dynamic> localproducts = [];
+
+  late final _pagingController = PagingController<int, dynamic>(
+    getNextPageKey: (state) => ProductService()
+        .checkAndFetchProducts(apiCount, doApiCount, localproducts.length),
+    fetchPage: (pageKey) => ProductService().fetchProducts(
+        pageKey: pageKey, query: _searchQuery, doProductUpdate: voidDoApiCheck),
+  );
+
+  void doApiCount() {
+    apiCount++;
+  }
+
+  voidDoApiCheck(productsCount, totalProductsAmount) {
+    localproducts = productsCount;
+    setState(() {
+      numberOfProducts = totalProductsAmount;
+    });
+  }
 
   List<Map<String, dynamic>> cart = [];
 
-  updateFilteredProductsCount(id, product) {
-    int filteredIndex =
-        filteredProducts.indexWhere((p) => p['_id'] == product['_id']);
-    if (filteredIndex != -1) {
-      filteredProducts[filteredIndex]['quantity']--;
-    }
-  }
+  // Handle Product qunaity
 
-  void addToCart(productId) {
-    var product = filteredProducts
-        .firstWhere((product) => product['_id'] == productId, orElse: () => {});
-    if (product['quantity'] > 0) {
+  void addToCart(Product product) {
+    if (product.quantity > 0) {
       setState(() {
-        int existingIndex = cart.indexWhere((item) => item['_id'] == productId);
+        int existingIndex =
+            cart.indexWhere((item) => item['_id'] == product.id);
         if (existingIndex != -1) {
           if (cart[existingIndex]['quantity'] <
               cart[existingIndex]['maxQuantity']) {
             cart[existingIndex]['quantity']++;
             cart[existingIndex]['total'] =
                 cart[existingIndex]['quantity'] * cart[existingIndex]['price'];
-            updateFilteredProductsCount(product['_id'], product);
+            // updateFilteredProductsCount(product.id, product);
           }
         } else {
           // Add new product to cart
 
           cart.add({
-            '_id': product['_id'],
-            'title': product['title'],
-            'price': product['price'],
+            '_id': product.id,
+            'title': product.title,
+            'price': product.price,
             'quantity': 1,
-            'total': product['price'],
-            'cost': product['cost'],
-            'maxQuantity': product['quantity']
+            'total': product.price,
+            'cost': product.cost,
+            'maxQuantity': product.quantity
           });
-          updateFilteredProductsCount(product['_id'], product);
+          // updateFilteredProductsCount(product.id, product);
         }
       });
     }
@@ -85,15 +90,7 @@ class MakeSaleIndexState extends State<MakeSaleIndex> {
 
   void removeFromCart(String productId) {
     setState(() {
-      // Find the removed product in products list and restore its quantity
-      int productIndex =
-          filteredProducts.indexWhere((p) => p['_id'] == productId);
-      if (productIndex != -1) {
-        // Get the quantity that was in cart before removal
-        int cartQuantity = cart.firstWhere((item) => item['_id'] == productId,
-            orElse: () => {'quantity': 0})['quantity'];
-        filteredProducts[productIndex]['quantity'] += cartQuantity;
-      }
+      //  Handle Add Product Qunaity
       cart.removeWhere((item) => item['_id'] == productId);
     });
   }
@@ -107,12 +104,7 @@ class MakeSaleIndexState extends State<MakeSaleIndex> {
           cart[cartIndex]['total'] =
               cart[cartIndex]['quantity'] * cart[cartIndex]['price'];
 
-          // Increment product quantity in products list
-          int productIndex =
-              filteredProducts.indexWhere((p) => p['_id'] == productId);
-          if (productIndex != -1) {
-            filteredProducts[productIndex]['quantity']++;
-          }
+          //  handle increase Product Qunaity
         } else {
           removeFromCart(productId);
         }
@@ -129,12 +121,7 @@ class MakeSaleIndexState extends State<MakeSaleIndex> {
           cart[cartIndex]['total'] =
               cart[cartIndex]['quantity'] * cart[cartIndex]['price'];
 
-          // Increment product quantity in products list
-          int productIndex =
-              filteredProducts.indexWhere((p) => p['_id'] == productId);
-          if (productIndex != -1) {
-            filteredProducts[productIndex]['quantity']--;
-          }
+          // hadnel Decreace Product Quanity
         }
       }
     });
@@ -157,82 +144,6 @@ class MakeSaleIndexState extends State<MakeSaleIndex> {
 
   double getCartTotal() {
     return cart.fold(0, (sum, item) => sum + item['total']);
-  }
-
-  Future getProductsList() async {
-    if (_state.isLoading) return;
-    setState(() {
-      // set loading to true and remove any previous error
-      _state = _state.copyWith(isLoading: true, error: null);
-    });
-
-    try {
-      final newKey = (_state.keys?.last ?? 0) + 1;
-      final newItems = await apiService.getRequest(
-          'products?filter={"isAvailable" : true}&sort={"title": 1}&limit=20&skip=$numberOfProducts&select=" title price quantity isAvailable "');
-      final isLastPage = newItems.data.length < pageCount;
-
-      setState(() {
-        numberOfProducts = newItems.data.length;
-        filteredProducts.addAll(newItems.data);
-        _state = _state.copyWith(
-          pages: [...?_state.pages, newItems.data],
-          keys: [...?_state.keys, newKey],
-          hasNextPage: !isLastPage,
-          isLoading: false,
-        );
-      });
-    } catch (error) {
-      setState(() {
-        _state = _state.copyWith(
-          error: error,
-          isLoading: false,
-        );
-      });
-    }
-  }
-
-  void searchProducts(String? query) async {
-    if (_state.isLoading) return;
-    setState(() {
-      // set loading to true and remove any previous error
-      numberOfProducts = 0;
-      _state = _state.copyWith(isLoading: true, error: null);
-    });
-
-    try {
-      final newKey = (_state.keys?.last ?? 0) + 1;
-      final newItems = await apiService.getRequest(
-          'products?filter={"isAvailable" : true, "title": {"\$regex": "$query"}}&sort={"title": 1}&limit=20&skip=$numberOfProducts&select=" title price quantity isAvailable "');
-
-      final isLastPage = newItems.data.length < pageCount;
-
-      setState(() {
-        numberOfProducts = newItems.data.length;
-        _state = _state.copyWith(
-          pages: [newItems.data],
-          keys: [newKey],
-          hasNextPage: !isLastPage,
-          isLoading: false,
-        );
-        filteredProducts = newItems.data;
-      });
-    } catch (error) {
-      setState(() {
-        _state = _state.copyWith(
-          error: error,
-          isLoading: false,
-        );
-      });
-    }
-  }
-
-  void resetData() async {
-    setState(() {
-      filteredProducts = [];
-      numberOfProducts = 0;
-    });
-    getProductsList();
   }
 
   void saveCartToStorage() async {
@@ -295,9 +206,7 @@ class MakeSaleIndexState extends State<MakeSaleIndex> {
 
   @override
   void dispose() {
-    _searchFocusNode.dispose();
-    _searchController.dispose();
-    _pageController.dispose();
+    _pagingController.dispose();
     super.dispose();
   }
 
@@ -305,6 +214,15 @@ class MakeSaleIndexState extends State<MakeSaleIndex> {
   void initState() {
     super.initState();
     getCartsFromStorage();
+  }
+
+  void _onSearchChanged(String query) async {
+    await Future.delayed(const Duration(milliseconds: 500), () {
+      localproducts = [];
+      apiCount = 0;
+      _searchQuery = query;
+    });
+    _pagingController.refresh();
   }
 
   @override
@@ -362,16 +280,62 @@ class MakeSaleIndexState extends State<MakeSaleIndex> {
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceAround,
               children: [
-                ProductGrid(
-                  reset: resetData,
-                  smallScreen: smallScreen,
-                  addToCart: addToCart,
-                  searchProducts: searchProducts,
-                  searchFocusNode: _searchFocusNode,
-                  searchController: _searchController,
-                  state: _state,
-                  fetchNextPage: getProductsList,
+                Expanded(
+                  flex: smallScreen ? 1 : 3,
+                  child: Column(
+                    children: [
+                      Container(
+                        decoration: BoxDecoration(
+                          color: Theme.of(context).colorScheme.surface,
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 16.0, vertical: 8.0),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Text(
+                              '$numberOfProducts Products',
+                              style: Theme.of(context).textTheme.titleMedium,
+                            ),
+                            AnimatedContainer(
+                              duration: const Duration(milliseconds: 300),
+                              width: smallScreen ? 200 : 500,
+                              height: 30,
+                              child: TextField(
+                                onChanged: (value) {
+                                  _onSearchChanged(value);
+                                },
+                                decoration: InputDecoration(
+                                    hintText: 'Search...',
+                                    prefixIcon: Icon(Icons.search),
+                                    suffixIcon: InkWell(
+                                      child: Icon(Icons.close),
+                                      onTap: () {
+                                        _onSearchChanged('');
+                                      },
+                                    ),
+                                    border: OutlineInputBorder(
+                                        borderRadius: BorderRadius.circular(20),
+                                        borderSide: BorderSide.none),
+                                    filled: true,
+                                    contentPadding:
+                                        EdgeInsets.symmetric(vertical: 0)),
+                              ),
+                            )
+                          ],
+                        ),
+                      ),
+                      ProductGrid(
+                          pagingController: _pagingController,
+                          smallScreen: smallScreen,
+                          addToCart: addToCart),
+                    ],
+                  ),
                 ),
+
+                // Grid view
+
                 SizedBox(width: 10),
                 smallScreen
                     ? SizedBox.shrink()

@@ -1,9 +1,11 @@
+import 'dart:convert';
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
 
-import '../../components/tables/purchases/purchases_table.dart';
+import '../../components/tables/gen_big_table/big_table.dart';
+import '../../components/tables/gen_big_table/big_table_source.dart';
 import '../../helpers/providers/token_provider.dart';
 import '../../services/api.service.dart';
+import 'table_column.dart';
 
 class ViewProducts extends StatefulWidget {
   final Function()? updateProducts;
@@ -17,18 +19,71 @@ class ViewProducts extends StatefulWidget {
 
 class ViewProductsState extends State<ViewProducts> {
   final apiService = ApiService();
+  final JsonEncoder jsonEncoder = JsonEncoder();
+  final TextEditingController _searchController = TextEditingController();
   late List filteredProducts;
   late List products;
   bool isLoading = true;
+  String initialSort = 'title';
   int rowsPerPage = PaginatedDataTable.defaultRowsPerPage;
-  String searchQuery = "";
-  String sortBy = "title";
-  bool ascending = true;
+  String _searchQuery = "";
+  String searchFeild = 'title';
+  String selectedCategory = "";
+  List categories = [];
+
+  List<TableDataModel> _selectedRows = [];
+
+  printSelected() {
+    debugPrint(_selectedRows.toString());
+  }
+
+  // Convert maps to ColumnDefinition objects
+  late List<ColumnDefinition> _columnDefinitions;
 
   @override
   void initState() {
     super.initState();
-    getProductsList();
+    getCategories();
+    _columnDefinitions = columnDefinitionMaps
+        .map((map) => ColumnDefinition.fromMap(map))
+        .toList();
+  }
+
+  // --- Handler for submitting search (e.g., on button press or text field submit) ---
+  void _submitSearch() {
+    // Trigger rebuild only if the query actually changed
+    if (_searchQuery != _searchController.text.trim()) {
+      setState(() {
+        _searchQuery = _searchController.text.trim();
+        // The setState call will trigger didUpdateWidget in the child table
+      });
+    }
+  }
+
+  void _onSearchChanged() {
+    if (_searchQuery != _searchController.text) {
+      Future.delayed(const Duration(milliseconds: 300), () {
+        if (_searchQuery != _searchController.text) {
+          setState(() {
+            _searchQuery = _searchController.text;
+          });
+        }
+      });
+    }
+  }
+
+  @override
+  void dispose() {
+    // _selectedRowsNotifier.dispose();
+    _searchController.dispose(); // Dispose the controller
+    super.dispose();
+  }
+
+  void getCategories() async {
+    var dbCategories = await apiService.getRequest('category');
+    setState(() {
+      categories = dbCategories.data;
+    });
   }
 
   Future updateProductsList() async {
@@ -45,119 +100,130 @@ class ViewProductsState extends State<ViewProducts> {
     });
   }
 
-  Future getProductsList() async {
-    isLoading = true;
-    var dbproducts = await apiService.getRequest('products?limit=20');
-    setState(() {
-      products = dbproducts.data;
-      filteredProducts = List.from(products);
-      isLoading = false;
-    });
+  Future<Map<String, dynamic>> _fetchServerData({
+    required int offset,
+    required int limit,
+    String? sortField,
+    bool? sortAscending,
+  }) async {
+    var sorting = jsonEncoder
+        .convert({"$sortField": (sortAscending ?? true) ? 'asc' : 'desc'});
+
+    var dbproducts = await apiService.getRequest(
+        'products?filter={"$searchFeild" : {"\$regex" : "${_searchQuery.toLowerCase()}"}, "category" :  {"\$regex" : "${selectedCategory.toLowerCase()}"}}&skip=$offset&limit=$limit&sort=$sorting');
+
+    var {'products': products, 'totalDocuments': totalDocuments} =
+        dbproducts.data;
+    // --- Sorting Logic (Mock) ---
+    List<TableDataModel> data = List.from(products); // Work on a copy
+
+    // --- Pagination Logic (Mock) ---
+    final totalRows = totalDocuments;
+    final paginatedData = data.toList();
+
+    return {
+      'rows': paginatedData, // Return the list of maps
+      'totalRows': totalRows,
+    };
   }
+  // --- End Mock Backend ---
 
   @override
   Widget build(BuildContext context) {
-    return isLoading
-        ? Center(child: CircularProgressIndicator())
-        : Column(
+    return Column(children: [
+      // --- Add Filter UI Elements ---
+      LayoutBuilder(
+        builder: (context, constraints) {
+          bool isSmallScreen = constraints.maxWidth < 600;
+          return Flex(
+            direction: isSmallScreen ? Axis.vertical : Axis.horizontal,
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Expanded(child: Consumer<TokenNotifier>(
-                  builder: (context, tokenNotifier, child) {
-                return MainTable(
-                    isLoading: isLoading,
-                    data: filteredProducts,
-                    columnDefs: [
-                      {
-                        'name': 'Title',
-                        'sortable': true,
-                        'type': 'text',
-                        'field': 'title'
+              const SizedBox(height: 10),
+              Flexible(
+                flex: isSmallScreen ? 0 : 1,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    DropdownButton<String>(
+                      value: searchFeild,
+                      hint: const Text('Search Field'),
+                      items: dropDownMaps
+                          .map((field) => DropdownMenuItem<String>(
+                                value: field['field'],
+                                child: Text(field['name']),
+                              ))
+                          .toList(),
+                      onChanged: (value) {
+                        setState(() {
+                          searchFeild = value ?? "";
+                        });
                       },
-                      {
-                        'name': 'Category',
-                        'sortable': true,
-                        'type': 'text',
-                        'field': 'category'
-                      },
-                      {
-                        'name': 'Price',
-                        'sortable': true,
-                        'type': 'money',
-                        'field': 'price'
-                      },
-                      {
-                        'name': 'ROQ',
-                        'sortable': false,
-                        'type': 'number',
-                        'field': 'roq'
-                      },
-                      {
-                        'name': 'Quantity',
-                        'sortable': true,
-                        'type': 'number',
-                        'field': 'quantity'
-                      },
-                      {
-                        'name': 'Description',
-                        'sortable': false,
-                        'type': 'text',
-                        'field': 'description'
-                      },
-                      {
-                        'name': 'Brand',
-                        'sortable': false,
-                        'type': 'text',
-                        'field': 'brand'
-                      },
-                      {
-                        'name': 'Weight',
-                        'sortable': false,
-                        'type': 'number',
-                        'field': 'weight'
-                      },
-                      {
-                        'name': 'Unit',
-                        'sortable': false,
-                        'type': 'string',
-                        'field': 'unit'
-                      },
-                      {
-                        'name': 'Available',
-                        'sortable': false,
-                        'type': 'string',
-                        'field': 'isAvailable'
-                      },
-                      {
-                        'name': 'Initiator',
-                        'sortable': false,
-                        'type': 'string',
-                        'field': 'initiator'
-                      },
-                      {
-                        'name': 'Added On',
-                        'sortable': false,
-                        'type': 'date',
-                        'field': 'createdAt'
-                      },
-                      // {
-                      //   'name': 'Actions',
-                      //   'sortable': false,
-                      //   'type': 'string',
-                      //   'field': 'transactionId'
-                      // }
+                    ),
+                    const SizedBox(height: 10),
+                    TextField(
+                      controller: _searchController,
+                      decoration: const InputDecoration(
+                        labelText: 'Search',
+                        border: OutlineInputBorder(),
+                      ),
+                      onSubmitted: (_) => _submitSearch(),
+                      onChanged: (_) => _onSearchChanged(),
+                    ),
+                  ],
+                ),
+              ),
+              Flexible(
+                flex: isSmallScreen ? 0 : 1,
+                child: Center(
+                  child: DropdownButton<String>(
+                    value: selectedCategory.isEmpty ? null : selectedCategory,
+                    hint: const Text('Select Category'),
+                    items: [
+                      DropdownMenuItem<String>(
+                        value: '',
+                        child: Text(''),
+                      ),
+                      ...categories.map((category) => DropdownMenuItem<String>(
+                            value: category['title'],
+                            child: Text(category['title']),
+                          ))
                     ],
-                    sortableColumns: {},
-                    actions: [],
-                    title: '',
-                    range: SizedBox.shrink(),
-                    showCheckboxColumn: false,
-                    allowMultipleSelection: false,
-                    returnSelection: () {},
-                    longPress: tokenNotifier.decodedToken!['role'] == 'cashier'
-                        ? false
-                        : true);
-              }))
+                    onChanged: (value) {
+                      setState(() {
+                        selectedCategory = value ?? "";
+                      });
+                    },
+                  ),
+                ),
+              ),
             ],
           );
+        },
+      ),
+      Expanded(
+        child: ReusableAsyncPaginatedDataTable(
+          columnDefinitions: _columnDefinitions, // Pass definitions
+          fetchDataCallback: _fetchServerData,
+          onSelectionChanged: (selected) {
+            _selectedRows = selected;
+          },
+          header: const Text('Products'),
+          initialSortField: initialSort,
+          initialSortAscending: true,
+          rowsPerPage: 15,
+          availableRowsPerPage: const [10, 15, 25, 50],
+          showCheckboxColumn: true,
+          fixedLeftColumns: 1,
+          minWidth: 2500,
+          empty: const Center(child: CircularProgressIndicator()),
+          border: TableBorder.all(color: Colors.grey.shade200, width: 1),
+          columnSpacing: 30,
+          dataRowHeight: 50,
+          headingRowHeight: 60,
+        ),
+      )
+    ]);
   }
 }

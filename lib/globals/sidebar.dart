@@ -51,21 +51,21 @@ List fullMenu = [
     'title': 'Reports',
     'link': '/report',
     'children': [
-      {
-        'title': 'Payment Report',
-        'link': '/payment_report',
-        'icon': Icons.receipt_long_outlined
-      },
+      // {
+      //   'title': 'Payment Report',
+      //   'link': '/payment_report',
+      //   'icon': Icons.receipt_long_outlined
+      // },
       {
         'title': 'Income Report',
         'link': '/income_report',
         'icon': Icons.checklist_outlined
-      },
-      {
-        'title': 'Expenses Report',
-        'link': '/expenses_report',
-        'icon': Icons.request_quote_outlined
       }
+      // {
+      //   'title': 'Expenses Report',
+      //   'link': '/expenses_report',
+      //   'icon': Icons.request_quote_outlined
+      // }
     ]
   },
   {
@@ -82,12 +82,12 @@ List fullMenu = [
         'title': 'Invoices',
         'link': '/view_invoices',
         'icon': Icons.more_vert_outlined
-      },
-      {
-        'title': 'Recurring Invoices',
-        'link': '/recurring_invoices',
-        'icon': Icons.request_quote_outlined
       }
+      // {
+      //   'title': 'Recurring Invoices',
+      //   'link': '/recurring_invoices',
+      //   'icon': Icons.request_quote_outlined
+      // }
     ]
   },
   {

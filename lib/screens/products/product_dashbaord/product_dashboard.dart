@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:fl_chart/fl_chart.dart';
@@ -6,14 +8,18 @@ import 'package:modal_bottom_sheet/modal_bottom_sheet.dart';
 import '../../../components/charts/line_chart.dart';
 import '../../../components/charts/range.dart';
 import '../../../components/info_card.dart';
-import '../../../components/tables/purchases/purchases_table.dart';
+// import '../../../components/tables/purchases/purchases_table.dart';
+import '../../../components/tables/gen_big_table/big_table.dart';
+import '../../../components/tables/gen_big_table/big_table_source.dart';
 import '../../../globals/dialog.dart';
 import '../../../globals/error.dart';
 import '../../../services/api.service.dart';
 import 'add_order.dart';
 import 'header.dart';
+// import 'helpers/damaged_goods.dart';
 import 'helpers/damaged_goods.dart';
 import 'helpers/edit_product.dart';
+import 'table_collums.dart';
 
 @RoutePage()
 class ProductDashboard extends StatefulWidget {
@@ -28,6 +34,7 @@ class ProductDashboard extends StatefulWidget {
 
 class ProductDashboardState extends State<ProductDashboard> {
   ApiService apiService = ApiService();
+  JsonEncoder jsonEncoder = JsonEncoder();
   late String productId;
   late Map data;
   bool loading = true;
@@ -51,8 +58,19 @@ class ProductDashboardState extends State<ProductDashboard> {
   dynamic totalSales = 0;
   bool hasError = false;
 
+  String initialSort = 'createdAt';
+  int rowsPerPage = PaginatedDataTable.defaultRowsPerPage;
+  String searchQuery = "";
+  List<TableDataModel> _selectedRows = [];
+
+  // Convert maps to ColumnDefinition objects
+  late List<ColumnDefinition> _columnDefinitions;
+
   @override
   void initState() {
+    _columnDefinitions =
+        columnDefs.map((map) => ColumnDefinition.fromMap(map)).toList();
+
     if (widget.productId != null) {
       productId = widget.productId!;
     } else {
@@ -106,11 +124,12 @@ class ProductDashboardState extends State<ProductDashboard> {
     });
     final response = await apiService.getRequest(
         'purchases?filter={"productId":"$productId", "$searchFeild" : "","supplier":"$selectedSupplier", "status" : {"\$regex" : "${selectedStatus?.toLowerCase()}"}}&sort={"$searchFeild":-1}&startDate=$_fromDate&endDate=$_toDate');
-
+    var {'purchases': purchases, 'totalDocuments': totalDocuments} =
+        response.data;
     setState(() {
       totalSales = 0;
-      purchases = response.data;
-      response.data.forEach((element) {
+      purchases = purchases;
+      purchases.forEach((element) {
         var total =
             element['sold'].fold(0, (sum, item) => sum + (item["amount"] ?? 0));
         totalSales += total;
@@ -155,6 +174,21 @@ class ProductDashboardState extends State<ProductDashboard> {
     await getPurchases();
   }
 
+  printSelected() {
+    debugPrint(_selectedRows.toString());
+  }
+
+  handleDamagedGoodsClicked(rowData) async {
+    if (returnedSelection.isEmpty) {
+      if (rowData['quantity'] == getSold(rowData['sold'])) {
+        doAlerts('This batch have been sold out');
+      } else {
+        showDamagedGoodsForm(context, handleDamagedGoods,
+            (rowData['quantity'] - getSold(rowData['sold'])));
+      }
+    }
+  }
+
   handleSelection(dynamic selected) {
     setState(() {
       returnedSelection = selected;
@@ -184,6 +218,34 @@ class ProductDashboardState extends State<ProductDashboard> {
     });
     getChartData(selectedRange);
   }
+
+  Future<Map<String, dynamic>> _fetchServerData({
+    required int offset,
+    required int limit,
+    String? sortField,
+    bool? sortAscending,
+  }) async {
+    var sorting = jsonEncoder
+        .convert({"$sortField": (sortAscending ?? true) ? 'asc' : 'desc'});
+    var dbproducts = await apiService.getRequest(
+        'purchases?filter={"productId":"$productId", "$searchFeild" : "","supplier":"$selectedSupplier", "status" :  "${selectedStatus?.toLowerCase()}"}&sort=$sorting&startDate=$_fromDate&endDate=$_toDate&skip=$offset&limit=$limit');
+
+    var {'purchases': purchases, 'totalDocuments': totalDocuments} =
+        dbproducts.data;
+    // --- Sorting Logic (Mock) ---
+
+    List<TableDataModel> data = List.from(purchases); // Work on a copy
+
+    // --- Pagination Logic (Mock) ---
+    final totalRows = totalDocuments;
+    final paginatedData = data.toList();
+
+    return {
+      'rows': paginatedData, // Return the list of maps
+      'totalRows': totalRows,
+    };
+  }
+  // --- End Mock Backend ---
 
   @override
   Widget build(BuildContext context) {
@@ -367,241 +429,266 @@ class ProductDashboardState extends State<ProductDashboard> {
                                   ],
                                 )),
                   SizedBox(height: 16),
-                  loadingTable
-                      ? Center(
-                          child: SizedBox(
-                              width: 50,
-                              height: 50,
-                              child: CircularProgressIndicator()))
-                      : SizedBox(
-                          height: 600,
-                          child: loadingTable
-                              ? SizedBox()
-                              : MainTable(
-                                  showCheckboxColumn: false,
-                                  isLoading: loadingTable,
-                                  data: purchases,
-                                  columnDefs: [
-                                    {
-                                      'name': 'Quantity',
-                                      'sortable': true,
-                                      'type': 'number',
-                                      'field': 'quantity'
-                                    },
-                                    {
-                                      'name': 'Sold',
-                                      'sortable': true,
-                                      'type': 'sold',
-                                      'field': 'sold'
-                                    },
-                                    {
-                                      'name': 'Price',
-                                      'sortable': true,
-                                      'type': 'money',
-                                      'field': 'price'
-                                    },
-                                    {
-                                      'name': 'Total',
-                                      'sortable': true,
-                                      'type': 'money',
-                                      'field': 'total'
-                                    },
-                                    {
-                                      'name': 'Discount',
-                                      'sortable': true,
-                                      'type': 'money',
-                                      'field': 'discount'
-                                    },
-                                    {
-                                      'name': 'Total Payable',
-                                      'sortable': true,
-                                      'type': 'money',
-                                      'field': 'totalPayable'
-                                    },
-                                    {
-                                      'name': 'Purchase Date',
-                                      'sortable': false,
-                                      'type': 'date',
-                                      'field': 'purchaseDate'
-                                    },
-                                    {
-                                      'name': 'Status',
-                                      'sortable': false,
-                                      'type': 'text',
-                                      'field': 'status'
-                                    },
-                                    {
-                                      'name': 'Delivery Date',
-                                      'sortable': true,
-                                      'type': 'date',
-                                      'field': 'deliveryDate'
-                                    },
-                                    {
-                                      'name': 'Expiry Date',
-                                      'sortable': true,
-                                      'type': 'date',
-                                      'field': 'expiryDate'
-                                    },
-                                    {
-                                      'name': 'Cash',
-                                      'sortable': false,
-                                      'type': 'money',
-                                      'field': 'cash'
-                                    },
-                                    {
-                                      'name': 'Transfer',
-                                      'sortable': false,
-                                      'type': 'money',
-                                      'field': 'transfer'
-                                    },
-                                    {
-                                      'name': 'Card',
-                                      'sortable': false,
-                                      'type': 'money',
-                                      'field': 'card'
-                                    },
-                                    {
-                                      'name': 'Initiator',
-                                      'sortable': false,
-                                      'type': 'text',
-                                      'field': 'initiator'
-                                    },
-                                    {
-                                      'name': 'Date',
-                                      'sortable': true,
-                                      'type': 'date',
-                                      'field': 'createdAt'
-                                    },
-                                    {
-                                      'name': 'Actions',
-                                      'sortable': false,
-                                      'type': 'actions',
-                                      'field': 'Actions'
-                                    }
-                                  ],
-                                  sortableColumns: {
-                                    0: 'quantity',
-                                    1: 'price',
-                                    2: 'total',
-                                    3: 'discount',
-                                    4: 'totalPayable',
-                                    5: 'purchaseDate',
-                                    6: 'createdAt'
-                                  },
-                                  actions: [
-                                    IconButton(
-                                        onPressed: () {
-                                          if (returnedSelection.isEmpty) {
-                                            doAlerts(
-                                                'Please select an item first');
-                                          } else if (returnedSelection[0]
-                                                  ['quantity'] ==
-                                              getSold(returnedSelection[0]
-                                                  ['sold'])) {
-                                            doAlerts(
-                                                'This batch have been sold out');
-                                          } else {
-                                            showDamagedGoodsForm(
-                                                context,
-                                                handleDamagedGoods,
-                                                (returnedSelection[0]
-                                                        ['quantity'] -
-                                                    getSold(returnedSelection[0]
-                                                        ['sold'])));
-                                          }
-                                        },
-                                        icon: Icon(Icons.delete))
-                                  ],
-                                  title: '',
-                                  range: Container(
-                                    padding:
-                                        EdgeInsets.symmetric(horizontal: 20),
-                                    decoration: BoxDecoration(
-                                        color: Theme.of(context)
-                                            .colorScheme
-                                            .surfaceBright,
-                                        borderRadius: BorderRadius.circular(5)),
-                                    child: Row(
-                                      children: [
-                                        Row(
-                                          children: [
-                                            IconButton(
-                                              icon: Icon(Icons.calendar_today),
-                                              tooltip: 'From date',
-                                              onPressed: () async {
-                                                final DateTime? picked =
-                                                    await showDatePicker(
-                                                  context: context,
-                                                  initialDate: _fromDate ??
-                                                      DateTime.now(),
-                                                  firstDate: DateTime(2000),
-                                                  lastDate:
-                                                      _toDate ?? DateTime.now(),
-                                                );
-                                                if (picked != null) {
-                                                  setState(() {
-                                                    _fromDate = picked;
-                                                  });
-                                                }
-                                              },
-                                            ),
-                                            Text(
-                                              _fromDate != null
-                                                  ? "${_fromDate!.toLocal()}"
-                                                      .split(' ')[0]
-                                                  : "From",
-                                            ),
-                                          ],
-                                        ),
-                                        SizedBox(width: 16),
-                                        Row(
-                                          children: [
-                                            IconButton(
-                                              icon: Icon(Icons.calendar_today),
-                                              tooltip: 'To date',
-                                              onPressed: () async {
-                                                final DateTime? picked =
-                                                    await showDatePicker(
-                                                  context: context,
-                                                  initialDate:
-                                                      _toDate ?? DateTime.now(),
-                                                  firstDate: _fromDate ??
-                                                      DateTime(2000),
-                                                  lastDate: DateTime.now(),
-                                                );
-                                                if (picked != null) {
-                                                  setState(() {
-                                                    _toDate = picked;
-                                                  });
-                                                }
-                                              },
-                                            ),
-                                            Text(
-                                              _toDate != null
-                                                  ? "${_toDate!.toLocal()}"
-                                                      .split(' ')[0]
-                                                  : "To",
-                                            ),
-                                          ],
-                                        ),
-                                        Spacer(),
-                                        SizedBox(width: 8),
-                                        OutlinedButton(
-                                          onPressed: () {
-                                            setState(() {
-                                              _fromDate = null;
-                                              _toDate = null;
-                                            });
-                                          },
-                                          child: Text('Reset'),
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                                  allowMultipleSelection: false,
-                                  returnSelection: handleSelection,
-                                  longPress: false,
-                                ))
+                  SizedBox(
+                      height: 600,
+                      child: ReusableAsyncPaginatedDataTable(
+                        columnDefinitions:
+                            _columnDefinitions, // Pass definitions
+                        fetchDataCallback: _fetchServerData,
+                        onSelectionChanged: (selected) {
+                          _selectedRows = selected;
+                        },
+                        header: const Text('Order'),
+                        initialSortField: initialSort,
+                        initialSortAscending: true,
+                        rowsPerPage: 15,
+                        availableRowsPerPage: const [10, 15, 25, 50],
+                        showCheckboxColumn: true,
+                        fixedLeftColumns: 1, // Fix the 'Title' column
+                        minWidth: 2500, // Increase minWidth for more columns
+                        empty: const Center(child: CircularProgressIndicator()),
+                        border: TableBorder.all(
+                            color: Colors.grey.shade100, width: 1),
+                        columnSpacing: 30,
+                        dataRowHeight: 50,
+                        headingRowHeight: 60,
+                        doDamagedGoods: (rowData) {
+                          handleDamagedGoodsClicked(rowData);
+                        },
+                      )
+                      // MainTable(
+                      //     showCheckboxColumn: false,
+                      //     isLoading: loadingTable,
+                      //     data: purchases,
+                      //     columnDefs: [
+                      //       {
+                      //         'name': 'Quantity',
+                      //         'sortable': true,
+                      //         'type': 'number',
+                      //         'field': 'quantity'
+                      //       },
+                      //       {
+                      //         'name': 'Sold',
+                      //         'sortable': true,
+                      //         'type': 'sold',
+                      //         'field': 'sold'
+                      //       },
+                      //       {
+                      //         'name': 'Price',
+                      //         'sortable': true,
+                      //         'type': 'money',
+                      //         'field': 'price'
+                      //       },
+                      //       {
+                      //         'name': 'Total',
+                      //         'sortable': true,
+                      //         'type': 'money',
+                      //         'field': 'total'
+                      //       },
+                      //       {
+                      //         'name': 'Discount',
+                      //         'sortable': true,
+                      //         'type': 'money',
+                      //         'field': 'discount'
+                      //       },
+                      //       {
+                      //         'name': 'Total Payable',
+                      //         'sortable': true,
+                      //         'type': 'money',
+                      //         'field': 'totalPayable'
+                      //       },
+                      //       {
+                      //         'name': 'Purchase Date',
+                      //         'sortable': false,
+                      //         'type': 'date',
+                      //         'field': 'purchaseDate'
+                      //       },
+                      //       {
+                      //         'name': 'Status',
+                      //         'sortable': false,
+                      //         'type': 'text',
+                      //         'field': 'status'
+                      //       },
+                      //       {
+                      //         'name': 'Delivery Date',
+                      //         'sortable': true,
+                      //         'type': 'date',
+                      //         'field': 'deliveryDate'
+                      //       },
+                      //       {
+                      //         'name': 'Expiry Date',
+                      //         'sortable': true,
+                      //         'type': 'date',
+                      //         'field': 'expiryDate'
+                      //       },
+                      //       {
+                      //         'name': 'Cash',
+                      //         'sortable': false,
+                      //         'type': 'money',
+                      //         'field': 'cash'
+                      //       },
+                      //       {
+                      //         'name': 'Transfer',
+                      //         'sortable': false,
+                      //         'type': 'money',
+                      //         'field': 'transfer'
+                      //       },
+                      //       {
+                      //         'name': 'Card',
+                      //         'sortable': false,
+                      //         'type': 'money',
+                      //         'field': 'card'
+                      //       },
+                      //       {
+                      //         'name': 'Initiator',
+                      //         'sortable': false,
+                      //         'type': 'text',
+                      //         'field': 'initiator'
+                      //       },
+                      //       {
+                      //         'name': 'Date',
+                      //         'sortable': true,
+                      //         'type': 'date',
+                      //         'field': 'createdAt'
+                      //       },
+                      //       {
+                      //         'name': 'Actions',
+                      //         'sortable': false,
+                      //         'type': 'actions',
+                      //         'field': 'Actions'
+                      //       }
+                      //     ],
+                      //
+                      // sortableColumns: {
+                      //       0: 'quantity',
+                      //       1: 'price',
+                      //       2: 'total',
+                      //       3: 'discount',
+                      //       4: 'totalPayable',
+                      //       5: 'purchaseDate',
+                      //       6: 'createdAt'
+                      //     },
+                      //     actions: [
+                      //       IconButton(
+                      //           onPressed: () {
+                      //             if (returnedSelection.isEmpty) {
+                      //               doAlerts(
+                      //                   'Please select an item first');
+                      //             } else if (returnedSelection[0]
+                      //                     ['quantity'] ==
+                      //                 getSold(returnedSelection[0]
+                      //                     ['sold'])) {
+                      //               doAlerts(
+                      //                   'This batch have been sold out');
+                      //             } else {
+                      //               showDamagedGoodsForm(
+                      //                   context,
+                      //                   handleDamagedGoods,
+                      //                   (returnedSelection[0]
+                      //                           ['quantity'] -
+                      //                       getSold(returnedSelection[0]
+                      //                           ['sold'])));
+                      //             }
+                      //           },
+                      //           icon: Icon(Icons.delete))
+                      //     ],
+                      //     title: '',
+                      //     range: Container(
+                      //       padding:
+                      //           EdgeInsets.symmetric(horizontal: 20),
+                      //       decoration: BoxDecoration(
+                      //           color: Theme.of(context)
+                      //               .colorScheme
+                      //               .surfaceBright,
+                      //           borderRadius: BorderRadius.circular(5)),
+                      //       child: Row(
+                      //         children: [
+                      //           Row(
+                      //             children: [
+                      //               IconButton(
+                      //                 icon: Icon(Icons.calendar_today),
+                      //                 tooltip: 'From date',
+                      //                 onPressed: () async {
+                      //                   final DateTime? picked =
+                      //                       await showDatePicker(
+                      //                     context: context,
+                      //                     initialDate: _fromDate ??
+                      //                         DateTime.now(),
+                      //                     firstDate: DateTime(2000),
+                      //                     lastDate:
+                      //                         _toDate ?? DateTime.now(),
+                      //                   );
+                      //                   if (picked != null) {
+                      //                     setState(() {
+                      //                       _fromDate = picked;
+                      //                     });
+                      //                   }
+                      //                 },
+                      //               ),
+                      //               Text(
+                      //                 _fromDate != null
+                      //                     ? "${_fromDate!.toLocal()}"
+                      //                         .split(' ')[0]
+                      //                     : "From",
+                      //               ),
+                      //             ],
+                      //           ),
+                      //           SizedBox(width: 16),
+                      //           Row(
+                      //             children: [
+                      //               IconButton(
+                      //                 icon: Icon(Icons.calendar_today),
+                      //                 tooltip: 'To date',
+                      //                 onPressed: () async {
+                      //                   final DateTime? picked =
+                      //                       await showDatePicker(
+                      //                     context: context,
+                      //                     initialDate:
+                      //                         _toDate ?? DateTime.now(),
+                      //                     firstDate: _fromDate ??
+                      //                         DateTime(2000),
+                      //                     lastDate: DateTime.now(),
+                      //                   );
+                      //                   if (picked != null) {
+                      //                     setState(() {
+                      //                       _toDate = picked;
+                      //                     });
+                      //                   }
+                      //                 },
+                      //               ),
+                      //               Text(
+                      //                 _toDate != null
+                      //                     ? "${_toDate!.toLocal()}"
+                      //                         .split(' ')[0]
+                      //                     : "To",
+                      //               ),
+                      //             ],
+                      //           ),
+                      //           Spacer(),
+                      //           SizedBox(width: 8),
+                      //           OutlinedButton(
+                      //             onPressed: () {
+                      //               setState(() {
+                      //                 _fromDate = null;
+                      //                 _toDate = null;
+                      //               });
+                      //             },
+                      //             child: Text('Reset'),
+                      //           ),
+                      //         ],
+                      //       ),
+                      //     ),
+                      //     allowMultipleSelection: false,
+                      //     // returnSelection: handleSelection,
+                      //     longPress: false,
+                      //     onSelectionChanged: (List) {},
+                      //     onSort: (int, bool) {},
+                      //     onPageChanged: (int) {},
+                      //     currentPage: 1,
+                      //     rowsPerPage: 50,
+                      //   )
+
+                      )
                 ])),
           ));
     } else {

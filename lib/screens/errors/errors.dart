@@ -37,7 +37,7 @@ class ErrorScreen extends StatelessWidget {
                 textAlign: TextAlign.center,
               ),
               const SizedBox(height: 10),
-              Text(
+              SelectableText(
                 details == null
                     ? "We couldn't process your request. Please go back your or try again."
                     : details!['message'],

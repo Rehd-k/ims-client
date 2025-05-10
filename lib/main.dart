@@ -18,10 +18,9 @@ void main() async {
     // Catch Flutter framework (widget tree) errors
     FlutterError.onError = (FlutterErrorDetails details) {
       FlutterError.presentError(details);
-
+      debugPrint(details.toString());
       final errorString = details.exceptionAsString();
       final isNonCritical = _isNonCriticalError(errorString);
-
       if (isNonCritical) {
         _showToast('Error: $errorString');
       } else {
@@ -31,6 +30,8 @@ void main() async {
 
     // Catch platform, async & isolate-level errors
     PlatformDispatcher.instance.onError = (error, stack) {
+      debugPrint(error.toString());
+      debugPrint(stack.toString());
       final errorString = error.toString();
       final isNonCritical = _isNonCriticalError(errorString);
 
@@ -50,7 +51,8 @@ void main() async {
   }, (error, stack) {
     final errorString = error.toString();
     final isNonCritical = _isNonCriticalError(errorString);
-
+    debugPrint(errorString);
+    debugPrint(stack.toString());
     if (isNonCritical) {
       _showToast('Error: $errorString');
     } else {

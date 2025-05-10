@@ -24,7 +24,7 @@ class ErrorPage extends StatelessWidget {
                 fit: BoxFit.cover,
               ),
               const SizedBox(height: 20),
-              Text(
+              SelectableText(
                 "Oops! Something went wrong",
                 style: TextStyle(
                   fontSize: 22,
@@ -34,7 +34,7 @@ class ErrorPage extends StatelessWidget {
                 textAlign: TextAlign.center,
               ),
               const SizedBox(height: 10),
-              Text(
+              SelectableText(
                 "We couldn't process your request. Please go back your or try again.",
                 style: TextStyle(
                   fontSize: 16,

@@ -42,6 +42,23 @@ class DessertDataSourceAsync extends AsyncDataTableSource {
   }
 
   @override
+  void selectAll() {
+    for (var i = 0; i < data.length; i++) {
+      _selectedRows.add(i);
+      setRowSelection(ValueKey<int>(i), true);
+    }
+    handleSelection(getSelectedRows());
+    notifyListeners();
+  }
+
+  @override
+  void deselectAll() {
+    _selectedRows.clear();
+    notifyListeners();
+    handleSelection(getSelectedRows());
+  }
+
+  @override
   Future<AsyncRowsResponse> getRows(int startIndex, int count) async {
     String formatDate(String isoDate) {
       final DateTime parsedDate = DateTime.parse(isoDate);
@@ -80,19 +97,19 @@ class DessertDataSourceAsync extends AsyncDataTableSource {
       }
 
       if (product['isAvailable'] != null && product['isAvailable'] != true) {
-        return Colors.red.withValues(alpha: 0.3);
+        return Colors.red.withAlpha(77);
       }
 
       if (product['quantity'] != null &&
           product['roq'] != null &&
           product['quantity'] <= product['roq']) {
-        return Colors.yellow.withValues(alpha: 0.3);
+        return Colors.yellow.withAlpha(77);
       }
 
       if (product['quantity'] != null && product['quantity'] < 1) {
-        return Colors.red.withValues(alpha: 0.3);
+        return Colors.red.withAlpha(77);
       } else if (product['quantity'] != null && product['quantity'] > 1) {
-        return Colors.green.withValues(alpha: 0.3);
+        return Colors.green.withAlpha(77);
       }
 
       return index % 2 == 0
@@ -121,21 +138,21 @@ class DessertDataSourceAsync extends AsyncDataTableSource {
             if (value != null) {
               if (allowMultipleSelection) {
                 if (value) {
-                  setRowSelection(ValueKey<int>(index), value);
                   _selectedRows.add(index);
+                  setRowSelection(ValueKey<int>(index), true);
                 } else {
-                  setRowSelection(ValueKey<int>(index), value);
                   _selectedRows.remove(index);
+                  setRowSelection(ValueKey<int>(index), false);
                 }
               } else {
                 _selectedRows.clear();
                 deselectAll();
                 if (value) {
                   _selectedRows.add(index);
-                  setRowSelection(ValueKey<int>(index), value);
+                  setRowSelection(ValueKey<int>(index), true);
                 }
               }
-              handleSelection();
+              handleSelection(getSelectedRows());
               notifyListeners();
             }
           },

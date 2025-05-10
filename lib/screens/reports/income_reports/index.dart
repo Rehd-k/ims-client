@@ -1,16 +1,22 @@
+import 'dart:convert';
+
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
+import 'package:toastification/toastification.dart';
 
 import '../../../components/info_card.dart';
-import '../../../components/tables/purchases/purchases_table.dart';
+// import '../../../components/tables/purchases/purchases_table.dart';
+import '../../../components/tables/gen_big_table/big_table.dart';
+import '../../../components/tables/gen_big_table/big_table_source.dart';
 import '../../../globals/actions.dart';
 import '../../../globals/sidebar.dart';
 
 import '../../../helpers/providers/theme_notifier.dart';
 import '../../../helpers/providers/token_provider.dart';
 import '../../../services/api.service.dart';
+import 'collums_deff.dart';
 import 'header.dart';
 import 'more_details.dart';
 
@@ -24,24 +30,27 @@ class IncomeReportsScreen extends StatefulWidget {
 
 class IncomeReportsScreenState extends State<IncomeReportsScreen> {
   final apiService = ApiService();
-  List filteredsales = [];
-  bool loadingTable = true;
-  bool loading = true;
+  JsonEncoder jsonEncoder = JsonEncoder();
   final TextEditingController _searchController = TextEditingController();
-  late List sales = [];
   DateTime? _fromDate = DateTime.now();
   DateTime? _toDate = DateTime.now();
   String searchQuery = "";
-  bool allowMultipleSelection = false;
-  List selectedItem = [];
-  List selectedItems = [];
-  bool showDetails = false;
+  late Map<String, dynamic> summaryCalculations;
   Map<String, dynamic> transactionUpdate = {};
   String? searchFeild = 'transactionId';
+  String? initialSort = 'transactionId';
   String? searchFeildForSearchText = '';
   String? paymentMethordToShow = '';
   String? selectedAccount = '';
   List cashiers = [''];
+  bool showDetails = false;
+  bool showHeader = false;
+  String query = '';
+  bool loading = true;
+  List<TableDataModel> _selectedRows = [];
+  late TableDataModel selectedItem;
+
+  late List<ColumnDefinition> _columnDefinitions;
 
   String formatDate(String isoDate) {
     final DateTime parsedDate = DateTime.parse(isoDate);
@@ -49,65 +58,45 @@ class IncomeReportsScreenState extends State<IncomeReportsScreen> {
   }
 
   // Search logic
-  void searchThroughSales(String query) async {
-    if (query.isEmpty) return;
-
-    // Debounce logic
-    Future.delayed(Duration(milliseconds: 300), () {
-      if (query == _searchController.text) {
-        setState(() {
-          loadingTable = true;
-        });
-        // Only proceed if the query hasn't changed during the debounce period
-        apiService
-            .getRequest(
-          'sales?filter={"$searchFeild" : {"\$regex" : "${query.toLowerCase()}"}}&limit=0&sort={"transactionDate":-1}&startDate=$_fromDate&endDate=$_toDate',
-        )
-            .then((dbsales) {
-          updateFilter(dbsales);
-        });
-      }
+  void searchThroughSales(String newQuery) async {
+    Future.delayed(const Duration(milliseconds: 500), () {
+      query = newQuery;
+      handleCalculations();
     });
-    var dbsales = await apiService.getRequest(
-      'sales?filter={"$searchFeild" : {"\$regex" : "${query.toLowerCase()}"}}&limit=0&sort={"transactionDate":-1}&startDate=$_fromDate&endDate=$_toDate',
-    );
-    updateFilter(dbsales);
+  }
+
+  void doPrint() {
+    debugPrint(_selectedRows.toString());
   }
 
   // filter logic
   void filterLogic(String searchFeild, String? query) async {
     setState(() {
-      loadingTable = true;
+      searchFeild = searchFeild;
     });
-    var dbsales = await apiService.getRequest(
-      'sales?filter={"$searchFeild" : {"\$regex" : "${query?.toLowerCase()}"}}&limit=0&sort={"transactionDate":-1}&startDate=$_fromDate&endDate=$_toDate',
-    );
-    updateFilter(dbsales);
   }
 
   void updateTransaction() async {
     final userRole = context.read<TokenNotifier>().decodedToken;
-    final scaffoldMessenger = ScaffoldMessenger.of(context);
     if (userRole != null) {
       if (userRole['role'] == 'admin' || userRole['role'] == 'god') {
         await apiService.putRequest(
-            'sales/${selectedItem[0]['_id']}', transactionUpdate);
-        getSales();
+            'sales/${_selectedRows[0]['_id']}', transactionUpdate);
+        setState(() {});
       } else {
         await apiService.postRequest('todo', {
           'title': 'Back Date',
           'description':
-              'Change the date of transaction with Id  ${selectedItem[0]['transactionId']} to ${formatDate(transactionUpdate['transactionDate'])}',
+              'Change the date of transaction with Id  ${_selectedRows[0]['transactionId']} to ${formatDate(transactionUpdate['transactionDate'])}',
           'from': userRole['username'],
         });
 
-        scaffoldMessenger.showSnackBar(
-          SnackBar(
-            content: Text(
-                'A request has been sent to the Manager, and will be effected soon'),
-            // ignore: use_build_context_synchronously
-            backgroundColor: Theme.of(context).colorScheme.primary,
-          ),
+        toastification.show(
+          title: Text(
+              'A request has been sent to the Manager, and will be effected soon'),
+          type: ToastificationType.info,
+          style: ToastificationStyle.flatColored,
+          autoCloseDuration: const Duration(seconds: 3),
         );
       }
     }
@@ -130,64 +119,36 @@ class IncomeReportsScreenState extends State<IncomeReportsScreen> {
     );
   }
 
-  handleSelection(dynamic selected) {
-    setState(() {
-      selectedItem = [];
-      if (allowMultipleSelection) {
-        for (var i = 0; i < selected.length; i++) {
-          selectedItems.add(selected[i]);
-        }
-      } else {
-        if (selected.isNotEmpty) {
-          selectedItem = selected;
-        } else {
-          selectedItem = [];
-        }
-      }
-    });
-
-    if (selectedItem.isNotEmpty && MediaQuery.of(context).size.width < 600) {
-      showModalBottomSheet(
-        isScrollControlled: true,
-        context: context,
-        builder: (BuildContext context) {
-          return Container(
-              height: MediaQuery.of(context).size.height *
-                  0.95, // Almost full screen
-              padding: EdgeInsets.all(16),
-              child: ShowDetails(
-                  dataList: selectedItem,
-                  handleUpdate: handleUpdate,
-                  updatePageInfo: updatePageInfo));
-        },
-      );
+  handleShowDetails(details, isBigScreen) {
+    selectedItem = details;
+    if (isBigScreen) {
+      setState(() {
+        showDetails = !showDetails;
+      });
+    } else {
+      handleSelection(selectedItem);
     }
   }
 
-  Future getSales() async {
-    setState(() {
-      loadingTable = true;
-    });
-    var dbsales = await apiService.getRequest(
-      'sales?limit=0&sort={"transactionDate":-1}&startDate=$_fromDate&endDate=$_toDate',
+  handleSelection(dynamic selected) {
+    showModalBottomSheet(
+      isScrollControlled: true,
+      context: context,
+      builder: (BuildContext context) {
+        return Container(
+            height:
+                MediaQuery.of(context).size.height * 0.95, // Almost full screen
+            padding: EdgeInsets.all(16),
+            child: ShowDetails(
+              dataList: selectedItem,
+              handleUpdate: handleUpdate,
+              updatePageInfo: () {
+                setState(() {});
+              },
+              handleShowDetails: handleShowDetails,
+            ));
+      },
     );
-    updateFilter(dbsales);
-  }
-
-  void updatePageInfo() async {
-    var dbsales = await apiService.getRequest(
-      'sales?limit=0&sort={"transactionDate":-1}&startDate=$_fromDate&endDate=$_toDate',
-    );
-    updateFilter(dbsales);
-  }
-
-  List getFilteredAndSortedRows() {
-    List filteredsales = sales.where((product) {
-      return product.values.any((value) =>
-          value.toString().toLowerCase().contains(searchQuery.toLowerCase()));
-    }).toList();
-
-    return filteredsales;
   }
 
   handleRangeChange(String select, DateTime picked) async {
@@ -201,28 +162,74 @@ class IncomeReportsScreenState extends State<IncomeReportsScreen> {
       });
     }
 
-    await getSales();
+    handleCalculations();
   }
 
-  updateFilter(dbsales) {
-    setState(() {
-      sales = dbsales.data['sales'];
-      filteredsales = List.from(sales);
-      cashiers = dbsales.data['handlers'];
-      if (cashiers.isEmpty) {
-        selectedAccount = '';
-      }
-      cashiers.insert(0, '');
+  Future<Map<String, dynamic>> _fetchServerData({
+    required int offset,
+    required int limit,
+    String? sortField,
+    bool? sortAscending,
+  }) async {
+    var sorting = jsonEncoder
+        .convert({"$initialSort": (sortAscending ?? true) ? 'asc' : 'desc'});
 
-      loadingTable = false;
+    var dbproducts = await apiService.getRequest(
+        'sales?filter={"$searchFeild" : {"\$regex" : "${query.toLowerCase()}"}}&sort=$sorting&startDate=$_fromDate&endDate=$_toDate&skip=$offset&limit=$limit');
+
+    var {
+      'sales': sales,
+      'handlers': handlers,
+      'totalDocuments': totalDocuments
+    } = dbproducts.data;
+
+    List<TableDataModel> data = List.from(sales); // Work on a copy
+
+    // --- Pagination Logic (Mock) ---
+    final totalRows = totalDocuments;
+    final paginatedData = data.toList();
+
+    return {
+      'rows': paginatedData, // Return the list of maps
+      'totalRows': totalRows,
+    };
+  }
+
+  handleCalculations() async {
+    var dbproducts = await apiService.getRequest(
+        'sales?filter={"$searchFeild" : {"\$regex" : "${query.toLowerCase()}"}}&startDate=$_fromDate&endDate=$_toDate');
+    var {"summary": summary, "totalDocuments": totalDocuments} =
+        dbproducts.data;
+
+    double totalSales = summary['totalAmount'].toDouble();
+    double transfer = summary['totalTransfer'].toDouble();
+    double card = summary['totalCard'].toDouble();
+    double cash = summary['totalCash'].toDouble();
+    double discount = summary['totalDiscount'].toDouble();
+    double profit = summary['totalProfit'].toDouble();
+    setState(() {
       loading = false;
+      summaryCalculations = {
+        'no_of_sale': totalDocuments,
+        'total_sales': totalSales,
+        'total_paid': totalSales - transfer,
+        'transfer': transfer,
+        'card': card,
+        'cash': cash,
+        'discount': discount,
+        'profit': profit
+      };
     });
+    return;
   }
 
   @override
   void initState() {
     super.initState();
-    getSales();
+    handleCalculations();
+    _columnDefinitions = salesColumnDefinitionMaps
+        .map((map) => ColumnDefinition.fromMap(map))
+        .toList();
   }
 
   @override
@@ -237,11 +244,11 @@ class IncomeReportsScreenState extends State<IncomeReportsScreen> {
             IconButton(
                 onPressed: () {
                   setState(() {
-                    showDetails = !showDetails;
+                    showHeader = !showHeader;
                   });
                 },
                 icon: AnimatedRotation(
-                  turns: showDetails ? 0.5 : 0.0,
+                  turns: showHeader ? 0.5 : 0.0,
                   duration: Duration(milliseconds: 300),
                   child: Icon(Icons.keyboard_arrow_down),
                 )),
@@ -262,7 +269,7 @@ class IncomeReportsScreenState extends State<IncomeReportsScreen> {
                     width: double.infinity,
                     duration: Duration(milliseconds: 1000),
                     curve: Curves.easeInOut,
-                    height: showDetails ? 250 : 0,
+                    height: showHeader ? 250 : 0,
                     child: Column(
                       children: [
                         IncomeReportsHeader(
@@ -274,11 +281,9 @@ class IncomeReportsScreenState extends State<IncomeReportsScreen> {
                           onFieldChange: (value) {
                             setState(() {
                               searchFeild = value;
-                              searchFeildForSearchText = value;
                             });
                           },
                           onAccountChange: (value) {
-                            filterLogic('handler', value);
                             setState(() {
                               selectedAccount = value;
                             });
@@ -286,7 +291,6 @@ class IncomeReportsScreenState extends State<IncomeReportsScreen> {
                           onPaymentMethodChange: (value) {
                             setState(() {
                               paymentMethordToShow = value;
-                              filterLogic('paymentMethod', value);
                             });
                           },
                           onSearcfieldChange: (value) {
@@ -335,118 +339,62 @@ class IncomeReportsScreenState extends State<IncomeReportsScreen> {
                                   width: 50,
                                   height: 50,
                                   child: CircularProgressIndicator()))
-                          : cardsInfo(isBigScreen, handleCalculations())),
-                  loadingTable
-                      ? SizedBox.shrink()
-                      : Row(children: [
-                          Expanded(
-                            child: MainTable(
-                              showCheckboxColumn: true,
-                              isLoading: loadingTable,
-                              data: filteredsales,
-                              columnDefs: [
-                                {
-                                  'name': 'Trans Id',
-                                  'sortable': false,
-                                  'type': 'uppercase',
-                                  'field': 'transactionId'
-                                },
-                                {
-                                  'name': 'Cash',
-                                  'sortable': true,
-                                  'type': 'money',
-                                  'field': 'cash'
-                                },
-                                {
-                                  'name': 'Card',
-                                  'sortable': true,
-                                  'type': 'money',
-                                  'field': 'card'
-                                },
-                                {
-                                  'name': 'Transfer',
-                                  'sortable': true,
-                                  'type': 'money',
-                                  'field': 'transfer'
-                                },
-                                {
-                                  'name': 'Discount',
-                                  'sortable': false,
-                                  'type': 'money',
-                                  'field': 'discount'
-                                },
-                                {
-                                  'name': 'Total',
-                                  'sortable': true,
-                                  'type': 'money',
-                                  'field': 'totalAmount'
-                                },
-                                {
-                                  'name': 'Date',
-                                  'sortable': true,
-                                  'type': 'date',
-                                  'field': 'createdAt'
-                                },
-                                {
-                                  'name': 'Initiator',
-                                  'sortable': false,
-                                  'type': 'text',
-                                  'field': 'handler'
-                                }
-                              ],
-                              sortableColumns: {
-                                0: 'quantity',
-                                1: 'totalAmount',
-                                2: 'createdAt',
+                          : cardsInfo(isBigScreen, summaryCalculations)),
+                  Row(children: [
+                    Expanded(
+                        child: SizedBox(
+                      height: 600,
+                      child: loading
+                          ? Center(
+                              child: SizedBox(
+                                  width: 50,
+                                  height: 50,
+                                  child: CircularProgressIndicator()))
+                          : ReusableAsyncPaginatedDataTable(
+                              columnDefinitions:
+                                  _columnDefinitions, // Pass definitions
+                              fetchDataCallback: _fetchServerData,
+                              onSelectionChanged: (selected) {
+                                _selectedRows = selected;
                               },
-                              actions: [
-                                PopupMenuButton(
-                                    onSelected: (value) => {},
-                                    icon: Icon(Icons.filter_alt_outlined),
-                                    tooltip: 'Payment Method',
-                                    itemBuilder: (BuildContext _) {
-                                      return const [
-                                        PopupMenuItem(
-                                          value: 'cash',
-                                          child: Text("Cash"),
-                                        ),
-                                        PopupMenuItem(
-                                          value: 'transfer',
-                                          child: Text("Bank Transfer"),
-                                        ),
-                                        PopupMenuItem(
-                                          value: 'card',
-                                          child: Text("Card"),
-                                        )
-                                      ];
-                                    }),
-                              ],
-                              title: 'Sales Data',
-                              range: dateRangeHolder(context, isBigScreen),
-                              allowMultipleSelection: allowMultipleSelection,
-                              returnSelection: handleSelection,
-                              longPress: false,
+                              header: const Text('Transactions'),
+                              initialSortField: initialSort,
+                              initialSortAscending: true,
+                              rowsPerPage: 15,
+                              availableRowsPerPage: const [10, 15, 25, 50],
+                              showCheckboxColumn: true,
+                              fixedLeftColumns:
+                                  isBigScreen ? 2 : 1, // Fix the 'Title' column
+                              minWidth:
+                                  2200, // Increase minWidth for more columns
+                              empty: const Center(
+                                  child: CircularProgressIndicator()),
+                              border: TableBorder.all(
+                                  color: Colors.grey.shade100, width: 1),
+                              columnSpacing: 30,
+                              dataRowHeight: 50,
+                              headingRowHeight: 60,
+                              handleShowDetails: handleShowDetails,
                             ),
-                          ),
-                          isBigScreen
-                              ? AnimatedContainer(
-                                  decoration: BoxDecoration(
-                                      borderRadius: BorderRadius.circular(10)),
-                                  duration: Duration(milliseconds: 600),
-                                  width: selectedItem.isNotEmpty
-                                      ? isBigScreen
-                                          ? 650.0
-                                          : double.infinity
-                                      : 0.00,
-                                  child: selectedItem.isNotEmpty
-                                      ? ShowDetails(
-                                          dataList: selectedItem,
-                                          handleUpdate: handleUpdate,
-                                          updatePageInfo: updatePageInfo)
-                                      : Container(),
-                                )
-                              : SizedBox.shrink()
-                        ]),
+                    )),
+                    isBigScreen
+                        ? AnimatedContainer(
+                            decoration: BoxDecoration(
+                                borderRadius: BorderRadius.circular(10)),
+                            duration: Duration(milliseconds: 600),
+                            width: showDetails ? 650.0 : 0.00,
+                            child: showDetails
+                                ? ShowDetails(
+                                    dataList: selectedItem,
+                                    handleUpdate: handleUpdate,
+                                    handleShowDetails: handleShowDetails,
+                                    updatePageInfo: () {
+                                      setState(() {});
+                                    })
+                                : Container(),
+                          )
+                        : SizedBox.shrink()
+                  ]),
                 ],
               ),
             ),
@@ -519,7 +467,6 @@ class IncomeReportsScreenState extends State<IncomeReportsScreen> {
                     setState(() {
                       _fromDate = DateTime.now();
                       _toDate = DateTime.now();
-                      getSales();
                     });
                   },
                   child: Text('Reset'),
@@ -529,42 +476,12 @@ class IncomeReportsScreenState extends State<IncomeReportsScreen> {
                     setState(() {
                       _fromDate = DateTime.now();
                       _toDate = DateTime.now();
-                      getSales();
                     });
                   },
                   icon: Icon(Icons.cancel_outlined)),
         ],
       ),
     );
-  }
-
-  handleCalculations() {
-    double totalSales = 0;
-    double transfer = 0;
-    double card = 0;
-    double cash = 0;
-    double discount = 0;
-    double profit = 0;
-
-    for (var i = 0; i < filteredsales.length; i++) {
-      totalSales += filteredsales[i]['totalAmount'];
-      discount += filteredsales[i]['discount'];
-      transfer += filteredsales[i]['transfer'];
-      card += filteredsales[i]['card'];
-      cash += filteredsales[i]['cash'];
-      profit += filteredsales[i]['profit'];
-    }
-
-    return {
-      'total_sales': totalSales,
-      'total_paid': totalSales - discount,
-      'no_of_sale': filteredsales.length,
-      'transfer': transfer,
-      'card': card,
-      'cash': cash,
-      'discount': discount,
-      'profit': profit
-    };
   }
 
   GridView cardsInfo(bool isBigScreen, Map data) {

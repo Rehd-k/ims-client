@@ -50,9 +50,10 @@ class AddInvoiceState extends State<AddInvoice> {
   Future<List<Map>> _fetchProducts(String query) async {
     final response = await apiService.getRequest(
         'products?filter={"isAvailable" : true, "title": {"\$regex": "$query"}}&sort={"title": 1}&limit=20&skip=0&select=" title price quantity "');
-
+    var {"products": products, "totalDocuments": totalDocuments} =
+        response.data;
     if (response.statusCode == 200) {
-      return List<Map>.from(response.data);
+      return List<Map>.from(products);
     } else {
       throw Exception('Failed to load names');
     }
@@ -434,6 +435,7 @@ class AddInvoiceState extends State<AddInvoice> {
                         ),
                         const SizedBox(height: 16),
                         // Table
+
                         SingleChildScrollView(
                           scrollDirection: Axis.horizontal,
                           child: DataTable(

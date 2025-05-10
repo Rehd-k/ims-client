@@ -1,6 +1,7 @@
 import 'package:data_table_2/data_table_2.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import '../../../components/tables/gen_big_table/big_table_source.dart';
 import '../../../helpers/financial_string_formart.dart';
 
 import 'make_return.dart';
@@ -10,25 +11,27 @@ class ShowDetails extends StatelessWidget {
       {super.key,
       required this.dataList,
       required this.handleUpdate,
-      required this.updatePageInfo});
+      required this.updatePageInfo,
+      required this.handleShowDetails});
 
-  final List<dynamic> dataList;
+  final TableDataModel dataList;
   final Function handleUpdate;
   final Function updatePageInfo;
+  final Function handleShowDetails;
 
   @override
   Widget build(BuildContext context) {
     List<Map<String, dynamic>> data =
-        List<Map<String, dynamic>>.from(dataList[0]['products']);
+        List<Map<String, dynamic>>.from(dataList['products']);
 
     List<Map<String, dynamic>> returns =
-        List<Map<String, dynamic>>.from(dataList[0]['returns']);
+        List<Map<String, dynamic>>.from(dataList['returns']);
 
-    num totalSum = dataList[0]['totalAmount'];
+    num totalSum = dataList['totalAmount'];
     num totalReturn = returns.fold(0, (sum, item) => sum + item['total']);
-    num totalPaid = totalSum - dataList[0]['discount'];
-    num discount = dataList[0]['discount'];
-    num profit = dataList[0]['profit'];
+    num totalPaid = totalSum - dataList['discount'];
+    num discount = dataList['discount'];
+    num profit = dataList['profit'];
     num width = MediaQuery.sizeOf(context).width;
     bool isBigScreen = width >= 1200;
 
@@ -39,6 +42,24 @@ class ShowDetails extends StatelessWidget {
           borderRadius: BorderRadius.circular(10)),
       child: Column(
         children: [
+          isBigScreen
+              ? Row(
+                  mainAxisAlignment: MainAxisAlignment.end,
+                  children: [
+                    IconButton(
+                        onPressed: () {
+                          handleShowDetails(dataList, isBigScreen);
+                        },
+                        icon: Icon(
+                          Icons.close_fullscreen_rounded,
+                          color: Theme.of(context)
+                              .colorScheme
+                              .primary
+                              .withAlpha(180),
+                        ))
+                  ],
+                )
+              : SizedBox(),
           Expanded(
             child: SizedBox(
               height: 400,
@@ -177,8 +198,8 @@ class ShowDetails extends StatelessWidget {
                         builder: (context) => MakeReturn(
                               updatePageInfo: updatePageInfo,
                               sales: data,
-                              id: dataList[0]['_id'],
-                              transactionId: dataList[0]['transactionId'],
+                              id: dataList['_id'],
+                              transactionId: dataList['transactionId'],
                             )));
                   },
                   child: Text('Return')),
@@ -189,8 +210,8 @@ class ShowDetails extends StatelessWidget {
                         builder: (context) => MakeReturn(
                               updatePageInfo: updatePageInfo,
                               sales: data,
-                              id: dataList[0]['_id'],
-                              transactionId: dataList[0]['transactionId'],
+                              id: dataList['_id'],
+                              transactionId: dataList['transactionId'],
                             )));
                   },
                   child: Text('Refund')),
@@ -201,7 +222,7 @@ class ShowDetails extends StatelessWidget {
               onPressed: () async {
                 final DateTime? picked = await showDatePicker(
                   context: context,
-                  initialDate: DateTime.parse(dataList[0]['createdAt']),
+                  initialDate: DateTime.parse(dataList['createdAt']),
                   firstDate: DateTime(2000),
                   lastDate: DateTime.now(),
                 );

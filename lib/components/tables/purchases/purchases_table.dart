@@ -5,7 +5,7 @@ import 'package:data_table_2/data_table_2.dart';
 
 import 'data_sources.dart';
 
-class MainTable extends StatefulWidget {
+class MainTable extends StatelessWidget {
   final List data;
   final Widget range;
   final List columnDefs;
@@ -15,8 +15,15 @@ class MainTable extends StatefulWidget {
   final bool isLoading;
   final bool showCheckboxColumn;
   final bool allowMultipleSelection;
-  final Function returnSelection;
+  final Function(List) onSelectionChanged;
+  final Function(int, bool) onSort;
+  final Function(int) onPageChanged;
+  final int currentPage;
   final bool longPress;
+  final int rowsPerPage;
+  final int? sortColumnIndex;
+  final bool sortAscending;
+  final bool kkk;
 
   const MainTable({
     super.key,
@@ -29,144 +36,114 @@ class MainTable extends StatefulWidget {
     required this.range,
     required this.showCheckboxColumn,
     required this.allowMultipleSelection,
-    required this.returnSelection,
+    required this.onSelectionChanged,
+    required this.onSort,
+    required this.onPageChanged,
+    required this.currentPage,
     required this.longPress,
+    required this.rowsPerPage,
+    this.sortColumnIndex,
+    this.sortAscending = true,
+    required this.kkk,
   });
 
-  @override
-  MainTableState createState() => MainTableState();
-}
-
-class MainTableState extends State<MainTable> {
-  int _rowsPerPage = PaginatedDataTable.defaultRowsPerPage;
-  bool _sortAscending = true;
-  int? _sortColumnIndex;
-  DessertDataSourceAsync? _dessertsDataSource;
-  bool isEmpty = false;
-  bool hasError = false;
-  bool isAutoHeight = false;
-  final bool _dataSourceLoading = false;
-  final int _initialRow = 0;
-
-  @override
-  void initState() {
-    super.initState();
-    _dessertsDataSource ??= isEmpty
-        ? DessertDataSourceAsync.empty(widget.allowMultipleSelection,
-            _onRowSelectionChanged, context, widget.longPress)
-        : hasError
-            ? DessertDataSourceAsync.error(widget.allowMultipleSelection,
-                _onRowSelectionChanged, context, widget.longPress)
-            : DessertDataSourceAsync(
-                data: widget.data,
-                columnDefs: widget.columnDefs,
-                allowMultipleSelection: widget.allowMultipleSelection,
-                handleSelection: _onRowSelectionChanged,
-                context: context,
-                longPress: widget.longPress,
-                actions: widget.actions);
-  }
-
-  void sort(
-    int columnIndex,
-    bool ascending,
-  ) {
-    final columnName = widget.sortableColumns[columnIndex];
-    if (columnName != null) {
-      _dessertsDataSource!.sort(columnName, ascending);
-      setState(() {
-        _sortColumnIndex = columnIndex;
-        _sortAscending = ascending;
-      });
-    }
-  }
-
-  @override
-  void dispose() {
-    _dessertsDataSource!.dispose();
-    super.dispose();
-  }
-
-  List<DataColumn> get _columns {
-    return widget.columnDefs.asMap().entries.map((entry) {
+  List<DataColumn2> _buildColumns(BuildContext context) {
+    return columnDefs.asMap().entries.map((entry) {
       final Map<String, dynamic> column = entry.value;
+      final int index = entry.key;
 
-      return DataColumn(
+      return DataColumn2(
         label: Text(column['name']),
         onSort: column['sortable']
-            ? (columnIndex, ascending) => sort(columnIndex, ascending)
+            ? (columnIndex, ascending) => onSort(columnIndex, ascending)
             : null,
+        size: ColumnSize.M,
+        fixedWidth: index == 0 ? 200 : null, // First column fixed width
+        // fixed: index == 0 ? true : false, // First column fixed position
       );
     }).toList();
   }
 
-  void _onRowSelectionChanged() {
-    final selectedRows = _dessertsDataSource!.getSelectedRows();
-
-    widget.returnSelection(selectedRows);
-  }
-
   @override
   Widget build(BuildContext context) {
-    if (_dataSourceLoading) return const SizedBox();
+    final dataSource = DessertDataSourceAsync(
+      data: data,
+      columnDefs: columnDefs,
+      allowMultipleSelection: allowMultipleSelection,
+      handleSelection: (selectedRows) {
+        // Pass selected rows to parent
+        onSelectionChanged(selectedRows);
+      },
+      context: context,
+      longPress: longPress,
+      actions: actions,
+    );
 
     return SizedBox(
-      height: 600, // Or whatever height you want to set
+      height: 600,
       child: Column(
         children: [
           Expanded(
             child: AsyncPaginatedDataTable2(
               horizontalMargin: 30,
               checkboxHorizontalMargin: 12,
-              showCheckboxColumn: widget.showCheckboxColumn,
+              showCheckboxColumn: showCheckboxColumn,
               columnSpacing: 0,
               wrapInCard: true,
-              onPageChanged: (value) {},
               header: Text(
-                '${widget.title} ${widget.data.length}',
-                style: TextStyle(fontSize: 12),
+                '$title ${data.length}',
+                style: const TextStyle(fontSize: 12),
               ),
-              rowsPerPage: _rowsPerPage,
-              autoRowsToHeight: isAutoHeight,
+              rowsPerPage: rowsPerPage,
+              autoRowsToHeight: false,
               minWidth: 1500,
               fit: FlexFit.tight,
-              onRowsPerPageChanged: (value) {
-                _rowsPerPage = value!;
-              },
-              initialFirstRowIndex: _initialRow,
-              sortColumnIndex: _sortColumnIndex,
-              sortAscending: _sortAscending,
+              onRowsPerPageChanged: (value) => onPageChanged(value ?? 10),
+              initialFirstRowIndex: currentPage * rowsPerPage,
+              sortColumnIndex: sortColumnIndex,
+              sortAscending: sortAscending,
               sortArrowIcon: Icons.keyboard_arrow_up,
               sortArrowAnimationDuration: const Duration(milliseconds: 0),
+              availableRowsPerPage: const [10, 25, 50, 100],
+              showFirstLastButtons: true,
+              renderEmptyRowsInTheEnd: false,
+              // columnResizeMode: ColumnResizeMode.onResize,
+              fixedLeftColumns: 1,
+              // enableDragSelection: true,
               onSelectAll: (select) {
-                if (select != null && select) {
-                  _dessertsDataSource!.selectAll();
-                } else {
-                  _dessertsDataSource!.deselectAll();
+                if (select != null) {
+                  if (select) {
+                    dataSource.selectAll();
+                  } else {
+                    dataSource.deselectAll();
+                  }
+                  onSelectionChanged(dataSource.getSelectedRows());
                 }
-                _onRowSelectionChanged();
               },
-              columns: _columns,
+              columns: _buildColumns(context),
               empty: Center(
                 child: Container(
                   decoration: BoxDecoration(
                     borderRadius: BorderRadius.circular(5),
-                    color: Theme.of(context).colorScheme.surfaceBright,
+                    color: Theme.of(context).colorScheme.surface,
                   ),
                   padding: const EdgeInsets.all(20),
                   child: const Text('No data'),
                 ),
               ),
-              loading: _Loading(),
+              loading: isLoading ? _Loading() : null,
               errorBuilder: (e) => _ErrorAndRetry(
                 e.toString(),
-                () => _dessertsDataSource!.refreshDatasource(),
+                () => dataSource.refreshDatasource(),
               ),
-              source: _dessertsDataSource!,
+
+              source: dataSource,
             ),
           ),
           Padding(
-              padding: EdgeInsets.symmetric(horizontal: 5), child: widget.range)
+            padding: const EdgeInsets.symmetric(horizontal: 5),
+            child: range,
+          )
         ],
       ),
     );
@@ -225,7 +202,8 @@ class __LoadingState extends State<_Loading> {
       // at first show shade, if loading takes longer than 0,5s show spinner
       child: Center(
         child: Container(
-          color: Colors.yellow,
+          decoration: BoxDecoration(borderRadius: BorderRadius.circular(10)),
+          color: Theme.of(context).colorScheme.primary,
           padding: const EdgeInsets.all(7),
           width: 150,
           height: 50,
