@@ -6,8 +6,31 @@ on:
       - main
 
 jobs:
-  build_windows:
-    runs-on: windows-latest
+  # build_windows:
+  #   runs-on: windows-latest
+  #   steps:
+  #     - name: Checkout code
+  #       uses: actions/checkout@v3
+
+  #     - name: Set up Flutter
+  #       uses: subosito/flutter-action@v2
+  #       with:
+  #         flutter-version: '3.27.2'
+  #         channel: stable
+
+  #     - name: Get dependencies
+  #       run: flutter pub get
+
+  #     - name: Build Windows app
+  #       run: flutter build windows
+
+  #     - name: Upload artifacts
+  #       uses: actions/upload-artifact@v4
+  #       with:
+  #         name: flutter_windows_build
+  #         path: build/*
+  build_android:
+    runs-on: ubuntu-latest
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
@@ -21,11 +44,11 @@ jobs:
       - name: Get dependencies
         run: flutter pub get
 
-      - name: Build Windows app
-        run: flutter build windows
+      - name: Build Android APK
+        run: flutter build apk --release
 
-      - name: Upload artifacts
+      - name: Upload Android artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: flutter_windows_build
+          name: flutter_android_build
           path: build/*
