@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:invease/app_router.gr.dart';
 
 import '../app_router.dart';
+import '../app_router.gr.dart';
 
 class NavigationService {
   static final AppRouter _router = AppRouter(); // Static instance of AppRouter

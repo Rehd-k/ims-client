@@ -2,7 +2,7 @@ import 'package:auto_route/auto_route.dart';
 import 'package:data_table_2/data_table_2.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-import 'package:invease/helpers/financial_string_formart.dart';
+import 'package:shelf_sense/helpers/financial_string_formart.dart';
 
 import '../../../app_router.gr.dart';
 

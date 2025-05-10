@@ -11,28 +11,28 @@
 // ignore_for_file: no_leading_underscores_for_library_prefixes
 import 'package:auto_route/auto_route.dart' as _i22;
 import 'package:flutter/material.dart' as _i23;
-import 'package:invease/auth/login.dart' as _i12;
-import 'package:invease/screens/banks/index.dart' as _i2;
-import 'package:invease/screens/customers/index.dart' as _i5;
-import 'package:invease/screens/dashboard/dashboard.dart' as _i6;
-import 'package:invease/screens/errors/errors.dart' as _i7;
-import 'package:invease/screens/expenses/index.dart' as _i9;
-import 'package:invease/screens/invoice/add_invoice.dart' as _i1;
-import 'package:invease/screens/invoice/view_invoices.dart' as _i21;
-import 'package:invease/screens/locations/index.dart' as _i11;
-import 'package:invease/screens/makesale/checkout.dart' as _i4;
-import 'package:invease/screens/makesale/index.dart' as _i14;
-import 'package:invease/screens/menu.dart' as _i13;
-import 'package:invease/screens/products/category/index.dart' as _i3;
-import 'package:invease/screens/products/index.dart' as _i17;
-import 'package:invease/screens/products/product_dashbaord/product_dashboard.dart'
+import 'package:shelf_sense/auth/login.dart' as _i12;
+import 'package:shelf_sense/screens/banks/index.dart' as _i2;
+import 'package:shelf_sense/screens/customers/index.dart' as _i5;
+import 'package:shelf_sense/screens/dashboard/dashboard.dart' as _i6;
+import 'package:shelf_sense/screens/errors/errors.dart' as _i7;
+import 'package:shelf_sense/screens/expenses/index.dart' as _i9;
+import 'package:shelf_sense/screens/invoice/add_invoice.dart' as _i1;
+import 'package:shelf_sense/screens/invoice/view_invoices.dart' as _i21;
+import 'package:shelf_sense/screens/locations/index.dart' as _i11;
+import 'package:shelf_sense/screens/makesale/checkout.dart' as _i4;
+import 'package:shelf_sense/screens/makesale/index.dart' as _i14;
+import 'package:shelf_sense/screens/menu.dart' as _i13;
+import 'package:shelf_sense/screens/products/category/index.dart' as _i3;
+import 'package:shelf_sense/screens/products/index.dart' as _i17;
+import 'package:shelf_sense/screens/products/product_dashbaord/product_dashboard.dart'
     as _i16;
-import 'package:invease/screens/reports/expence_reports/index.dart' as _i8;
-import 'package:invease/screens/reports/income_reports/index.dart' as _i10;
-import 'package:invease/screens/reports/payment_reports/index.dart' as _i15;
-import 'package:invease/screens/splashscreen.dart' as _i18;
-import 'package:invease/screens/supplier/index.dart' as _i19;
-import 'package:invease/screens/users/index.dart' as _i20;
+import 'package:shelf_sense/screens/reports/expence_reports/index.dart' as _i8;
+import 'package:shelf_sense/screens/reports/income_reports/index.dart' as _i10;
+import 'package:shelf_sense/screens/reports/payment_reports/index.dart' as _i15;
+import 'package:shelf_sense/screens/splashscreen.dart' as _i18;
+import 'package:shelf_sense/screens/supplier/index.dart' as _i19;
+import 'package:shelf_sense/screens/users/index.dart' as _i20;
 
 /// generated route for
 /// [_i1.AddInvoice]

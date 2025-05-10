@@ -3,7 +3,6 @@ import 'dart:math';
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:infinite_scroll_pagination/infinite_scroll_pagination.dart';
-import 'package:invease/screens/makesale/product_service.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:convert';
@@ -16,6 +15,7 @@ import '../../helpers/providers/token_provider.dart';
 import '../../services/api.service.dart';
 import 'cart_section.dart';
 import 'product_grid.dart';
+import 'product_service.dart';
 
 @RoutePage()
 class MakeSaleIndex extends StatefulWidget {
