@@ -19,33 +19,36 @@ class ProductGrid extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Expanded(
-        child: RefreshIndicator(
-            onRefresh: () => Future.sync(
-                  () => pagingController.refresh(),
-                ),
-            child: PagingListener(
-              controller: pagingController,
-              builder: (context, state, fetchNextPage) => PagedGridView(
-                state: state,
-                fetchNextPage: fetchNextPage,
-                gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                  childAspectRatio: 100 / 150,
-                  crossAxisCount: smallScreen ? 2 : 4,
-                  crossAxisSpacing: 16,
-                  mainAxisSpacing: 16,
-                ),
-                builderDelegate: PagedChildBuilderDelegate(
-                  itemBuilder: (context, res, index) =>
-                      productItem(res, context, index),
-                  noMoreItemsIndicatorBuilder: (context) => const Center(
-                    child: Padding(
-                      padding: EdgeInsets.all(16.0),
-                      child: Text('You have reached the end'),
+        child: Padding(
+            padding:
+                const EdgeInsets.only(left: 8.0, right: 8.0, top: 2, bottom: 8),
+            child: RefreshIndicator(
+                onRefresh: () => Future.sync(
+                      () => pagingController.refresh(),
+                    ),
+                child: PagingListener(
+                  controller: pagingController,
+                  builder: (context, state, fetchNextPage) => PagedGridView(
+                    state: state,
+                    fetchNextPage: fetchNextPage,
+                    gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                      childAspectRatio: 100 / 150,
+                      crossAxisCount: smallScreen ? 2 : 4,
+                      crossAxisSpacing: 16,
+                      mainAxisSpacing: 16,
+                    ),
+                    builderDelegate: PagedChildBuilderDelegate(
+                      itemBuilder: (context, res, index) =>
+                          productItem(res, context, index),
+                      noMoreItemsIndicatorBuilder: (context) => const Center(
+                        child: Padding(
+                          padding: EdgeInsets.all(16.0),
+                          child: Text('You have reached the end'),
+                        ),
+                      ),
                     ),
                   ),
-                ),
-              ),
-            )));
+                ))));
   }
 
   Material productItem(res, BuildContext context, index) {
@@ -68,11 +71,14 @@ class ProductGrid extends StatelessWidget {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Text(
-                res.title.toString(),
-                style: Theme.of(context).textTheme.titleMedium,
-                textAlign: TextAlign.center,
-                overflow: TextOverflow.ellipsis,
+              Tooltip(
+                message: res.title.toString(),
+                child: Text(
+                  res.title.toString(),
+                  style: Theme.of(context).textTheme.titleMedium,
+                  textAlign: TextAlign.center,
+                  overflow: TextOverflow.ellipsis,
+                ),
               ),
               const SizedBox(height: 8),
               Text(

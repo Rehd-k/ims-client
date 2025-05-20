@@ -305,7 +305,9 @@ class ViewInvoicesState extends State<ViewInvoices> {
                           color: Theme.of(context).primaryColor),
                     ),
                     OutlinedButton.icon(
-                        onPressed: () {},
+                        onPressed: () {
+                          context.router.pushPath('/create_invoice');
+                        },
                         label: const Text('Add Invoice'),
                         icon: const Icon(Icons.add)),
                   ],

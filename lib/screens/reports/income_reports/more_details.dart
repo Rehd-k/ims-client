@@ -12,12 +12,14 @@ class ShowDetails extends StatelessWidget {
       required this.dataList,
       required this.handleUpdate,
       required this.updatePageInfo,
-      required this.handleShowDetails});
+      required this.handleShowDetails,
+      required this.doRePrint});
 
   final TableDataModel dataList;
   final Function handleUpdate;
   final Function updatePageInfo;
   final Function handleShowDetails;
+  final Function doRePrint;
 
   @override
   Widget build(BuildContext context) {
@@ -64,32 +66,34 @@ class ShowDetails extends StatelessWidget {
             child: SizedBox(
               height: 400,
               width: double.infinity,
-              child: table(context, data, [
-                {
-                  'name': 'Title',
-                  'size': ColumnSize.S,
-                  'field': 'title',
-                  'type': 'string'
-                },
-                {
-                  'name': 'Quantity',
-                  'size': ColumnSize.S,
-                  'field': 'quantity',
-                  'type': 'number'
-                },
-                {
-                  'name': 'Price',
-                  'size': ColumnSize.S,
-                  'field': 'price',
-                  'type': 'money'
-                },
-                {
-                  'name': 'Total',
-                  'size': ColumnSize.S,
-                  'field': 'total',
-                  'type': 'money'
-                },
-              ]),
+              child: SingleChildScrollView(
+                child: table(context, data, [
+                  {
+                    'name': 'Title',
+                    'size': ColumnSize.S,
+                    'field': 'title',
+                    'type': 'string'
+                  },
+                  {
+                    'name': 'Quantity',
+                    'size': ColumnSize.S,
+                    'field': 'quantity',
+                    'type': 'number'
+                  },
+                  {
+                    'name': 'Price',
+                    'size': ColumnSize.S,
+                    'field': 'price',
+                    'type': 'money'
+                  },
+                  {
+                    'name': 'Total',
+                    'size': ColumnSize.S,
+                    'field': 'total',
+                    'type': 'money'
+                  },
+                ]),
+              ),
             ),
           ),
           Container(
@@ -111,46 +115,47 @@ class ShowDetails extends StatelessWidget {
                               fontWeight: FontWeight.bold, fontSize: 12))),
                 ),
                 SizedBox(
-                  height: 170,
-                  child: table(context, returns, [
-                    {
-                      'name': 'Title',
-                      'size': ColumnSize.S,
-                      'field': 'title',
-                      'type': 'string'
-                    },
-                    {
-                      'name': 'Quantity',
-                      'size': ColumnSize.S,
-                      'field': 'quantity',
-                      'type': 'number'
-                    },
-                    {
-                      'name': 'Price',
-                      'size': ColumnSize.S,
-                      'field': 'price',
-                      'type': 'money'
-                    },
-                    {
-                      'name': 'Total',
-                      'size': ColumnSize.S,
-                      'field': 'total',
-                      'type': 'money'
-                    },
-                    {
-                      'name': 'Date',
-                      'size': ColumnSize.S,
-                      'field': 'returnedAt',
-                      'type': 'date'
-                    },
-                    {
-                      'name': 'Handler',
-                      'size': ColumnSize.S,
-                      'field': 'handler',
-                      'type': 'string'
-                    },
-                  ]),
-                ),
+                    height: 170,
+                    child: SingleChildScrollView(
+                      child: table(context, returns, [
+                        {
+                          'name': 'Title',
+                          'size': ColumnSize.S,
+                          'field': 'title',
+                          'type': 'string'
+                        },
+                        {
+                          'name': 'Quantity',
+                          'size': ColumnSize.S,
+                          'field': 'quantity',
+                          'type': 'number'
+                        },
+                        {
+                          'name': 'Price',
+                          'size': ColumnSize.S,
+                          'field': 'price',
+                          'type': 'money'
+                        },
+                        {
+                          'name': 'Total',
+                          'size': ColumnSize.S,
+                          'field': 'total',
+                          'type': 'money'
+                        },
+                        {
+                          'name': 'Date',
+                          'size': ColumnSize.S,
+                          'field': 'returnedAt',
+                          'type': 'date'
+                        },
+                        {
+                          'name': 'Handler',
+                          'size': ColumnSize.S,
+                          'field': 'handler',
+                          'type': 'string'
+                        },
+                      ]),
+                    )),
               ],
             ),
           ),
@@ -218,19 +223,29 @@ class ShowDetails extends StatelessWidget {
             ],
           ),
           SizedBox(height: 4),
-          ElevatedButton(
-              onPressed: () async {
-                final DateTime? picked = await showDatePicker(
-                  context: context,
-                  initialDate: DateTime.parse(dataList['createdAt']),
-                  firstDate: DateTime(2000),
-                  lastDate: DateTime.now(),
-                );
-                if (picked != null) {
-                  handleUpdate({'transactionDate': picked.toString()});
-                }
-              },
-              child: Text('Back Date')),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              ElevatedButton(
+                  onPressed: () async {
+                    final DateTime? picked = await showDatePicker(
+                      context: context,
+                      initialDate: DateTime.parse(dataList['createdAt']),
+                      firstDate: DateTime(2000),
+                      lastDate: DateTime.now(),
+                    );
+                    if (picked != null) {
+                      handleUpdate({'transactionDate': picked.toString()});
+                    }
+                  },
+                  child: Text('Back\nDate')),
+              ElevatedButton(
+                  onPressed: () async {
+                    doRePrint();
+                  },
+                  child: Text('Reprint\nReceipt')),
+            ],
+          )
         ],
       ),
     );

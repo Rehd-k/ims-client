@@ -255,10 +255,11 @@ class MakeSaleIndexState extends State<MakeSaleIndex> {
               ? FloatingActionButton(
                   onPressed: () {
                     showModalBottomSheet(
+                      isScrollControlled: true,
                       context: context,
                       builder: (context) => Container(
-                        // height: MediaQuery.of(context).size.height * 0.8,
                         padding: const EdgeInsets.all(8.0),
+                        height: MediaQuery.of(context).size.height * 0.98,
                         child: CartSection(
                           isSmallScreen: smallScreen,
                           saveCart: saveCartToStorage,
@@ -273,7 +274,35 @@ class MakeSaleIndexState extends State<MakeSaleIndex> {
                       ),
                     );
                   },
-                  child: Icon(Icons.shopping_cart_outlined))
+                  child: Stack(
+                    alignment: Alignment.center,
+                    children: [
+                      const Icon(
+                        Icons.shopping_cart_outlined,
+                        size: 40,
+                      ),
+                      if (cart.isNotEmpty)
+                        Positioned(
+                          child: Container(
+                            alignment: Alignment.center,
+                            width: 24,
+                            height: 24,
+                            decoration: BoxDecoration(
+                              color: Theme.of(context).colorScheme.primary,
+                              shape: BoxShape.circle,
+                            ),
+                            child: Text(
+                              '${cart.length}',
+                              style: TextStyle(
+                                color: Theme.of(context).colorScheme.onPrimary,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ),
+                        ),
+                    ],
+                  ),
+                )
               : null,
           body: Padding(
             padding: EdgeInsets.only(top: 8.0, right: smallScreen ? 0 : 10.0),
@@ -370,7 +399,7 @@ class MakeSaleIndexState extends State<MakeSaleIndex> {
 
             child: Icon(
               Icons.shopping_cart,
-              color: Colors.white,
+              color: Theme.of(context).colorScheme.onPrimary,
               size: 16, // Adjust icon size
             ),
           ),

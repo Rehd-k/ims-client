@@ -435,100 +435,122 @@ class AddInvoiceState extends State<AddInvoice> {
                         ),
                         const SizedBox(height: 16),
                         // Table
-
-                        SingleChildScrollView(
-                          scrollDirection: Axis.horizontal,
-                          child: DataTable(
-                            columnSpacing: !smallScreen ? 140 : 90,
-                            dataRowMinHeight: 48,
-                            columns: const [
-                              DataColumn(label: Text('Product')),
-                              DataColumn(label: Text('Quantity')),
-                              DataColumn(label: Text('Unit Price')),
-                              DataColumn(label: Text('Amount')),
-                              DataColumn(label: Text('Action')),
-                            ],
-                            rows: selectedProducts.asMap().entries.map((entry) {
-                              final index = entry.key;
-                              final product = entry.value;
-                              return DataRow(cells: [
-                                DataCell(Text(product['title'])),
-                                DataCell(Row(
-                                  children: [
-                                    IconButton(
-                                      icon: Icon(Icons.remove,
-                                          color: Theme.of(context)
-                                              .colorScheme
-                                              .onSecondary),
-                                      onPressed: () {
-                                        updateQuantity(
-                                            index, product['quantity'] - 1);
-                                      },
-                                    ),
-                                    SizedBox(
-                                      width: 60,
-                                      child: TextFormField(
-                                        inputFormatters: [
-                                          FilteringTextInputFormatter
-                                              .digitsOnly,
-                                        ],
-                                        validator: (value) {
-                                          final intValue =
-                                              int.tryParse(value ?? '');
-                                          if (intValue == null) {
-                                            return 'Enter a valid number';
-                                          } else if (intValue < 1) {
-                                            return 'Minimum value is 1';
-                                          } else if (intValue >
-                                              selectedProducts[index]
-                                                  ['remaining']) {
-                                            return 'Maximum value is ${selectedProducts[index]['remaining']}';
-                                          }
-                                          return null;
-                                        },
-                                        controller: quantityControllers[index],
-                                        textAlign: TextAlign.center,
-                                        keyboardType: TextInputType.number,
-                                        onChanged: (val) {
-                                          final newQty = int.tryParse(val);
-                                          if (newQty != null && newQty >= 0) {
-                                            updateQuantity(index, newQty);
-                                          }
-                                        },
-                                      ),
-                                    ),
-                                    IconButton(
-                                      icon: Icon(Icons.add,
-                                          color: Theme.of(context)
-                                              .colorScheme
-                                              .onSecondary),
-                                      onPressed: () {
-                                        updateQuantity(
-                                            index, product['quantity'] + 1);
-                                      },
-                                    ),
-                                  ],
-                                )),
-                                DataCell(Text(product['price']
-                                    .toString()
-                                    .formatToFinancial(isMoneySymbol: true))),
-                                DataCell(Text(product['total']
-                                    .toString()
-                                    .formatToFinancial(isMoneySymbol: true))),
-                                DataCell(IconButton(
-                                  icon: Icon(Icons.delete,
-                                      color: Theme.of(context)
-                                          .colorScheme
-                                          .onSecondary),
-                                  onPressed: () {
-                                    setState(
-                                        () => selectedProducts.remove(product));
-                                  },
-                                )),
-                              ]);
-                            }).toList(),
+                        Container(
+                          constraints: BoxConstraints(
+                            minHeight: 100,
+                            maxHeight: 500,
                           ),
-                        )
+                          child: SingleChildScrollView(
+                            child: SingleChildScrollView(
+                              scrollDirection: Axis.horizontal,
+                              child: DataTable(
+                                columnSpacing: !smallScreen ? 140 : 90,
+                                dataRowMinHeight: 48,
+                                columns: const [
+                                  DataColumn(label: Text('Product')),
+                                  DataColumn(label: Text('Quantity')),
+                                  DataColumn(label: Text('Unit Price')),
+                                  DataColumn(label: Text('Amount')),
+                                  DataColumn(label: Text('Action')),
+                                ],
+                                rows: selectedProducts
+                                    .asMap()
+                                    .entries
+                                    .map((entry) {
+                                  final index = entry.key;
+                                  final product = entry.value;
+                                  return DataRow(cells: [
+                                    DataCell(Text(product['title'])),
+                                    DataCell(Row(
+                                      children: [
+                                        IconButton(
+                                          icon: Icon(Icons.remove,
+                                              color: Theme.of(context)
+                                                  .colorScheme
+                                                  .onSecondary),
+                                          onPressed: () {
+                                            updateQuantity(
+                                                index, product['quantity'] - 1);
+                                          },
+                                        ),
+                                        SizedBox(
+                                          width: 60,
+                                          child: TextFormField(
+                                            decoration: InputDecoration(
+                                              border: OutlineInputBorder(
+                                                  borderSide:
+                                                      BorderSide(width: 0)),
+                                            ),
+                                            inputFormatters: [
+                                              FilteringTextInputFormatter
+                                                  .digitsOnly,
+                                            ],
+                                            validator: (value) {
+                                              if (value == null ||
+                                                  value.isEmpty) {
+                                                return 'Enter a valid number';
+                                              } else {
+                                                final intValue =
+                                                    int.parse(value);
+                                                if (intValue < 1) {
+                                                  return 'Minimum value is 1';
+                                                } else if (intValue >
+                                                    selectedProducts[index]
+                                                        ['remaining']) {
+                                                  return 'Maximum value is ${selectedProducts[index]['remaining']}';
+                                                }
+                                              }
+                                              return null;
+                                            },
+                                            controller:
+                                                quantityControllers[index],
+                                            textAlign: TextAlign.center,
+                                            keyboardType: TextInputType.number,
+                                            onChanged: (val) {
+                                              final newQty = int.tryParse(val);
+                                              if (newQty != null &&
+                                                  newQty >= 0) {
+                                                updateQuantity(index, newQty);
+                                              }
+                                            },
+                                          ),
+                                        ),
+                                        IconButton(
+                                          icon: Icon(Icons.add,
+                                              color: Theme.of(context)
+                                                  .colorScheme
+                                                  .onSecondary),
+                                          onPressed: () {
+                                            updateQuantity(
+                                                index, product['quantity'] + 1);
+                                          },
+                                        ),
+                                      ],
+                                    )),
+                                    DataCell(Text(product['price']
+                                        .toString()
+                                        .formatToFinancial(
+                                            isMoneySymbol: true))),
+                                    DataCell(Text(product['total']
+                                        .toString()
+                                        .formatToFinancial(
+                                            isMoneySymbol: true))),
+                                    DataCell(IconButton(
+                                      icon: Icon(Icons.delete,
+                                          color: Theme.of(context)
+                                              .colorScheme
+                                              .onSecondary),
+                                      onPressed: () {
+                                        setState(() =>
+                                            selectedProducts.remove(product));
+                                      },
+                                    )),
+                                  ]);
+                                }).toList(),
+                              ),
+                            ),
+                          ),
+                        ),
                       ],
                     ),
                   ),
@@ -600,24 +622,24 @@ class AddInvoiceState extends State<AddInvoice> {
                   .formatToFinancial(isMoneySymbol: true)),
             ]),
             const SizedBox(height: 10),
-            const SizedBox(height: 16),
+
             // Tax
 
-            Row(children: [
-              const Text('Tax: '),
-              const Spacer(),
-              Expanded(
-                child: DropdownButtonFormField<String>(
-                  decoration: const InputDecoration(labelText: 'Tax'),
-                  items: taxes.map((e) {
-                    return DropdownMenuItem(value: e, child: Text(e));
-                  }).toList(),
-                  onChanged: (value) {},
-                ),
-              )
-            ]),
+            // Row(children: [
+            //   const Text('Tax: '),
+            //   const Spacer(),
+            //   Expanded(
+            //     child: DropdownButtonFormField<String>(
+            //       decoration: const InputDecoration(labelText: 'Tax'),
+            //       items: taxes.map((e) {
+            //         return DropdownMenuItem(value: e, child: Text(e));
+            //       }).toList(),
+            //       onChanged: (value) {},
+            //     ),
+            //   )
+            // ]),
 
-            const SizedBox(height: 10),
+            // const SizedBox(height: 10),
             // Grand Total
             Row(children: [
               const Text('Grand Total: '),

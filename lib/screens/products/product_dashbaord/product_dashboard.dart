@@ -84,7 +84,6 @@ class ProductDashboardState extends State<ProductDashboard> {
   getAllData() async {
     await getDashboardData();
     await getChartData('Today');
-    await getPurchases();
   }
 
   Future deleteProduct() async {
@@ -117,43 +116,8 @@ class ProductDashboardState extends State<ProductDashboard> {
     }
   }
 
-  Future getPurchases() async {
-    setState(() {
-      supplierSet = {};
-      suppliers = [];
-    });
-    final response = await apiService.getRequest(
-        'purchases?filter={"productId":"$productId", "$searchFeild" : "","supplier":"$selectedSupplier", "status" : {"\$regex" : "${selectedStatus?.toLowerCase()}"}}&sort={"$searchFeild":-1}&startDate=$_fromDate&endDate=$_toDate');
-    var {'purchases': purchases, 'totalDocuments': totalDocuments} =
-        response.data;
-    setState(() {
-      totalSales = 0;
-      purchases = purchases;
-      purchases.forEach((element) {
-        var total =
-            element['sold'].fold(0, (sum, item) => sum + (item["amount"] ?? 0));
-        totalSales += total;
-      });
-
-      for (var purchase in purchases) {
-        final supplier = purchase['supplier'];
-        if (!supplierSet.contains(supplier['_id'])) {
-          supplierSet.add(supplier['_id']);
-          suppliers.add({'_id': supplier['_id'], 'name': supplier['name']});
-        }
-      }
-
-      if (!supplierSet.contains("")) {
-        suppliers.insert(0, {'_id': '', 'name': 'All Suppliers'});
-      }
-
-      loadingTable = false;
-    });
-  }
-
   Future getChartData(dateRange) async {
     final range = getDateRange(dateRange);
-
     final response = await apiService.getRequest(
         'sales/getchart/$productId?filter={"sorter":"$dateRange"}&startDate=${range.startDate}&endDate=${range.endDate}');
     setState(() {
@@ -164,14 +128,8 @@ class ProductDashboardState extends State<ProductDashboard> {
       });
       rangeInfo = range;
       loadingCharts = false;
+      loadingTable = false;
     });
-  }
-
-  handleDamagedGoods(Map<String, dynamic> data) async {
-    final info = {'productId': productId, 'damagedGoods': data};
-    await apiService.putRequest(
-        'purchases/update/${returnedSelection[0]['_id']}', info);
-    await getPurchases();
   }
 
   printSelected() {
@@ -183,22 +141,13 @@ class ProductDashboardState extends State<ProductDashboard> {
       if (rowData['quantity'] == getSold(rowData['sold'])) {
         doAlerts('This batch have been sold out');
       } else {
-        showDamagedGoodsForm(context, handleDamagedGoods,
-            (rowData['quantity'] - getSold(rowData['sold'])));
+        // showDamagedGoodsForm(context, handleDamagedGoods,
+        //     (rowData['quantity'] - getSold(rowData['sold'])));
       }
     }
   }
 
-  handleSelection(dynamic selected) {
-    setState(() {
-      returnedSelection = selected;
-    });
-  }
-
   handleRangeChange(String? select, DateTime? picked) async {
-    setState(() {
-      loadingTable = true;
-    });
     if (select == 'from') {
       setState(() {
         _fromDate = picked;
@@ -208,8 +157,6 @@ class ProductDashboardState extends State<ProductDashboard> {
         _toDate = picked;
       });
     }
-
-    await getPurchases();
   }
 
   handleRangeChanged(String rangeLabel) {
@@ -344,13 +291,11 @@ class ProductDashboardState extends State<ProductDashboard> {
                             setState(() {
                               selectedSupplier = value;
                             });
-                            getPurchases();
                           },
                           onSelectStatus: (value) {
                             setState(() {
                               selectedStatus = value;
                             });
-                            getPurchases();
                           },
                           suppliers: suppliers,
                           handleRangeChange: handleRangeChange,
@@ -431,31 +376,35 @@ class ProductDashboardState extends State<ProductDashboard> {
                   SizedBox(height: 16),
                   SizedBox(
                       height: 600,
-                      child: ReusableAsyncPaginatedDataTable(
-                        columnDefinitions:
-                            _columnDefinitions, // Pass definitions
-                        fetchDataCallback: _fetchServerData,
-                        onSelectionChanged: (selected) {
-                          _selectedRows = selected;
-                        },
-                        header: const Text('Order'),
-                        initialSortField: initialSort,
-                        initialSortAscending: true,
-                        rowsPerPage: 15,
-                        availableRowsPerPage: const [10, 15, 25, 50],
-                        showCheckboxColumn: true,
-                        fixedLeftColumns: 1, // Fix the 'Title' column
-                        minWidth: 2500, // Increase minWidth for more columns
-                        empty: const Center(child: CircularProgressIndicator()),
-                        border: TableBorder.all(
-                            color: Colors.grey.shade100, width: 1),
-                        columnSpacing: 30,
-                        dataRowHeight: 50,
-                        headingRowHeight: 60,
-                        doDamagedGoods: (rowData) {
-                          handleDamagedGoodsClicked(rowData);
-                        },
-                      )
+                      child: loadingTable
+                          ? CircularProgressIndicator()
+                          : ReusableAsyncPaginatedDataTable(
+                              columnDefinitions:
+                                  _columnDefinitions, // Pass definitions
+                              fetchDataCallback: _fetchServerData,
+                              onSelectionChanged: (selected) {
+                                _selectedRows = selected;
+                              },
+                              header: const Text('Order'),
+                              initialSortField: initialSort,
+                              initialSortAscending: true,
+                              rowsPerPage: 15,
+                              availableRowsPerPage: const [10, 15, 25, 50],
+                              showCheckboxColumn: true,
+                              fixedLeftColumns: 1, // Fix the 'Title' column
+                              minWidth:
+                                  2500, // Increase minWidth for more columns
+                              empty: const Center(
+                                  child: CircularProgressIndicator()),
+                              border: TableBorder.all(
+                                  color: Colors.grey.shade100, width: 1),
+                              columnSpacing: 30,
+                              dataRowHeight: 50,
+                              headingRowHeight: 60,
+                              doDamagedGoods: (rowData) {
+                                handleDamagedGoodsClicked(rowData);
+                              },
+                            )
                       // MainTable(
                       //     showCheckboxColumn: false,
                       //     isLoading: loadingTable,
@@ -732,60 +681,59 @@ class ProductDashboardState extends State<ProductDashboard> {
       children: [
         InfoCard(
           title: 'Total Sales',
-          icon: Icons.payments_outlined,
+          icon: Icons.sell_outlined,
           currency: false,
-          value: totalSales.toString(),
+          value: data['totalSales'].toString(),
           fontSize: isBigScreen ? 20 : 10,
           color: Theme.of(context).colorScheme.surface,
         ),
         InfoCard(
             title: 'Total Orders',
-            icon: Icons.payments_outlined,
+            icon: Icons.drive_file_move_rtl_sharp,
             currency: false,
-            value: data['total_purchases'].toString(),
+            value: data['totalPurchases'].toString(),
             fontSize: isBigScreen ? 20 : 10,
             color: Theme.of(context).colorScheme.surface),
         InfoCard(
             title: 'Total Purchases',
-            icon: Icons.payments_outlined,
+            icon: Icons.drive_file_move_rtl_outlined,
             currency: true,
-            value: data['total_purchases'].toString(),
+            value: data['totalPurchasesValue'].toString(),
             fontSize: isBigScreen ? 20 : 10,
             color: Theme.of(context).colorScheme.surface),
         InfoCard(
             title: 'Total Revenue',
             icon: Icons.payments_outlined,
             currency: true,
-            value: data['total_sales_value'].toString(),
+            value: data['totalSalesValue'].toString(),
             fontSize: isBigScreen ? 20 : 10,
             color: Theme.of(context).colorScheme.surface),
         InfoCard(
             title: 'Profit Margin',
-            icon: Icons.payments_outlined,
+            icon: Icons.money_outlined,
             currency: true,
-            value:
-                data['profits'] < 0 ? 0.toString() : data['profits'].toString(),
+            value: data['totalProfit'].toString(),
             fontSize: isBigScreen ? 20 : 10,
             color: Theme.of(context).colorScheme.surface),
         InfoCard(
             title: 'Quanitity at Store',
-            icon: Icons.payments_outlined,
+            icon: Icons.inventory_2_outlined,
             currency: false,
-            value: data['quanity'].toString(),
+            value: (data['quantity'] - data['totalSales']).toString(),
             fontSize: isBigScreen ? 20 : 10,
             color: Theme.of(context).colorScheme.surface),
         InfoCard(
             title: 'Expired',
-            icon: Icons.payments_outlined,
+            icon: Icons.calendar_month_outlined,
             currency: false,
-            value: data['expired_goods'].toString(),
+            value: data['totalExpiredQuantity'].toString(),
             fontSize: isBigScreen ? 20 : 10,
             color: Theme.of(context).colorScheme.surface),
         InfoCard(
             title: 'Damaged',
-            icon: Icons.payments_outlined,
+            icon: Icons.dangerous_outlined,
             currency: false,
-            value: data['damaged_goods'].toString(),
+            value: data['totalDamagedQuantity'].toString(),
             fontSize: isBigScreen ? 20 : 10,
             color: Theme.of(context).colorScheme.surface),
       ],

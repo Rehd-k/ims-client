@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
+import 'package:toastification/toastification.dart';
 
 import '../../components/tables/gen_big_table/big_table.dart';
 import '../../components/tables/gen_big_table/big_table_source.dart';
@@ -8,10 +9,8 @@ import '../../services/api.service.dart';
 import 'table_column.dart';
 
 class ViewProducts extends StatefulWidget {
-  final Function()? updateProducts;
   final TokenNotifier tokenNotifier;
-  const ViewProducts(
-      {super.key, this.updateProducts, required this.tokenNotifier});
+  const ViewProducts({super.key, required this.tokenNotifier});
 
   @override
   ViewProductsState createState() => ViewProductsState();
@@ -72,6 +71,15 @@ class ViewProductsState extends State<ViewProducts> {
     }
   }
 
+  doShowToast(String toastMessage, ToastificationType type) {
+    toastification.show(
+      title: Text(toastMessage),
+      type: type,
+      style: ToastificationStyle.flatColored,
+      autoCloseDuration: const Duration(seconds: 2),
+    );
+  }
+
   @override
   void dispose() {
     // _selectedRowsNotifier.dispose();
@@ -83,19 +91,6 @@ class ViewProductsState extends State<ViewProducts> {
     var dbCategories = await apiService.getRequest('category');
     setState(() {
       categories = dbCategories.data;
-    });
-  }
-
-  Future updateProductsList() async {
-    setState(() {
-      isLoading = true;
-    });
-    var dbproducts = await apiService.getRequest(
-      'products?skip=${products.length}',
-    );
-    setState(() {
-      products.addAll(dbproducts.data);
-      filteredProducts = List.from(products);
       isLoading = false;
     });
   }
@@ -203,26 +198,31 @@ class ViewProductsState extends State<ViewProducts> {
         },
       ),
       Expanded(
-        child: ReusableAsyncPaginatedDataTable(
-          columnDefinitions: _columnDefinitions, // Pass definitions
-          fetchDataCallback: _fetchServerData,
-          onSelectionChanged: (selected) {
-            _selectedRows = selected;
-          },
-          header: const Text('Products'),
-          initialSortField: initialSort,
-          initialSortAscending: true,
-          rowsPerPage: 15,
-          availableRowsPerPage: const [10, 15, 25, 50],
-          showCheckboxColumn: true,
-          fixedLeftColumns: 1,
-          minWidth: 2500,
-          empty: const Center(child: CircularProgressIndicator()),
-          border: TableBorder.all(color: Colors.grey.shade200, width: 1),
-          columnSpacing: 30,
-          dataRowHeight: 50,
-          headingRowHeight: 60,
-        ),
+        child: isLoading
+            ? Center(
+                child: SizedBox(
+                    width: 40, height: 40, child: CircularProgressIndicator()),
+              )
+            : ReusableAsyncPaginatedDataTable(
+                columnDefinitions: _columnDefinitions, // Pass definitions
+                fetchDataCallback: _fetchServerData,
+                onSelectionChanged: (selected) {
+                  _selectedRows = selected;
+                },
+                header: const Text('Products'),
+                initialSortField: initialSort,
+                initialSortAscending: true,
+                rowsPerPage: 15,
+                availableRowsPerPage: const [10, 15, 25, 50],
+                showCheckboxColumn: true,
+                fixedLeftColumns: 1,
+                minWidth: 2500,
+                empty: const Center(child: CircularProgressIndicator()),
+                border: TableBorder.all(color: Colors.grey.shade200, width: 1),
+                columnSpacing: 30,
+                dataRowHeight: 50,
+                headingRowHeight: 60,
+              ),
       )
     ]);
   }

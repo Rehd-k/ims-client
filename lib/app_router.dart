@@ -40,6 +40,7 @@ class AppRouter extends RootStackRouter {
           AutoRoute(path: 'banks', page: BankRoute.page),
           AutoRoute(path: 'create_invoice', page: AddInvoice.page),
           AutoRoute(path: 'view_invoices', page: ViewInvoices.page),
+          AutoRoute(path: 'charges', page: ChargesRoute.page)
         ]),
       ];
 }

@@ -141,6 +141,7 @@ class IncomeReportsScreenState extends State<IncomeReportsScreen> {
             padding: EdgeInsets.all(16),
             child: ShowDetails(
               dataList: selectedItem,
+              doRePrint: doRePrint,
               handleUpdate: handleUpdate,
               updatePageInfo: () {
                 setState(() {});
@@ -221,6 +222,10 @@ class IncomeReportsScreenState extends State<IncomeReportsScreen> {
       };
     });
     return;
+  }
+
+  doRePrint() async {
+    await apiService.getRequest('/sales/send-whatsapp/${selectedItem["_id"]}');
   }
 
   @override
@@ -386,6 +391,7 @@ class IncomeReportsScreenState extends State<IncomeReportsScreen> {
                             child: showDetails
                                 ? ShowDetails(
                                     dataList: selectedItem,
+                                    doRePrint: doRePrint,
                                     handleUpdate: handleUpdate,
                                     handleShowDetails: handleShowDetails,
                                     updatePageInfo: () {

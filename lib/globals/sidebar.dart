@@ -18,6 +18,11 @@ List fullMenu = [
       {'title': 'Users', 'link': '/users', 'icon': Icons.emoji_people_outlined},
       {'title': 'Banks', 'link': '/banks', 'icon': Icons.business_outlined},
       {'title': 'Locations', 'link': '/location', 'icon': Icons.place_outlined},
+      {
+        'title': 'Charges',
+        'link': '/charges',
+        'icon': Icons.fullscreen_exit_sharp
+      }
     ]
   },
   {
@@ -165,12 +170,25 @@ class SideBarState extends State<SideBar> {
       return Column(children: [
         SizedBox(
           width: double.infinity,
-          height: 60,
-          child: Center(
-            child: SvgPicture.asset(
+          height: 54,
+          child:
+              Row(mainAxisAlignment: MainAxisAlignment.spaceEvenly, children: [
+            SvgPicture.asset(
               'assets/vectors/logo.svg',
+              height: 40,
+              width: 40,
             ),
-          ),
+            Text('SHELF SENSE',
+                style: TextStyle(
+                    fontSize: 20,
+                    fontWeight: FontWeight.w900,
+                    color: Theme.of(context).colorScheme.primary)),
+          ]),
+        ),
+        Divider(
+          color: Theme.of(context).colorScheme.primary.withAlpha(50),
+          height: 1,
+          thickness: 1,
         ),
         Expanded(
           child: ListView.builder(

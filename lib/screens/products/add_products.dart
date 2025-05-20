@@ -1,16 +1,13 @@
-import 'dart:math';
-
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:toastification/toastification.dart';
 
 import '../../helpers/providers/token_provider.dart';
 import '../../services/api.service.dart';
 
 class AddProducts extends StatefulWidget {
-  final Function()? updateProducts;
   final TokenNotifier tokenNotifier;
-  const AddProducts(
-      {super.key, required this.updateProducts, required this.tokenNotifier});
+  const AddProducts({super.key, required this.tokenNotifier});
 
   @override
   AddProductsState createState() => AddProductsState();
@@ -49,11 +46,15 @@ class AddProductsState extends State<AddProducts> {
 
   final userController = TextEditingController();
 
+  final StringBuffer buffer = StringBuffer();
+
   final ApiService apiServices = ApiService();
 
   int quantity = 0;
 
-  var rng = Random();
+  List<String> categories = [''];
+
+  String? selectedCategory = '';
 
   @override
   void dispose() {
@@ -92,16 +93,61 @@ class AddProductsState extends State<AddProducts> {
       });
 
       if (response.statusCode! >= 200 && response.statusCode! <= 300) {
-        widget.updateProducts!();
+        doShowToast('Added', ToastificationType.success);
         _formKey.currentState!.reset();
-      } else {}
+      } else {
+        doShowToast('Error', ToastificationType.error);
+      }
       // ignore: empty_catches
     } catch (e) {}
   }
 
   @override
+  void initState() {
+    super.initState();
+    fetchCategories();
+  }
+
+  Future<void> fetchCategories() async {
+    try {
+      final response = await apiServices.getRequest('/category');
+      if (response.statusCode == 200) {
+        final List<dynamic> data = response.data;
+        setState(() {
+          categories.addAll(data.map((e) => e['title'].toString()).toList());
+        });
+      }
+    } catch (e) {
+      // Handle error or show a message
+    }
+  }
+
+  doShowToast(String toastMessage, ToastificationType type) {
+    toastification.show(
+      title: Text(toastMessage),
+      type: type,
+      style: ToastificationStyle.flatColored,
+      autoCloseDuration: const Duration(seconds: 2),
+    );
+  }
+
+  @override
   Widget build(BuildContext context) {
     return SingleChildScrollView(
+        child: KeyboardListener(
+      focusNode: FocusNode()..requestFocus(),
+      onKeyEvent: (event) {
+        if (event is KeyDownEvent) {
+          // Collect barcode characters
+          buffer.write(event.character ?? '');
+          if (event.logicalKey == LogicalKeyboardKey.enter) {
+            final scannedData = buffer.toString().trim();
+
+            barcodeController.text = scannedData;
+            buffer.clear();
+          }
+        }
+      },
       child: Container(
         decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(10),
@@ -132,28 +178,17 @@ class AddProductsState extends State<AddProducts> {
                 SizedBox(height: 10),
                 DropdownMenu(
                   width: double.infinity,
-                  initialSelection: 'No Brand',
+                  initialSelection: '',
                   controller: categoryController,
-
                   requestFocusOnTap: true,
                   label: const Text('Category'),
-                  // onSelected: (ColorLabel? color) {
-                  //   setState(() {
-                  //     selectedColor = color;
-                  //   });
-                  // },
-                  dropdownMenuEntries: [
-                    'Electronics',
-                    'Clothing',
-                    'Home Appliances',
-                    'Books',
-                    'Toys',
-                    'Groceries',
-                    'Beauty Products',
-                    'Sports Equipment',
-                    'Automotive',
-                    'Furniture'
-                  ].map<DropdownMenuEntry<String>>((category) {
+                  onSelected: (String? color) {
+                    setState(() {
+                      selectedCategory;
+                    });
+                  },
+                  dropdownMenuEntries:
+                      categories.map<DropdownMenuEntry<String>>((category) {
                     return DropdownMenuEntry(value: category, label: category);
                   }).toList(),
                 ),
@@ -274,7 +309,7 @@ class AddProductsState extends State<AddProducts> {
                 ),
                 SizedBox(height: 10),
                 TextFormField(
-                  // readOnly: true,
+                  readOnly: true,
                   controller: barcodeController,
                   decoration: InputDecoration(
                     labelText: 'Product Id *',
@@ -334,6 +369,6 @@ class AddProductsState extends State<AddProducts> {
           ),
         ),
       ),
-    );
+    ));
   }
 }

@@ -28,12 +28,6 @@ class ApiService {
         options.headers['Authorization'] = 'Bearer $token';
         return handler.next(options);
       },
-      onResponse: (response, handler) {
-        if (response.statusCode == 401) {
-          throw Exception('You are not authorized for this action');
-        }
-        return handler.next(response);
-      },
     ));
   }
   Future<Response> getRequest(String endpoint) async {

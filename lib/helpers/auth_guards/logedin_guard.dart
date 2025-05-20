@@ -9,10 +9,7 @@ class LogedinGuard extends AutoRouteGuard {
   @override
   void onNavigation(NavigationResolver resolver, StackRouter router) async {
     Map? decodeToken;
-    final token = await _jwtService.getToken();
-    if (token != null) {
-      decodeToken = _jwtService.decodeToken(token);
-    }
+    decodeToken = await _jwtService.checkToken();
     if (decodeToken != null) {
       if (decodeToken['role'] == 'admin') {
         resolver.next(true); // Allow navigation

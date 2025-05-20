@@ -91,7 +91,7 @@ class CartSection extends StatelessWidget {
                     ),
                   ),
                   Text(
-                    'Checkout',
+                    'Checkout ${cart.isEmpty ? '' : '(${cart.length})'}',
                     style: TextStyle(
                       fontSize: 16,
                       color: Theme.of(context).colorScheme.onPrimary,
@@ -162,7 +162,7 @@ class CartSection extends StatelessWidget {
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       Text(
-                        'Clean Up (${cart.length})',
+                        'Clean Up',
                         style: TextStyle(
                           color: Theme.of(context).colorScheme.surface,
                         ),

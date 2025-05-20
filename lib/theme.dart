@@ -124,9 +124,9 @@ class AppTheme {
       ),
       textTheme: TextTheme(
         bodyLarge: TextStyle(
-            fontSize: 16, color: AppColors.onBackground.withAlpha(100)),
+            fontSize: 16, color: AppColors.onBackground.withAlpha(200)),
         bodyMedium: TextStyle(
-            fontSize: 14, color: AppColors.onBackground.withAlpha(150)),
+            fontSize: 14, color: AppColors.onBackground.withAlpha(250)),
         titleMedium: TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
         labelLarge: TextStyle(
             fontSize: 14, color: AppColors.onBackground.withAlpha(100)),

@@ -21,10 +21,6 @@ class ProductsIndexState extends State<ProductsIndex> {
   final GlobalKey<ViewProductsState> _viewProductKey =
       GlobalKey<ViewProductsState>();
 
-  void updateProducts() {
-    _viewProductKey.currentState?.updateProductsList();
-  }
-
   @override
   Widget build(BuildContext context) {
     double width = MediaQuery.sizeOf(context).width;
@@ -41,7 +37,6 @@ class ProductsIndexState extends State<ProductsIndex> {
                         // height: MediaQuery.of(context).size.height * 0.8,
                         padding: const EdgeInsets.all(8.0),
                         child: AddProducts(
-                          updateProducts: updateProducts,
                           tokenNotifier: tokenNotifier,
                         ),
                       ),
@@ -61,7 +56,6 @@ class ProductsIndexState extends State<ProductsIndex> {
                             height: MediaQuery.of(context).size.height * 1,
                             padding: const EdgeInsets.all(8.0),
                             child: AddProducts(
-                              updateProducts: updateProducts,
                               tokenNotifier: tokenNotifier,
                             ),
                           ),
@@ -86,7 +80,6 @@ class ProductsIndexState extends State<ProductsIndex> {
                       ? Expanded(
                           flex: 1,
                           child: AddProducts(
-                            updateProducts: updateProducts,
                             tokenNotifier: tokenNotifier,
                           ))
                       : SizedBox.shrink(),
@@ -95,9 +88,7 @@ class ProductsIndexState extends State<ProductsIndex> {
                   flex:
                       tokenNotifier.decodedToken?['role'] == 'cashier' ? 1 : 2,
                   child: ViewProducts(
-                      key: _viewProductKey,
-                      updateProducts: updateProducts,
-                      tokenNotifier: tokenNotifier))
+                      key: _viewProductKey, tokenNotifier: tokenNotifier))
             ],
           ));
     });

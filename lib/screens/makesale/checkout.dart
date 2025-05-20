@@ -41,10 +41,17 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
   final TextEditingController nameController = TextEditingController();
 
   Map? selectedName;
+  bool isChargesLoading = true;
   double amountPaid = 0;
   double balance = 0;
   double discount = 0;
   bool isBankLoading = true;
+  Map charge = {};
+  late dynamic charges;
+  List<Map> selectedCharges = [];
+  late double total;
+  bool isPaid = false;
+  late Map newTransaction;
 
   // Mock bank data - replace with your backend data
   List<dynamic> banks = [];
@@ -82,6 +89,8 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
   @override
   void initState() {
     super.initState();
+    total = widget.total;
+    fetchCharges();
     if (widget.selectedUser != null) {
       selectedName = widget.selectedUser;
     }
@@ -99,6 +108,16 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
     _updateAmountPaid();
   }
 
+  void fetchCharges() async {
+    var response = await apiService.getRequest('charges');
+
+    setState(() {
+      charges = response.data;
+      isChargesLoading = false;
+      charge = charges[0];
+    });
+  }
+
   void _updateAmountPaid() {
     setState(() {
       discount = double.tryParse(discountController.text) ?? 0;
@@ -106,13 +125,13 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
           (double.tryParse(transferController.text) ?? 0) +
           (double.tryParse(cardController.text) ?? 0.0) +
           discount;
-      balance = widget.total - amountPaid;
+      balance = total - amountPaid;
     });
   }
 
   void handleSubit() async {
     // Validate total amount matches
-    if (amountPaid < widget.total) {
+    if (amountPaid < total) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text('Amount paid must equal or exceed total amount'),
@@ -137,8 +156,8 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
       return;
     }
 
-    final paymentData = {
-      'total': widget.total,
+    var paymentData = {
+      'total': total,
       'discount': discount,
       'paymentMethod': selectedPaymentMethod,
       'cash': double.tryParse(cashController.text) ?? 0,
@@ -146,12 +165,12 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
       'card': double.tryParse(cardController.text) ?? 0,
       'bank': bank?['_id'],
       'products': widget.cart,
-      'customer': selectedName?['_id']
+      'customer': selectedName?['_id'],
+      'charges': selectedCharges
     };
 
     // Capture the context before the async gap
-    final scaffoldMessenger = ScaffoldMessenger.of(context);
-    final router = context.router;
+    var scaffoldMessenger = ScaffoldMessenger.of(context);
 
     var responce = await apiService.postRequest('sales', paymentData);
 
@@ -165,10 +184,16 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
         backgroundColor: Theme.of(context).colorScheme.primary,
       ),
     );
-    widget.handleComplete(widget.invoiceId, responce.data['transactionId']);
 
-    // Use captured router
-    router.back();
+    if (widget.invoiceId != null) {
+      widget.handleComplete(widget.invoiceId, responce.data['transactionId']);
+    } else {
+      widget.handleComplete();
+    }
+    setState(() {
+      isPaid = true;
+      newTransaction = responce.data;
+    });
   }
 
   Future<List<Map>> _fetchNames(String query) async {
@@ -191,6 +216,10 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
         );
       },
     );
+  }
+
+  void saveReceipt() async {
+    await apiService.getRequest('sales/send-whatsapp/${newTransaction['_id']}');
   }
 
   Widget _buildNameInput() {
@@ -219,7 +248,8 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                       child: IconButton(
                           tooltip: 'Add new Customer',
                           onPressed: _showAddCustomerBottomSheet,
-                          icon: Icon(Icons.person_add_alt_1_outlined)))
+                          icon: Icon(Icons.person_add_alt_1_outlined,
+                              color: Theme.of(context).colorScheme.primary)))
                 ],
               ),
               if (nameController.text.isNotEmpty)
@@ -366,47 +396,66 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    if (isDesktop)
-                      Row(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Expanded(
-                              child:
-                                  _buildPaymentMethodCard(context, isDesktop)),
-                          SizedBox(width: 20),
-                          Expanded(child: _buildSummaryCard(context)),
-                        ],
-                      )
-                    else
-                      Column(
-                        children: [
-                          _buildPaymentMethodCard(context, isDesktop),
-                          SizedBox(height: 20),
-                          _buildSummaryCard(context),
-                        ],
-                      ),
+                    isDesktop
+                        ? Row(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Expanded(
+                                child: Column(children: [
+                                  _buildPaymentMethodCard(context, isDesktop),
+                                  SizedBox(height: 10),
+                                  _buildChargesList()
+                                ]),
+                              ),
+                              SizedBox(width: 20),
+                              Expanded(child: _buildSummaryCard(context)),
+                            ],
+                          )
+                        : Column(
+                            children: [
+                              _buildPaymentMethodCard(context, isDesktop),
+                              SizedBox(height: 20),
+                              _buildSummaryCard(context),
+                              _buildChargesList()
+                            ],
+                          ),
                     SizedBox(height: 20),
                     SizedBox(
                       width: isDesktop
                           ? constraints.maxWidth / 2
                           : double.infinity,
                       height: 50,
-                      child: ElevatedButton(
-                        onPressed: balance == 0
-                            ? () {
-                                handleSubit();
-                              }
-                            : null,
-                        style: ElevatedButton.styleFrom(
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(10),
-                          ),
-                          backgroundColor: balance == 0 ? null : Colors.red,
-                          disabledBackgroundColor: Colors.red,
-                        ),
-                        child: Text('Complete Payment'),
-                      ),
-                    ),
+                      child: isPaid
+                          ? Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                OutlinedButton(
+                                    onPressed: () {},
+                                    child: Text('Print Receipt')),
+                                OutlinedButton(
+                                    onPressed: () {
+                                      saveReceipt();
+                                    },
+                                    child: Text('Send Receipt'))
+                              ],
+                            )
+                          : ElevatedButton(
+                              onPressed: balance == 0
+                                  ? () {
+                                      handleSubit();
+                                    }
+                                  : null,
+                              style: ElevatedButton.styleFrom(
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(10),
+                                ),
+                                backgroundColor:
+                                    balance == 0 ? null : Colors.red,
+                                disabledBackgroundColor: Colors.red,
+                              ),
+                              child: Text('Complete Payment'),
+                            ),
+                    )
                   ],
                 ),
               ),
@@ -423,7 +472,60 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
         padding: const EdgeInsets.all(16.0),
         child: Column(
           children: [
-            _buildSummaryRow('Total Amount:', widget.total, context),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  'Charges:',
+                  style: Theme.of(context).textTheme.titleLarge,
+                ),
+                isChargesLoading
+                    ? SizedBox(
+                        child: CircularProgressIndicator(),
+                      )
+                    : SizedBox(
+                        width: 200,
+                        child: DropdownButtonFormField<Map>(
+                          isExpanded: true,
+                          value: charge[0],
+                          items: charges
+                              .map<DropdownMenuItem<Map>>(
+                                (charge) => DropdownMenuItem<Map>(
+                                  value: charge,
+                                  child: Text(
+                                    '${charge['title']} (₦${charge['amount'].toString()})',
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                ),
+                              )
+                              .toList(),
+                          onChanged: (selectedCharge) {
+                            setState(() {
+                              if (selectedCharge != null) {
+                                // Add charge amount to total
+                                charge = selectedCharge;
+                                selectedCharges.add(selectedCharge);
+                                total += selectedCharge['amount'];
+                                _updateAmountPaid();
+                              } else {
+                                charge = {};
+                              }
+                            });
+                          },
+                          decoration: InputDecoration(
+                            border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(10),
+                            ),
+                            contentPadding: EdgeInsets.symmetric(
+                                horizontal: 10, vertical: 0),
+                          ),
+                          hint: Text('Select Charge'),
+                        ),
+                      )
+              ],
+            ),
+            SizedBox(height: 10),
+            _buildSummaryRow('Total Amount:', total, context),
             SizedBox(height: 10),
             _buildSummaryRow('Amount Paid:', amountPaid, context),
             Divider(),
@@ -541,6 +643,54 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
             _buildNameInput(),
           ],
         ),
+      ),
+    );
+  }
+
+  Widget _buildChargesList() {
+    return GridView.builder(
+      shrinkWrap: true,
+      physics: NeverScrollableScrollPhysics(),
+      itemCount: selectedCharges.length,
+      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+        crossAxisCount: 2, // two per row
+        childAspectRatio: 5, // adjust as needed for your card size
+        crossAxisSpacing: 8,
+        mainAxisSpacing: 8,
+      ),
+      itemBuilder: (context, index) {
+        return _buildCharge(selectedCharges[index], index);
+      },
+    );
+  }
+
+  Widget _buildCharge(Map charge, index) {
+    return Card(
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Text('${charge['title']}'),
+          Row(children: [
+            Text(
+              charge['amount']
+                  .toString()
+                  .formatToFinancial(isMoneySymbol: true),
+              overflow: TextOverflow.ellipsis,
+            ),
+            IconButton(
+                onPressed: () {
+                  setState(() {
+                    total -= selectedCharges[index]['amount'];
+                    selectedCharges.removeAt(index);
+                    _updateAmountPaid();
+                  });
+                },
+                icon: Icon(
+                  Icons.remove,
+                  color: Theme.of(context).colorScheme.primary,
+                ))
+          ])
+        ],
       ),
     );
   }

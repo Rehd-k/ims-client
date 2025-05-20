@@ -16,6 +16,23 @@ class JwtService {
     return prefs.getString(_tokenKey);
   }
 
+  Future<Map<String, dynamic>?> checkToken() async {
+    final prefs = await SharedPreferences.getInstance();
+    String? token = prefs.getString(_tokenKey);
+
+    if (token != null) {
+      if (JwtDecoder.isExpired(token)) {
+        // Token is expired
+        await prefs.remove('jwt_token');
+        return null;
+      } else {
+        // Token is valid, return decoded token
+        return JwtDecoder.decode(token);
+      }
+    }
+    return null;
+  }
+
   // Decode JWT to extract user data
   Map<String, dynamic> decodeToken(String token) {
     return JwtDecoder.decode(token);
