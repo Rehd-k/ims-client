@@ -28,7 +28,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: flutter_windows_build
-          path: build/*
+          path: build/windows/runner/Release/*
   # build_android:
   #   runs-on: ubuntu-latest
   #   steps:
@@ -51,4 +51,4 @@ jobs:
   #       uses: actions/upload-artifact@v4
   #       with:
   #         name: flutter_android_build
-  #         path: build/app/outputs/flutter-apk/app-release.apk
+  #         path: build/app/outputs/flutter-apk/*

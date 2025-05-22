@@ -56,15 +56,11 @@ class Viewcharges extends StatelessWidget {
                 children: [
                   IconButton(
                     icon: const Icon(Icons.edit, color: Colors.blue),
-                    onPressed: () {
-                      // TODO: Implement edit action
-                    },
+                    onPressed: () {},
                   ),
                   IconButton(
                     icon: const Icon(Icons.delete, color: Colors.red),
-                    onPressed: () {
-                      // TODO: Implement delete action
-                    },
+                    onPressed: () {},
                   ),
                 ],
               )),
