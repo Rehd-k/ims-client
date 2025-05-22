@@ -53,7 +53,6 @@ dependencies:
   toastification: ^3.0.2
   flutter_thermal_printer: ^1.1.0
   simple_barcode_scanner: ^0.3.0
-  auto_updater: ^1.0.0
 
 dev_dependencies:
   flutter_test:
