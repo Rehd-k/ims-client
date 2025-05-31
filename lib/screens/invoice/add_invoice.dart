@@ -10,7 +10,6 @@ import 'package:toastification/toastification.dart';
 import '../../components/inputs/customer_finder.dart';
 import '../../components/inputs/product_finder.dart';
 import '../../helpers/providers/theme_notifier.dart';
-import '../../helpers/providers/token_provider.dart';
 import '../../services/api.service.dart';
 
 @RoutePage()
@@ -225,18 +224,17 @@ class AddInvoiceState extends State<AddInvoice> {
   Widget build(BuildContext context) {
     double width = MediaQuery.sizeOf(context).width;
     bool smallScreen = width <= 1200;
-    return Consumer2<ThemeNotifier, TokenNotifier>(
-        builder: (context, themeNotifier, tokenNotifier, child) {
+    return Consumer<ThemeNotifier>(builder: (context, themeNotifier, child) {
       return Scaffold(
         appBar: AppBar(actions: [
           IconButton(onPressed: () {}, icon: Icon(Icons.add_box_outlined)),
-          ...actions(context, themeNotifier, tokenNotifier),
+          ...actions(context, themeNotifier),
           IconButton(onPressed: () {}, icon: Icon(Icons.live_help_outlined)),
         ]),
         drawer: smallScreen
             ? Drawer(
                 backgroundColor: Theme.of(context).drawerTheme.backgroundColor,
-                child: SideBar(tokenNotifier: tokenNotifier))
+                child: SideBar())
             : null,
         body: SingleChildScrollView(
           child: Padding(
@@ -719,7 +717,7 @@ class AddInvoiceState extends State<AddInvoice> {
             // Discount Section
             !isSmallScreen
                 ? Row(
-                    spacing: 4,
+                    // spacing: 4,
                     children: [
                       // Discount Type
                       Expanded(

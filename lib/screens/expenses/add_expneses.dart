@@ -1,7 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
-
-import '../../helpers/providers/token_provider.dart';
 import '../../services/api.service.dart';
 
 class AddExpenses extends StatefulWidget {
@@ -56,98 +53,94 @@ class AddExpensesState extends State<AddExpenses> {
 
   @override
   Widget build(BuildContext context) {
-    return Consumer<TokenNotifier>(builder: (context, tokenNotifier, child) {
-      return SingleChildScrollView(
-        child: Container(
-          decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(10),
-              color: Theme.of(context).colorScheme.surface),
-          child: Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: Form(
-              key: _formKey,
-              child: Column(
-                children: <Widget>[
-                  TextFormField(
-                    controller: categoryController,
+    return SingleChildScrollView(
+      child: Container(
+        decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(10),
+            color: Theme.of(context).colorScheme.surface),
+        child: Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: Form(
+            key: _formKey,
+            child: Column(
+              children: <Widget>[
+                TextFormField(
+                  controller: categoryController,
+                  decoration: InputDecoration(
+                    labelText: 'Category *',
+                    border: OutlineInputBorder(
+                        borderRadius: BorderRadius.all(Radius.circular(5.0)),
+                        borderSide: BorderSide(color: Colors.blue)),
+                    labelStyle: TextStyle(
+                        color: Theme.of(context).hintColor, fontSize: 15),
+                  ),
+                  validator: (value) {
+                    if (value == null || value.isEmpty) {
+                      return 'Please enter a category';
+                    }
+                    return null;
+                  },
+                ),
+                SizedBox(height: 10),
+                TextFormField(
+                  controller: descriptionController,
+                  decoration: InputDecoration(
+                    labelText: 'Description *',
+                    border: OutlineInputBorder(
+                        borderRadius: BorderRadius.all(Radius.circular(5.0)),
+                        borderSide: BorderSide(color: Colors.blue)),
+                    labelStyle: TextStyle(
+                        color: Theme.of(context).hintColor, fontSize: 15),
+                  ),
+                  validator: (value) {
+                    if (value == null || value.isEmpty) {
+                      return 'Please enter a description';
+                    }
+                    return null;
+                  },
+                ),
+                SizedBox(height: 10),
+                TextFormField(
+                    keyboardType: TextInputType.number,
+                    controller: amountController,
                     decoration: InputDecoration(
-                      labelText: 'Category *',
+                      labelText: 'Amount *',
                       border: OutlineInputBorder(
                           borderRadius: BorderRadius.all(Radius.circular(5.0)),
                           borderSide: BorderSide(color: Colors.blue)),
                       labelStyle: TextStyle(
                           color: Theme.of(context).hintColor, fontSize: 15),
-                    ),
-                    validator: (value) {
-                      if (value == null || value.isEmpty) {
-                        return 'Please enter a category';
-                      }
-                      return null;
-                    },
-                  ),
-                  SizedBox(height: 10),
-                  TextFormField(
-                    controller: descriptionController,
+                    )),
+                SizedBox(height: 10),
+                TextFormField(
+                    keyboardType: TextInputType.number,
+                    controller: amountPaidController,
                     decoration: InputDecoration(
-                      labelText: 'Description *',
+                      labelText: 'Amount Paid *',
                       border: OutlineInputBorder(
                           borderRadius: BorderRadius.all(Radius.circular(5.0)),
                           borderSide: BorderSide(color: Colors.blue)),
                       labelStyle: TextStyle(
                           color: Theme.of(context).hintColor, fontSize: 15),
-                    ),
-                    validator: (value) {
-                      if (value == null || value.isEmpty) {
-                        return 'Please enter a description';
-                      }
-                      return null;
-                    },
-                  ),
-                  SizedBox(height: 10),
-                  TextFormField(
-                      keyboardType: TextInputType.number,
-                      controller: amountController,
-                      decoration: InputDecoration(
-                        labelText: 'Amount *',
-                        border: OutlineInputBorder(
-                            borderRadius:
-                                BorderRadius.all(Radius.circular(5.0)),
-                            borderSide: BorderSide(color: Colors.blue)),
-                        labelStyle: TextStyle(
-                            color: Theme.of(context).hintColor, fontSize: 15),
-                      )),
-                  SizedBox(height: 10),
-                  TextFormField(
-                      keyboardType: TextInputType.number,
-                      controller: amountPaidController,
-                      decoration: InputDecoration(
-                        labelText: 'Amount Paid *',
-                        border: OutlineInputBorder(
-                            borderRadius:
-                                BorderRadius.all(Radius.circular(5.0)),
-                            borderSide: BorderSide(color: Colors.blue)),
-                        labelStyle: TextStyle(
-                            color: Theme.of(context).hintColor, fontSize: 15),
-                      )),
-                  SizedBox(height: 10),
-                  ElevatedButton(
-                    onPressed: () {
-                      handleSubmit(context);
-                      if (_formKey.currentState!.validate()) {
-                        // Process data
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(content: Text('Processing Data')),
-                        );
-                      }
-                    },
-                    child: Text('Submit'),
-                  ),
-                ],
-              ),
+                    )),
+                SizedBox(height: 10),
+                ElevatedButton(
+                  onPressed: () {
+                    handleSubmit(context);
+                    if (_formKey.currentState!.validate()) {
+                      // Process data
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(content: Text('Processing Data')),
+                      );
+                    }
+                  },
+                  child: Text('Submit'),
+                ),
+              ],
             ),
           ),
         ),
-      );
-    });
+      ),
+    );
   }
 }

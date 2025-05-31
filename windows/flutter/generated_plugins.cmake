@@ -3,6 +3,7 @@
 #
 
 list(APPEND FLUTTER_PLUGIN_LIST
+  auto_updater_windows
   flutter_thermal_printer
   permission_handler_windows
   webview_windows

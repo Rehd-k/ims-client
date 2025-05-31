@@ -2,7 +2,7 @@ import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 
-import '../helpers/providers/token_provider.dart';
+import '../services/token.service.dart';
 
 List fullMenu = [
   {
@@ -135,9 +135,7 @@ List cashierMenu = [
 ];
 
 class SideBar extends StatefulWidget {
-  final TokenNotifier tokenNotifier;
-
-  const SideBar({super.key, required this.tokenNotifier});
+  const SideBar({super.key});
 
   @override
   SideBarState createState() => SideBarState();
@@ -150,9 +148,9 @@ class SideBarState extends State<SideBar> {
   @override
   void initState() {
     super.initState();
-    if (widget.tokenNotifier.decodedToken?['role'] == 'admin') {
+    if (JwtService().decodedToken?['role'] == 'admin') {
       menuData = fullMenu;
-    } else if (widget.tokenNotifier.decodedToken?['role'] == 'cashier') {
+    } else if (JwtService().decodedToken?['role'] == 'cashier') {
       menuData = cashierMenu;
     }
     expandedStates = List.filled(menuData.length, false);
@@ -166,7 +164,7 @@ class SideBarState extends State<SideBar> {
 
   @override
   Widget build(BuildContext context) {
-    if (widget.tokenNotifier.decodedToken?['username'] != null) {
+    if (JwtService().decodedToken?['username'] != null) {
       return Column(children: [
         SizedBox(
           width: double.infinity,

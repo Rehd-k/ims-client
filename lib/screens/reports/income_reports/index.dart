@@ -1,9 +1,14 @@
 import 'dart:convert';
 
 import 'package:auto_route/auto_route.dart';
+import 'package:esc_pos_utils_plus/esc_pos_utils_plus.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
+import 'package:shelf_sense/services/printer.service.dart';
+import 'package:shelf_sense/services/settings.service.dart';
+import 'package:shelf_sense/services/token.service.dart';
 import 'package:toastification/toastification.dart';
 
 import '../../../components/info_card.dart';
@@ -14,8 +19,8 @@ import '../../../globals/actions.dart';
 import '../../../globals/sidebar.dart';
 
 import '../../../helpers/providers/theme_notifier.dart';
-import '../../../helpers/providers/token_provider.dart';
 import '../../../services/api.service.dart';
+import '../../../services/receipt_holder.dart';
 import 'collums_deff.dart';
 import 'header.dart';
 import 'more_details.dart';
@@ -31,14 +36,16 @@ class IncomeReportsScreen extends StatefulWidget {
 class IncomeReportsScreenState extends State<IncomeReportsScreen> {
   final apiService = ApiService();
   JsonEncoder jsonEncoder = JsonEncoder();
+  final StringBuffer buffer = StringBuffer();
   final TextEditingController _searchController = TextEditingController();
+  final PrinterService _printerService = PrinterService();
   DateTime? _fromDate = DateTime.now();
   DateTime? _toDate = DateTime.now();
   String searchQuery = "";
   late Map<String, dynamic> summaryCalculations;
   Map<String, dynamic> transactionUpdate = {};
   String? searchFeild = 'transactionId';
-  String? initialSort = 'transactionId';
+  String? initialSort = 'createdAt';
   String? searchFeildForSearchText = '';
   String? paymentMethordToShow = '';
   String? selectedAccount = '';
@@ -77,7 +84,7 @@ class IncomeReportsScreenState extends State<IncomeReportsScreen> {
   }
 
   void updateTransaction() async {
-    final userRole = context.read<TokenNotifier>().decodedToken;
+    final userRole = JwtService().decodedToken;
     if (userRole != null) {
       if (userRole['role'] == 'admin' || userRole['role'] == 'god') {
         await apiService.putRequest(
@@ -166,6 +173,15 @@ class IncomeReportsScreenState extends State<IncomeReportsScreen> {
     handleCalculations();
   }
 
+  onReciptScanned(String field, String reciptQuery) {
+    setState(() {
+      searchFeild = field;
+      query = reciptQuery;
+
+      handleCalculations();
+    });
+  }
+
   Future<Map<String, dynamic>> _fetchServerData({
     required int offset,
     required int limit,
@@ -224,13 +240,21 @@ class IncomeReportsScreenState extends State<IncomeReportsScreen> {
     return;
   }
 
-  doRePrint() async {
-    await apiService.getRequest('/sales/send-whatsapp/${selectedItem["_id"]}');
+  doRePrint(Map saleData) async {
+    final profile = await CapabilityProfile.load();
+    _printerService.printData(
+        _printerService.printers[0],
+        generateReceipt(
+            PaperSize.mm58, profile, saleData, SettingsService().settings));
   }
+  // await apiService.getRequest('/sales/send-whatsapp/${selectedItem["_id"]}');
 
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
+      _printerService.startScan();
+    });
     handleCalculations();
     _columnDefinitions = salesColumnDefinitionMaps
         .map((map) => ColumnDefinition.fromMap(map))
@@ -242,8 +266,7 @@ class IncomeReportsScreenState extends State<IncomeReportsScreen> {
     double width = MediaQuery.sizeOf(context).width;
     bool isBigScreen = width >= 1200;
 
-    return Consumer2<ThemeNotifier, TokenNotifier>(
-        builder: (context, themeNotifier, tokenNotifier, child) {
+    return Consumer<ThemeNotifier>(builder: (context, themeNotifier, child) {
       return Scaffold(
           appBar: AppBar(actions: [
             IconButton(
@@ -257,154 +280,177 @@ class IncomeReportsScreenState extends State<IncomeReportsScreen> {
                   duration: Duration(milliseconds: 300),
                   child: Icon(Icons.keyboard_arrow_down),
                 )),
-            ...actions(context, themeNotifier, tokenNotifier)
+            ...actions(context, themeNotifier)
           ]),
           drawer: isBigScreen
               ? null
               : Drawer(
                   backgroundColor:
                       Theme.of(context).drawerTheme.backgroundColor,
-                  child: SideBar(tokenNotifier: tokenNotifier)),
-          body: Padding(
-            padding: EdgeInsets.all(isBigScreen ? 8.0 : 4),
-            child: SingleChildScrollView(
-              child: Column(
-                children: [
-                  AnimatedContainer(
-                    width: double.infinity,
-                    duration: Duration(milliseconds: 1000),
-                    curve: Curves.easeInOut,
-                    height: showHeader ? 250 : 0,
-                    child: Column(
-                      children: [
-                        IncomeReportsHeader(
-                          selectedField: searchFeild,
-                          selectedPaymentMethod: paymentMethordToShow,
-                          selectedAccount: selectedAccount,
-                          isSearchEnabled: true,
-                          searchController: _searchController,
-                          onFieldChange: (value) {
-                            setState(() {
-                              searchFeild = value;
-                            });
-                          },
-                          onAccountChange: (value) {
-                            setState(() {
-                              selectedAccount = value;
-                            });
-                          },
-                          onPaymentMethodChange: (value) {
-                            setState(() {
-                              paymentMethordToShow = value;
-                            });
-                          },
-                          onSearcfieldChange: (value) {
-                            searchThroughSales(value);
-                          },
-                          cashiers: cashiers,
-                        ),
-                        SizedBox(height: 10),
-                        Row(
-                          mainAxisAlignment: isBigScreen
-                              ? MainAxisAlignment.center
-                              : MainAxisAlignment.start,
+                  child: SideBar()),
+          body: KeyboardListener(
+              focusNode: FocusNode()..requestFocus(),
+              onKeyEvent: (event) async {
+                if (event is KeyDownEvent) {
+                  // Collect barcode characters
+                  buffer.write(event.character ?? '');
+                  if (event.logicalKey == LogicalKeyboardKey.enter) {
+                    final scannedData = buffer.toString().trim();
+
+                    onReciptScanned('barcodeId', scannedData);
+
+                    buffer.clear();
+                  }
+                }
+              },
+              child: Padding(
+                padding: EdgeInsets.all(isBigScreen ? 8.0 : 4),
+                child: SingleChildScrollView(
+                  child: Column(
+                    children: [
+                      AnimatedContainer(
+                        width: double.infinity,
+                        duration: Duration(milliseconds: 1000),
+                        curve: Curves.easeInOut,
+                        height: showHeader ? 250 : 0,
+                        child: Column(
                           children: [
-                            isBigScreen
-                                ? SizedBox(
-                                    width: isBigScreen
-                                        ? MediaQuery.of(context).size.width / 2
-                                        : MediaQuery.of(context).size.width,
-                                    child:
-                                        dateRangeHolder(context, isBigScreen),
-                                  )
-                                : Expanded(
-                                    child: SizedBox(
-                                      width: isBigScreen
-                                          ? MediaQuery.of(context).size.width /
-                                              2
-                                          : MediaQuery.of(context).size.width,
-                                      child:
-                                          dateRangeHolder(context, isBigScreen),
-                                    ),
-                                  ),
+                            IncomeReportsHeader(
+                              selectedField: searchFeild,
+                              selectedPaymentMethod: paymentMethordToShow,
+                              selectedAccount: selectedAccount,
+                              isSearchEnabled: true,
+                              searchController: _searchController,
+                              onFieldChange: (value) {
+                                setState(() {
+                                  searchFeild = value;
+                                });
+                              },
+                              onAccountChange: (value) {
+                                setState(() {
+                                  selectedAccount = value;
+                                });
+                              },
+                              onPaymentMethodChange: (value) {
+                                setState(() {
+                                  paymentMethordToShow = value;
+                                });
+                              },
+                              onSearcfieldChange: (value) {
+                                searchThroughSales(value);
+                              },
+                              cashiers: cashiers,
+                            ),
+                            SizedBox(height: 10),
+                            Row(
+                              mainAxisAlignment: isBigScreen
+                                  ? MainAxisAlignment.center
+                                  : MainAxisAlignment.start,
+                              children: [
+                                isBigScreen
+                                    ? SizedBox(
+                                        width: isBigScreen
+                                            ? MediaQuery.of(context)
+                                                    .size
+                                                    .width /
+                                                2
+                                            : MediaQuery.of(context).size.width,
+                                        child: dateRangeHolder(
+                                            context, isBigScreen),
+                                      )
+                                    : Expanded(
+                                        child: SizedBox(
+                                          width: isBigScreen
+                                              ? MediaQuery.of(context)
+                                                      .size
+                                                      .width /
+                                                  2
+                                              : MediaQuery.of(context)
+                                                  .size
+                                                  .width,
+                                          child: dateRangeHolder(
+                                              context, isBigScreen),
+                                        ),
+                                      ),
+                              ],
+                            ),
                           ],
                         ),
-                      ],
-                    ),
+                      ),
+                      SizedBox(
+                        height: 20,
+                      ),
+                      SizedBox(
+                          width: double.infinity,
+                          height: isBigScreen ? 450 : 400,
+                          child: loading
+                              ? Center(
+                                  child: SizedBox(
+                                      width: 50,
+                                      height: 50,
+                                      child: CircularProgressIndicator()))
+                              : cardsInfo(isBigScreen, summaryCalculations)),
+                      Row(children: [
+                        Expanded(
+                            child: SizedBox(
+                          height: 600,
+                          child: loading
+                              ? Center(
+                                  child: SizedBox(
+                                      width: 50,
+                                      height: 50,
+                                      child: CircularProgressIndicator()))
+                              : ReusableAsyncPaginatedDataTable(
+                                  columnDefinitions:
+                                      _columnDefinitions, // Pass definitions
+                                  fetchDataCallback: _fetchServerData,
+                                  onSelectionChanged: (selected) {
+                                    _selectedRows = selected;
+                                  },
+                                  header: const Text('Transactions'),
+                                  initialSortField: initialSort,
+                                  initialSortAscending: true,
+                                  rowsPerPage: 15,
+                                  availableRowsPerPage: const [10, 15, 25, 50],
+                                  showCheckboxColumn: true,
+                                  fixedLeftColumns: isBigScreen
+                                      ? 2
+                                      : 1, // Fix the 'Title' column
+                                  minWidth:
+                                      2200, // Increase minWidth for more columns
+                                  empty: const Center(
+                                      child: CircularProgressIndicator()),
+                                  border: TableBorder.all(
+                                      color: Colors.grey.shade100, width: 1),
+                                  columnSpacing: 30,
+                                  dataRowHeight: 50,
+                                  headingRowHeight: 60,
+                                  handleShowDetails: handleShowDetails,
+                                ),
+                        )),
+                        isBigScreen
+                            ? AnimatedContainer(
+                                decoration: BoxDecoration(
+                                    borderRadius: BorderRadius.circular(10)),
+                                duration: Duration(milliseconds: 600),
+                                width: showDetails ? 650.0 : 0.00,
+                                child: showDetails
+                                    ? ShowDetails(
+                                        dataList: selectedItem,
+                                        doRePrint: doRePrint,
+                                        handleUpdate: handleUpdate,
+                                        handleShowDetails: handleShowDetails,
+                                        updatePageInfo: () {
+                                          setState(() {});
+                                        })
+                                    : Container(),
+                              )
+                            : SizedBox.shrink()
+                      ]),
+                    ],
                   ),
-                  SizedBox(
-                    height: 20,
-                  ),
-                  SizedBox(
-                      width: double.infinity,
-                      height: isBigScreen ? 450 : 400,
-                      child: loading
-                          ? Center(
-                              child: SizedBox(
-                                  width: 50,
-                                  height: 50,
-                                  child: CircularProgressIndicator()))
-                          : cardsInfo(isBigScreen, summaryCalculations)),
-                  Row(children: [
-                    Expanded(
-                        child: SizedBox(
-                      height: 600,
-                      child: loading
-                          ? Center(
-                              child: SizedBox(
-                                  width: 50,
-                                  height: 50,
-                                  child: CircularProgressIndicator()))
-                          : ReusableAsyncPaginatedDataTable(
-                              columnDefinitions:
-                                  _columnDefinitions, // Pass definitions
-                              fetchDataCallback: _fetchServerData,
-                              onSelectionChanged: (selected) {
-                                _selectedRows = selected;
-                              },
-                              header: const Text('Transactions'),
-                              initialSortField: initialSort,
-                              initialSortAscending: true,
-                              rowsPerPage: 15,
-                              availableRowsPerPage: const [10, 15, 25, 50],
-                              showCheckboxColumn: true,
-                              fixedLeftColumns:
-                                  isBigScreen ? 2 : 1, // Fix the 'Title' column
-                              minWidth:
-                                  2200, // Increase minWidth for more columns
-                              empty: const Center(
-                                  child: CircularProgressIndicator()),
-                              border: TableBorder.all(
-                                  color: Colors.grey.shade100, width: 1),
-                              columnSpacing: 30,
-                              dataRowHeight: 50,
-                              headingRowHeight: 60,
-                              handleShowDetails: handleShowDetails,
-                            ),
-                    )),
-                    isBigScreen
-                        ? AnimatedContainer(
-                            decoration: BoxDecoration(
-                                borderRadius: BorderRadius.circular(10)),
-                            duration: Duration(milliseconds: 600),
-                            width: showDetails ? 650.0 : 0.00,
-                            child: showDetails
-                                ? ShowDetails(
-                                    dataList: selectedItem,
-                                    doRePrint: doRePrint,
-                                    handleUpdate: handleUpdate,
-                                    handleShowDetails: handleShowDetails,
-                                    updatePageInfo: () {
-                                      setState(() {});
-                                    })
-                                : Container(),
-                          )
-                        : SizedBox.shrink()
-                  ]),
-                ],
-              ),
-            ),
-          ));
+                ),
+              )));
     });
   }
 

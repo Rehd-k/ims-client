@@ -6,7 +6,6 @@ import 'package:provider/provider.dart';
 import '../../globals/actions.dart';
 import '../../globals/sidebar.dart';
 import '../../helpers/providers/theme_notifier.dart';
-import '../../helpers/providers/token_provider.dart';
 import '../../services/api.service.dart';
 import 'add_location.dart';
 import 'view_locations.dart';
@@ -148,8 +147,7 @@ class LocationIndexState extends State<LocationIndex> {
   Widget build(BuildContext context) {
     double width = MediaQuery.sizeOf(context).width;
     bool smallScreen = width <= 1200;
-    return Consumer2<ThemeNotifier, TokenNotifier>(
-        builder: (context, themeNotifier, tokenNotifier, child) {
+    return Consumer<ThemeNotifier>(builder: (context, themeNotifier, child) {
       return Scaffold(
           floatingActionButton: smallScreen
               ? FloatingActionButton(
@@ -194,14 +192,14 @@ class LocationIndexState extends State<LocationIndex> {
                   icon: Icon(Icons.add_box_outlined),
                 ),
               ),
-              ...actions(context, themeNotifier, tokenNotifier)
+              ...actions(context, themeNotifier)
             ],
           ),
           drawer: smallScreen
               ? Drawer(
                   backgroundColor:
                       Theme.of(context).drawerTheme.backgroundColor,
-                  child: SideBar(tokenNotifier: tokenNotifier))
+                  child: SideBar())
               : null,
           body: Padding(
             padding: const EdgeInsets.all(8.0),

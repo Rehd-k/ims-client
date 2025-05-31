@@ -1,9 +1,16 @@
+import 'dart:async';
+
 import 'package:auto_route/auto_route.dart';
+import 'package:esc_pos_utils_plus/esc_pos_utils_plus.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import '../../helpers/financial_string_formart.dart';
+import 'package:shelf_sense/services/settings.service.dart';
+import 'package:toastification/toastification.dart';
 
+import '../../helpers/financial_string_formart.dart';
 import '../../services/api.service.dart';
+import '../../services/printer.service.dart';
+import '../../services/receipt_holder.dart';
 import '../customers/add_customer.dart';
 
 @RoutePage()
@@ -32,13 +39,17 @@ class CheckoutScreen extends StatefulWidget {
 
 class _CheckoutScreenState extends State<CheckoutScreen> {
   ApiService apiService = ApiService();
+
   String selectedPaymentMethod = 'cash';
   Map? bank;
+
   final TextEditingController cashController = TextEditingController();
   final TextEditingController transferController = TextEditingController();
   final TextEditingController cardController = TextEditingController();
   final TextEditingController discountController = TextEditingController();
   final TextEditingController nameController = TextEditingController();
+
+  final PrinterService _printerService = PrinterService();
 
   Map? selectedName;
   bool isChargesLoading = true;
@@ -57,13 +68,28 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
   List<dynamic> banks = [];
 
   @override
-  void dispose() {
-    cashController.dispose();
-    transferController.dispose();
-    cardController.dispose();
-    discountController.dispose();
-    nameController.dispose();
-    super.dispose();
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
+      _printerService.startScan();
+    });
+    total = widget.total;
+    fetchCharges();
+    if (widget.selectedUser != null) {
+      selectedName = widget.selectedUser;
+    }
+
+    if (widget.discount != null) {
+      discountController.text = widget.discount.toString();
+      discount = widget.discount!.toDouble();
+    }
+
+    if (widget.selectedBank != null) {
+      bank = widget.selectedBank;
+      selectedPaymentMethod = 'transfer';
+    }
+    updateBankList();
+    _updateAmountPaid();
   }
 
   Future updateBankList() async {
@@ -86,26 +112,13 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
     }
   }
 
-  @override
-  void initState() {
-    super.initState();
-    total = widget.total;
-    fetchCharges();
-    if (widget.selectedUser != null) {
-      selectedName = widget.selectedUser;
-    }
-
-    if (widget.discount != null) {
-      discountController.text = widget.discount.toString();
-      discount = widget.discount!.toDouble();
-    }
-
-    if (widget.selectedBank != null) {
-      bank = widget.selectedBank;
-      selectedPaymentMethod = 'transfer';
-    }
-    updateBankList();
-    _updateAmountPaid();
+  doShowToast(String toastMessage, ToastificationType type) {
+    toastification.show(
+      title: Text(toastMessage),
+      type: type,
+      style: ToastificationStyle.flatColored,
+      autoCloseDuration: const Duration(seconds: 2),
+    );
   }
 
   void fetchCharges() async {
@@ -220,6 +233,128 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
 
   void saveReceipt() async {
     await apiService.getRequest('sales/send-whatsapp/${newTransaction['_id']}');
+  }
+
+  void updateBankByAccountNumber(String accountNumber) {
+    final matchingBank = banks.firstWhere(
+      (bank) => bank['accountNumber'] == accountNumber,
+      orElse: () => null,
+    );
+    if (matchingBank != null) {
+      setState(() {
+        bank = matchingBank;
+      });
+    }
+  }
+
+  @override
+  void dispose() {
+    _printerService.dispose();
+    cashController.dispose();
+    transferController.dispose();
+    cardController.dispose();
+    discountController.dispose();
+    nameController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: Text('Checkout'),
+      ),
+      body: LayoutBuilder(
+        builder: (context, constraints) {
+          final isDesktop = constraints.maxWidth > 900;
+          final padding = isDesktop ? 32.0 : 16.0;
+
+          return SingleChildScrollView(
+            child: Center(
+              child: Container(
+                padding: EdgeInsets.all(padding),
+                constraints: BoxConstraints(maxWidth: 1200),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    isDesktop
+                        ? Row(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Expanded(
+                                child: Column(children: [
+                                  _buildPaymentMethodCard(context, isDesktop),
+                                  SizedBox(height: 10),
+                                  _buildChargesList()
+                                ]),
+                              ),
+                              SizedBox(width: 20),
+                              Expanded(child: _buildSummaryCard(context)),
+                            ],
+                          )
+                        : Column(
+                            children: [
+                              _buildPaymentMethodCard(context, isDesktop),
+                              SizedBox(height: 20),
+                              _buildSummaryCard(context),
+                              _buildChargesList()
+                            ],
+                          ),
+                    SizedBox(height: 20),
+                    SizedBox(
+                      width: isDesktop
+                          ? constraints.maxWidth / 2
+                          : double.infinity,
+                      height: 50,
+                      child: isPaid
+                          ? Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                OutlinedButton(
+                                    onPressed: () async {
+                                      final profile =
+                                          await CapabilityProfile.load();
+                                      _printerService.printData(
+                                          _printerService.printers[0],
+                                          generateReceipt(
+                                              PaperSize.mm58,
+                                              profile,
+                                              newTransaction,
+                                              SettingsService().settings));
+                                    },
+                                    child: Text('Print Receipt')),
+                                OutlinedButton(
+                                    onPressed: () {
+                                      saveReceipt();
+                                    },
+                                    child: Text('Send Receipt'))
+                              ],
+                            )
+                          : ElevatedButton(
+                              onPressed: balance == 0
+                                  ? () {
+                                      handleSubit();
+                                    }
+                                  : null,
+                              style: ElevatedButton.styleFrom(
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(10),
+                                ),
+                                backgroundColor:
+                                    balance == 0 ? null : Colors.red,
+                                disabledBackgroundColor: Colors.red,
+                              ),
+                              child: Text('Complete Payment'),
+                            ),
+                    )
+                  ],
+                ),
+              ),
+            ),
+          );
+        },
+      ),
+    );
   }
 
   Widget _buildNameInput() {
@@ -349,6 +484,10 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                   ),
                 ),
                 items: [
+                  DropdownMenuItem(
+                    value: null,
+                    child: Text('Select Bank'),
+                  ),
                   ...banks.map((bank) => DropdownMenuItem(
                         value: bank['accountNumber'],
                         child: Text(bank['name']!),
@@ -361,107 +500,6 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
             ),
           ],
         ],
-      ),
-    );
-  }
-
-  void updateBankByAccountNumber(String accountNumber) {
-    final matchingBank = banks.firstWhere(
-      (bank) => bank['accountNumber'] == accountNumber,
-      orElse: () => null,
-    );
-    if (matchingBank != null) {
-      setState(() {
-        bank = matchingBank;
-      });
-    }
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Text('Checkout'),
-      ),
-      body: LayoutBuilder(
-        builder: (context, constraints) {
-          final isDesktop = constraints.maxWidth > 900;
-          final padding = isDesktop ? 32.0 : 16.0;
-
-          return SingleChildScrollView(
-            child: Center(
-              child: Container(
-                padding: EdgeInsets.all(padding),
-                constraints: BoxConstraints(maxWidth: 1200),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    isDesktop
-                        ? Row(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Expanded(
-                                child: Column(children: [
-                                  _buildPaymentMethodCard(context, isDesktop),
-                                  SizedBox(height: 10),
-                                  _buildChargesList()
-                                ]),
-                              ),
-                              SizedBox(width: 20),
-                              Expanded(child: _buildSummaryCard(context)),
-                            ],
-                          )
-                        : Column(
-                            children: [
-                              _buildPaymentMethodCard(context, isDesktop),
-                              SizedBox(height: 20),
-                              _buildSummaryCard(context),
-                              _buildChargesList()
-                            ],
-                          ),
-                    SizedBox(height: 20),
-                    SizedBox(
-                      width: isDesktop
-                          ? constraints.maxWidth / 2
-                          : double.infinity,
-                      height: 50,
-                      child: isPaid
-                          ? Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                OutlinedButton(
-                                    onPressed: () {},
-                                    child: Text('Print Receipt')),
-                                OutlinedButton(
-                                    onPressed: () {
-                                      saveReceipt();
-                                    },
-                                    child: Text('Send Receipt'))
-                              ],
-                            )
-                          : ElevatedButton(
-                              onPressed: balance == 0
-                                  ? () {
-                                      handleSubit();
-                                    }
-                                  : null,
-                              style: ElevatedButton.styleFrom(
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(10),
-                                ),
-                                backgroundColor:
-                                    balance == 0 ? null : Colors.red,
-                                disabledBackgroundColor: Colors.red,
-                              ),
-                              child: Text('Complete Payment'),
-                            ),
-                    )
-                  ],
-                ),
-              ),
-            ),
-          );
-        },
       ),
     );
   }

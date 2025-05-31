@@ -1,7 +1,9 @@
+import 'dart:async';
 import 'dart:math';
 
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:infinite_scroll_pagination/infinite_scroll_pagination.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -11,7 +13,6 @@ import '../../globals/actions.dart';
 import '../../globals/sidebar.dart';
 
 import '../../helpers/providers/theme_notifier.dart';
-import '../../helpers/providers/token_provider.dart';
 import '../../services/api.service.dart';
 import 'cart_section.dart';
 import 'product_grid.dart';
@@ -28,18 +29,26 @@ class MakeSaleIndex extends StatefulWidget {
 
 class MakeSaleIndexState extends State<MakeSaleIndex> {
   ApiService apiService = ApiService();
+  Timer? _debounce;
+  TextEditingController searchController = TextEditingController();
+  final StringBuffer buffer = StringBuffer();
   String _searchQuery = '';
   bool isLoading = true;
   int numberOfProducts = 0;
   int apiCount = 0;
   List savedCarts = [];
+  String searchFeild = 'title';
   List<dynamic> localproducts = [];
 
   late final _pagingController = PagingController<int, dynamic>(
     getNextPageKey: (state) => ProductService()
         .checkAndFetchProducts(apiCount, doApiCount, localproducts.length),
     fetchPage: (pageKey) => ProductService().fetchProducts(
-        pageKey: pageKey, query: _searchQuery, doProductUpdate: voidDoApiCheck),
+        pageKey: pageKey,
+        query: _searchQuery,
+        doProductUpdate: voidDoApiCheck,
+        searchFeild: searchFeild,
+        addToCart: addToCart),
   );
 
   void doApiCount() {
@@ -58,6 +67,7 @@ class MakeSaleIndexState extends State<MakeSaleIndex> {
   // Handle Product qunaity
 
   void addToCart(Product product) {
+    searchFeild = 'title';
     if (product.quantity > 0) {
       setState(() {
         int existingIndex =
@@ -206,6 +216,7 @@ class MakeSaleIndexState extends State<MakeSaleIndex> {
 
   @override
   void dispose() {
+    _debounce?.cancel();
     _pagingController.dispose();
     super.dispose();
   }
@@ -216,173 +227,198 @@ class MakeSaleIndexState extends State<MakeSaleIndex> {
     getCartsFromStorage();
   }
 
-  void _onSearchChanged(String query) async {
-    await Future.delayed(const Duration(milliseconds: 500), () {
+  void _onSearchChanged() async {
+    await Future.delayed(const Duration(milliseconds: 300), () {
       localproducts = [];
       apiCount = 0;
-      _searchQuery = query;
+      _searchQuery = searchController.text;
+      _pagingController.refresh();
     });
-    _pagingController.refresh();
   }
 
   @override
   Widget build(BuildContext context) {
     double width = MediaQuery.sizeOf(context).width;
     bool smallScreen = width <= 1200;
-    return Consumer2<TokenNotifier, ThemeNotifier>(
-        builder: (context, tokenNotifier, themeNotifier, child) {
-      return Scaffold(
-          appBar: AppBar(
-            actions: [
-              ...savedCarts.asMap().entries.map((res) {
-                int index = res.key; // Get the index
-                // String value = res.value;
-                return Padding(
-                  padding: const EdgeInsets.all(8.0),
-                  child: savedCartsIcon(index),
-                );
-              }),
-              ...actions(context, themeNotifier, tokenNotifier)
-            ],
-          ),
-          drawer: smallScreen
-              ? Drawer(
-                  backgroundColor:
-                      Theme.of(context).drawerTheme.backgroundColor,
-                  child: SideBar(tokenNotifier: tokenNotifier))
-              : null,
-          floatingActionButton: smallScreen
-              ? FloatingActionButton(
-                  onPressed: () {
-                    showModalBottomSheet(
-                      isScrollControlled: true,
-                      context: context,
-                      builder: (context) => Container(
-                        padding: const EdgeInsets.all(8.0),
-                        height: MediaQuery.of(context).size.height * 0.98,
-                        child: CartSection(
-                          isSmallScreen: smallScreen,
-                          saveCart: saveCartToStorage,
-                          emptyCart: emptycart,
-                          cart: cart,
-                          cartTotal: getCartTotal(),
-                          decrementCartQuantity: decrementCartQuantity,
-                          incrementCartQuantity: incrementCartQuantity,
-                          removeFromCart: removeFromCart,
-                          handleComplete: handleSubmited,
-                        ),
-                      ),
+    return KeyboardListener(
+        focusNode: FocusNode()..requestFocus(),
+        onKeyEvent: (event) async {
+          if (event is KeyDownEvent) {
+            // Collect barcode characters
+            buffer.write(event.character ?? '');
+            if (event.logicalKey == LogicalKeyboardKey.enter) {
+              final scannedData = buffer.toString().trim();
+              searchController.text = scannedData;
+              searchFeild = 'barcode';
+              _onSearchChanged();
+              await Future.delayed(const Duration(milliseconds: 400), () {
+                searchFeild = 'title';
+              });
+
+              buffer.clear();
+            }
+          }
+        },
+        child:
+            Consumer<ThemeNotifier>(builder: (context, themeNotifier, child) {
+          return Scaffold(
+              appBar: AppBar(
+                actions: [
+                  ...savedCarts.asMap().entries.map((res) {
+                    int index = res.key; // Get the index
+                    // String value = res.value;
+                    return Padding(
+                      padding: const EdgeInsets.all(8.0),
+                      child: savedCartsIcon(index),
                     );
-                  },
-                  child: Stack(
-                    alignment: Alignment.center,
-                    children: [
-                      const Icon(
-                        Icons.shopping_cart_outlined,
-                        size: 40,
-                      ),
-                      if (cart.isNotEmpty)
-                        Positioned(
-                          child: Container(
-                            alignment: Alignment.center,
-                            width: 24,
-                            height: 24,
-                            decoration: BoxDecoration(
-                              color: Theme.of(context).colorScheme.primary,
-                              shape: BoxShape.circle,
-                            ),
-                            child: Text(
-                              '${cart.length}',
-                              style: TextStyle(
-                                color: Theme.of(context).colorScheme.onPrimary,
-                                fontWeight: FontWeight.bold,
-                              ),
+                  }),
+                  ...actions(context, themeNotifier)
+                ],
+              ),
+              drawer: smallScreen
+                  ? Drawer(
+                      backgroundColor:
+                          Theme.of(context).drawerTheme.backgroundColor,
+                      child: SideBar())
+                  : null,
+              floatingActionButton: smallScreen
+                  ? FloatingActionButton(
+                      onPressed: () {
+                        showModalBottomSheet(
+                          isScrollControlled: true,
+                          context: context,
+                          builder: (context) => Container(
+                            padding: const EdgeInsets.all(8.0),
+                            height: MediaQuery.of(context).size.height * 0.98,
+                            child: CartSection(
+                              isSmallScreen: smallScreen,
+                              saveCart: saveCartToStorage,
+                              emptyCart: emptycart,
+                              cart: cart,
+                              cartTotal: getCartTotal(),
+                              decrementCartQuantity: decrementCartQuantity,
+                              incrementCartQuantity: incrementCartQuantity,
+                              removeFromCart: removeFromCart,
+                              handleComplete: handleSubmited,
                             ),
                           ),
-                        ),
-                    ],
-                  ),
-                )
-              : null,
-          body: Padding(
-            padding: EdgeInsets.only(top: 8.0, right: smallScreen ? 0 : 10.0),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceAround,
-              children: [
-                Expanded(
-                  flex: smallScreen ? 1 : 3,
-                  child: Column(
-                    children: [
-                      Container(
-                        decoration: BoxDecoration(
-                          color: Theme.of(context).colorScheme.surface,
-                          borderRadius: BorderRadius.circular(10),
-                        ),
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 16.0, vertical: 8.0),
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Text(
-                              '$numberOfProducts Products',
-                              style: Theme.of(context).textTheme.titleMedium,
-                            ),
-                            AnimatedContainer(
-                              duration: const Duration(milliseconds: 300),
-                              width: smallScreen ? 200 : 500,
-                              height: 30,
-                              child: TextField(
-                                onChanged: (value) {
-                                  _onSearchChanged(value);
-                                },
-                                decoration: InputDecoration(
-                                    hintText: 'Search...',
-                                    prefixIcon: Icon(Icons.search),
-                                    suffixIcon: InkWell(
-                                      child: Icon(Icons.close),
-                                      onTap: () {
-                                        _onSearchChanged('');
-                                      },
-                                    ),
-                                    border: OutlineInputBorder(
-                                        borderRadius: BorderRadius.circular(20),
-                                        borderSide: BorderSide.none),
-                                    filled: true,
-                                    contentPadding:
-                                        EdgeInsets.symmetric(vertical: 0)),
+                        );
+                      },
+                      child: Stack(
+                        alignment: Alignment.center,
+                        children: [
+                          const Icon(
+                            Icons.shopping_cart_outlined,
+                            size: 40,
+                          ),
+                          if (cart.isNotEmpty)
+                            Positioned(
+                              child: Container(
+                                alignment: Alignment.center,
+                                width: 24,
+                                height: 24,
+                                decoration: BoxDecoration(
+                                  color: Theme.of(context).colorScheme.primary,
+                                  shape: BoxShape.circle,
+                                ),
+                                child: Text(
+                                  '${cart.length}',
+                                  style: TextStyle(
+                                    color:
+                                        Theme.of(context).colorScheme.onPrimary,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
                               ),
-                            )
-                          ],
-                        ),
+                            ),
+                        ],
                       ),
-                      ProductGrid(
-                          pagingController: _pagingController,
-                          smallScreen: smallScreen,
-                          addToCart: addToCart),
-                    ],
-                  ),
+                    )
+                  : null,
+              body: Padding(
+                padding:
+                    EdgeInsets.only(top: 8.0, right: smallScreen ? 0 : 10.0),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceAround,
+                  children: [
+                    Expanded(
+                      flex: smallScreen ? 1 : 3,
+                      child: Column(
+                        children: [
+                          Container(
+                            decoration: BoxDecoration(
+                              color: Theme.of(context).colorScheme.surface,
+                              borderRadius: BorderRadius.circular(10),
+                            ),
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 16.0, vertical: 8.0),
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Expanded(
+                                  child: Text(
+                                    '$numberOfProducts Products',
+                                    style:
+                                        Theme.of(context).textTheme.titleMedium,
+                                  ),
+                                ),
+                                Expanded(
+                                  child: TextField(
+                                    autofocus: true,
+                                    controller: searchController,
+                                    onChanged: (value) {
+                                      _onSearchChanged();
+                                    },
+                                    decoration: InputDecoration(
+                                        hintText: 'Search...',
+                                        prefixIcon: Icon(Icons.search),
+                                        suffixIcon: InkWell(
+                                          child: Icon(Icons.close),
+                                          onTap: () {
+                                            _onSearchChanged();
+                                            searchController.text = '';
+                                          },
+                                        ),
+                                        border: OutlineInputBorder(
+                                            borderRadius:
+                                                BorderRadius.circular(20),
+                                            borderSide: BorderSide.none),
+                                        filled: true,
+                                        contentPadding:
+                                            EdgeInsets.symmetric(vertical: 0)),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                          ProductGrid(
+                              pagingController: _pagingController,
+                              smallScreen: smallScreen,
+                              addToCart: addToCart),
+                        ],
+                      ),
+                    ),
+
+                    // Grid view
+
+                    SizedBox(width: 10),
+                    smallScreen
+                        ? SizedBox.shrink()
+                        : CartSection(
+                            isSmallScreen: smallScreen,
+                            cart: cart,
+                            cartTotal: getCartTotal(),
+                            decrementCartQuantity: decrementCartQuantity,
+                            incrementCartQuantity: incrementCartQuantity,
+                            removeFromCart: removeFromCart,
+                            saveCart: saveCartToStorage,
+                            emptyCart: emptycart,
+                            handleComplete: handleSubmited,
+                          ),
+                  ],
                 ),
-
-                // Grid view
-
-                SizedBox(width: 10),
-                smallScreen
-                    ? SizedBox.shrink()
-                    : CartSection(
-                        isSmallScreen: smallScreen,
-                        cart: cart,
-                        cartTotal: getCartTotal(),
-                        decrementCartQuantity: decrementCartQuantity,
-                        incrementCartQuantity: incrementCartQuantity,
-                        removeFromCart: removeFromCart,
-                        saveCart: saveCartToStorage,
-                        emptyCart: emptycart,
-                        handleComplete: handleSubmited,
-                      ),
-              ],
-            ),
-          ));
-    });
+              ));
+        }));
   }
 
   InkWell savedCartsIcon(int index) {

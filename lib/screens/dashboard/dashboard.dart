@@ -6,7 +6,6 @@ import 'package:provider/provider.dart';
 import '../../globals/actions.dart';
 import '../../globals/sidebar.dart';
 import '../../helpers/providers/theme_notifier.dart';
-import '../../helpers/providers/token_provider.dart';
 import '../../services/api.service.dart';
 import 'sections/customer_insight.dart';
 import 'sections/financialsummary.dart';
@@ -96,18 +95,17 @@ class DashboardState extends State<DashboardScreen> {
   Widget build(BuildContext context) {
     double width = MediaQuery.sizeOf(context).width;
     bool smallScreen = width <= 1200;
-    return Consumer2<ThemeNotifier, TokenNotifier>(
-        builder: (context, themeNotifier, tokenNotifier, child) {
+    return Consumer<ThemeNotifier>(builder: (context, themeNotifier, child) {
       return Scaffold(
         appBar: AppBar(actions: [
           IconButton(onPressed: () {}, icon: Icon(Icons.add_box_outlined)),
-          ...actions(context, themeNotifier, tokenNotifier),
+          ...actions(context, themeNotifier),
           IconButton(onPressed: () {}, icon: Icon(Icons.live_help_outlined)),
         ]),
         drawer: smallScreen
             ? Drawer(
                 backgroundColor: Theme.of(context).drawerTheme.backgroundColor,
-                child: SideBar(tokenNotifier: tokenNotifier))
+                child: SideBar())
             : null,
         body: loading
             ? Center(child: CircularProgressIndicator())

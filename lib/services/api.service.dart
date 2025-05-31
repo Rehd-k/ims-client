@@ -1,8 +1,8 @@
-import 'package:shared_preferences/shared_preferences.dart';
 import 'package:dio/dio.dart';
 
 import '../helpers/constants.dart';
 import 'navigation.service.dart';
+import 'token.service.dart';
 
 class ApiService {
   final Dio _dio = Dio(BaseOptions(
@@ -21,10 +21,10 @@ class ApiService {
         }
         return handler.next(error);
       },
-      onRequest: (options, handler) async {
+      onRequest: (options, handler) {
         // Retrieve the token from SharedPreferences
-        final prefs = await SharedPreferences.getInstance();
-        final token = prefs.getString('access_token') ?? '';
+
+        final token = JwtService().token ?? '';
         options.headers['Authorization'] = 'Bearer $token';
         return handler.next(options);
       },

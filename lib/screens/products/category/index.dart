@@ -6,7 +6,6 @@ import 'package:provider/provider.dart';
 import '../../../globals/actions.dart';
 import '../../../globals/sidebar.dart';
 import '../../../helpers/providers/theme_notifier.dart';
-import '../../../helpers/providers/token_provider.dart';
 import 'add_category.dart';
 import 'view_category.dart';
 
@@ -30,17 +29,16 @@ class CategoryIndexState extends State<CategoryIndex> {
   Widget build(BuildContext context) {
     double width = MediaQuery.sizeOf(context).width;
     bool smallScreen = width <= 1200;
-    return Consumer2<TokenNotifier, ThemeNotifier>(
-        builder: (context, tokenNotifier, themeNotifier, child) {
+    return Consumer<ThemeNotifier>(builder: (context, themeNotifier, child) {
       return Scaffold(
           appBar: AppBar(
-            actions: [...actions(context, themeNotifier, tokenNotifier)],
+            actions: [...actions(context, themeNotifier)],
           ),
           drawer: smallScreen
               ? Drawer(
                   backgroundColor:
                       Theme.of(context).drawerTheme.backgroundColor,
-                  child: SideBar(tokenNotifier: tokenNotifier))
+                  child: SideBar())
               : null,
           body: Row(
             crossAxisAlignment: CrossAxisAlignment.start,

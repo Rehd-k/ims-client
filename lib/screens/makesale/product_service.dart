@@ -36,17 +36,30 @@ class ProductService {
 
   FutureOr<List<dynamic>> fetchProducts(
       {required int pageKey,
+      required searchFeild,
+      required Function addToCart,
       String? query,
       required Function doProductUpdate}) async {
     int skip = pageKey * pageSize;
 
-    final response = await apiService.getRequest(
-        'products?filter={"isAvailable" : true, "title": {"\$regex": "$query"}}&sort={"title": 1}&limit=$pageSize&skip=$skip&select=" title price quantity isAvailable "');
+    String barcodeThing =
+        'products?filter={"isAvailable" : true, "barcode":  "$query"}&sort={"title": 1}&limit=$pageSize&skip=$skip&select=" title price quantity isAvailable "';
+
+    String queryThing =
+        'products?filter={"isAvailable" : true, "title": {"\$regex": "$query"}}&sort={"title": 1}&limit=$pageSize&skip=$skip&select=" title price quantity isAvailable "';
+
+    final response = await apiService
+        .getRequest(searchFeild == 'title' ? queryThing : barcodeThing);
     final {"products": products, "totalDocuments": totalDocuments} =
         response.data;
+
     if (response.statusCode == 200) {
       var prod = products.map((json) => Product.fromJson(json)).toList();
       doProductUpdate(prod, totalDocuments);
+
+      if (searchFeild == 'barcode' && prod.isNotEmpty) {
+        addToCart(prod[0]);
+      }
       return prod;
     } else {
       throw Exception('Failed to load products');

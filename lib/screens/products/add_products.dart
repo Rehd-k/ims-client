@@ -1,13 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:toastification/toastification.dart';
-
-import '../../helpers/providers/token_provider.dart';
 import '../../services/api.service.dart';
 
 class AddProducts extends StatefulWidget {
-  final TokenNotifier tokenNotifier;
-  const AddProducts({super.key, required this.tokenNotifier});
+  final String? barcode;
+  const AddProducts({super.key, this.barcode});
 
   @override
   AddProductsState createState() => AddProductsState();
@@ -54,8 +52,6 @@ class AddProductsState extends State<AddProducts> {
 
   List<String> categories = [''];
 
-  String? selectedCategory = '';
-
   @override
   void dispose() {
     titleController.dispose();
@@ -89,7 +85,6 @@ class AddProductsState extends State<AddProducts> {
         'unit': unitController.text,
         'barcode': barcodeController.text,
         'isAvailable': isAvailableController,
-        'initiator': userController.value.text
       });
 
       if (response.statusCode! >= 200 && response.statusCode! <= 300) {
@@ -104,6 +99,7 @@ class AddProductsState extends State<AddProducts> {
 
   @override
   void initState() {
+    barcodeController.text = widget.barcode ?? '';
     super.initState();
     fetchCategories();
   }
@@ -182,11 +178,6 @@ class AddProductsState extends State<AddProducts> {
                   controller: categoryController,
                   requestFocusOnTap: true,
                   label: const Text('Category'),
-                  onSelected: (String? color) {
-                    setState(() {
-                      selectedCategory;
-                    });
-                  },
                   dropdownMenuEntries:
                       categories.map<DropdownMenuEntry<String>>((category) {
                     return DropdownMenuEntry(value: category, label: category);
@@ -352,8 +343,6 @@ class AddProductsState extends State<AddProducts> {
                 ),
                 ElevatedButton(
                   onPressed: () {
-                    userController.text =
-                        widget.tokenNotifier.decodedToken!['username'];
                     handleSubmit(context);
                     if (_formKey.currentState!.validate()) {
                       // Process data

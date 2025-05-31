@@ -7,7 +7,6 @@ import 'package:provider/provider.dart';
 import '../../globals/actions.dart';
 import '../../globals/sidebar.dart';
 import '../../helpers/providers/theme_notifier.dart';
-import '../../helpers/providers/token_provider.dart';
 import '../../services/api.service.dart';
 import 'components/filters.dart';
 import 'components/infinite_table.dart';
@@ -276,17 +275,16 @@ class ViewInvoicesState extends State<ViewInvoices> {
   @override
   Widget build(BuildContext context) {
     final isSmallScreen = MediaQuery.of(context).size.width < 600;
-    return Consumer2<ThemeNotifier, TokenNotifier>(
-        builder: (context, themeNotifier, tokenNotifier, child) {
+    return Consumer<ThemeNotifier>(builder: (context, themeNotifier, child) {
       return Scaffold(
         appBar: AppBar(
           title: const Text('Invoices'),
-          actions: [...actions(context, themeNotifier, tokenNotifier)],
+          actions: [...actions(context, themeNotifier)],
         ),
         drawer: isSmallScreen
             ? Drawer(
                 backgroundColor: Theme.of(context).drawerTheme.backgroundColor,
-                child: SideBar(tokenNotifier: tokenNotifier))
+                child: SideBar())
             : null,
         body: SingleChildScrollView(
           child: Padding(

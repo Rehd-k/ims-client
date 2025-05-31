@@ -1,7 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
-
-import '../../helpers/providers/token_provider.dart';
 import '../../services/api.service.dart';
 
 class AddSupplier extends StatefulWidget {
@@ -44,8 +41,7 @@ class AddSupplierState extends State<AddSupplier> {
         'name': nameController.text,
         'email': emailController.text,
         'phone_number': phoneNumberController.text,
-        'address': addressController.text,
-        'initiator': initiatorController.text
+        'address': addressController.text
       });
 
       if (response.statusCode! >= 200 && response.statusCode! <= 300) {
@@ -57,95 +53,88 @@ class AddSupplierState extends State<AddSupplier> {
 
   @override
   Widget build(BuildContext context) {
-    return Consumer<TokenNotifier>(builder: (context, tokenNotifier, child) {
-      return SingleChildScrollView(
-        child: Container(
-          decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(10),
-              color: Theme.of(context).colorScheme.surface),
-          child: Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: Form(
-              key: _formKey,
-              child: Column(
-                children: <Widget>[
-                  TextFormField(
-                    controller: nameController,
+    return SingleChildScrollView(
+      child: Container(
+        decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(10),
+            color: Theme.of(context).colorScheme.surface),
+        child: Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: Form(
+            key: _formKey,
+            child: Column(
+              children: <Widget>[
+                TextFormField(
+                  controller: nameController,
+                  decoration: InputDecoration(
+                    labelText: 'Name *',
+                    border: OutlineInputBorder(
+                        borderRadius: BorderRadius.all(Radius.circular(5.0)),
+                        borderSide: BorderSide(color: Colors.blue)),
+                    labelStyle: TextStyle(
+                        color: Theme.of(context).hintColor, fontSize: 15),
+                  ),
+                  validator: (value) {
+                    if (value == null || value.isEmpty) {
+                      return 'Please enter a name';
+                    }
+                    return null;
+                  },
+                ),
+                SizedBox(height: 10),
+                TextFormField(
+                    keyboardType: TextInputType.emailAddress,
+                    controller: emailController,
                     decoration: InputDecoration(
-                      labelText: 'Name *',
+                      labelText: 'Email',
                       border: OutlineInputBorder(
                           borderRadius: BorderRadius.all(Radius.circular(5.0)),
                           borderSide: BorderSide(color: Colors.blue)),
                       labelStyle: TextStyle(
                           color: Theme.of(context).hintColor, fontSize: 15),
-                    ),
-                    validator: (value) {
-                      if (value == null || value.isEmpty) {
-                        return 'Please enter a name';
-                      }
-                      return null;
-                    },
-                  ),
-                  SizedBox(height: 10),
-                  TextFormField(
-                      keyboardType: TextInputType.emailAddress,
-                      controller: emailController,
-                      decoration: InputDecoration(
-                        labelText: 'Email',
-                        border: OutlineInputBorder(
-                            borderRadius:
-                                BorderRadius.all(Radius.circular(5.0)),
-                            borderSide: BorderSide(color: Colors.blue)),
-                        labelStyle: TextStyle(
-                            color: Theme.of(context).hintColor, fontSize: 15),
-                      )),
-                  SizedBox(height: 10),
-                  TextFormField(
-                      keyboardType: TextInputType.phone,
-                      controller: phoneNumberController,
-                      decoration: InputDecoration(
-                        labelText: 'Phone Number',
-                        border: OutlineInputBorder(
-                            borderRadius:
-                                BorderRadius.all(Radius.circular(5.0)),
-                            borderSide: BorderSide(color: Colors.blue)),
-                        labelStyle: TextStyle(
-                            color: Theme.of(context).hintColor, fontSize: 15),
-                      )),
-                  SizedBox(height: 10),
-                  TextFormField(
-                      keyboardType: TextInputType.streetAddress,
-                      controller: addressController,
-                      decoration: InputDecoration(
-                        labelText: 'Address',
-                        border: OutlineInputBorder(
-                            borderRadius:
-                                BorderRadius.all(Radius.circular(5.0)),
-                            borderSide: BorderSide(color: Colors.blue)),
-                        labelStyle: TextStyle(
-                            color: Theme.of(context).hintColor, fontSize: 15),
-                      )),
-                  SizedBox(height: 10),
-                  ElevatedButton(
-                    onPressed: () {
-                      initiatorController.text =
-                          tokenNotifier.decodedToken?['username'];
-                      handleSubmit(context);
-                      if (_formKey.currentState!.validate()) {
-                        // Process data
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(content: Text('Processing Data')),
-                        );
-                      }
-                    },
-                    child: Text('Submit'),
-                  ),
-                ],
-              ),
+                    )),
+                SizedBox(height: 10),
+                TextFormField(
+                    keyboardType: TextInputType.phone,
+                    controller: phoneNumberController,
+                    decoration: InputDecoration(
+                      labelText: 'Phone Number',
+                      border: OutlineInputBorder(
+                          borderRadius: BorderRadius.all(Radius.circular(5.0)),
+                          borderSide: BorderSide(color: Colors.blue)),
+                      labelStyle: TextStyle(
+                          color: Theme.of(context).hintColor, fontSize: 15),
+                    )),
+                SizedBox(height: 10),
+                TextFormField(
+                    keyboardType: TextInputType.streetAddress,
+                    controller: addressController,
+                    decoration: InputDecoration(
+                      labelText: 'Address',
+                      border: OutlineInputBorder(
+                          borderRadius: BorderRadius.all(Radius.circular(5.0)),
+                          borderSide: BorderSide(color: Colors.blue)),
+                      labelStyle: TextStyle(
+                          color: Theme.of(context).hintColor, fontSize: 15),
+                    )),
+                SizedBox(height: 10),
+                ElevatedButton(
+                  onPressed: () {
+                    handleSubmit(context);
+                    if (_formKey.currentState!.validate()) {
+                      // Process data
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(content: Text('Processing Data')),
+                      );
+                    }
+                  },
+                  child: Text('Submit'),
+                ),
+              ],
             ),
           ),
         ),
-      );
-    });
+      ),
+    );
   }
 }

@@ -1,9 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import '../../../helpers/financial_string_formart.dart';
-import 'package:provider/provider.dart';
-
-import '../../../helpers/providers/token_provider.dart';
 import '../../../services/api.service.dart';
 import '../../supplier/add_supplier.dart';
 
@@ -535,50 +532,46 @@ class AddOrderState extends State<AddOrder> {
             )
           ],
         ),
-        body: Consumer<TokenNotifier>(builder: (context, tokenNotifier, child) {
-          return SingleChildScrollView(
-            child: Container(
-              decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(10),
-                  color: Theme.of(context).colorScheme.surface),
-              child: Padding(
-                  padding: const EdgeInsets.all(16.0),
-                  child: LayoutBuilder(builder: (context, constraints) {
-                    int columns = constraints.maxWidth > 600 ? 3 : 1;
-                    return Form(
-                      key: _formKey,
-                      child: Column(children: [
-                        Wrap(
-                          spacing: 16.0,
-                          runSpacing: 16.0,
-                          children: formFields.map((field) {
-                            return SizedBox(
-                              width: constraints.maxWidth / columns -
-                                  16, // Dynamic width per column
-                              child: field,
+        body: SingleChildScrollView(
+          child: Container(
+            decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(10),
+                color: Theme.of(context).colorScheme.surface),
+            child: Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: LayoutBuilder(builder: (context, constraints) {
+                  int columns = constraints.maxWidth > 600 ? 3 : 1;
+                  return Form(
+                    key: _formKey,
+                    child: Column(children: [
+                      Wrap(
+                        spacing: 16.0,
+                        runSpacing: 16.0,
+                        children: formFields.map((field) {
+                          return SizedBox(
+                            width: constraints.maxWidth / columns -
+                                16, // Dynamic width per column
+                            child: field,
+                          );
+                        }).toList(),
+                      ),
+                      ElevatedButton(
+                        onPressed: () {
+                          handleSubmit(context);
+                          if (_formKey.currentState!.validate()) {
+                            // Process data
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(content: Text('Processing Data')),
                             );
-                          }).toList(),
-                        ),
-                        ElevatedButton(
-                          onPressed: () {
-                            initiatorController.text =
-                                tokenNotifier.decodedToken?['username'];
-                            handleSubmit(context);
-                            if (_formKey.currentState!.validate()) {
-                              // Process data
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                SnackBar(content: Text('Processing Data')),
-                              );
-                            }
-                          },
-                          child: Text('Submit'),
-                        ),
-                      ]),
-                    );
-                  })),
-            ),
-          );
-        }));
+                          }
+                        },
+                        child: Text('Submit'),
+                      ),
+                    ]),
+                  );
+                })),
+          ),
+        ));
   }
 }
 

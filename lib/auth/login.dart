@@ -1,12 +1,10 @@
 import 'package:auto_route/auto_route.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
-import 'package:fluttertoast/fluttertoast.dart';
-
-import 'package:provider/provider.dart';
+import 'package:shelf_sense/services/settings.service.dart';
+import 'package:toastification/toastification.dart';
 
 import '../app_router.gr.dart';
-import '../helpers/providers/token_provider.dart';
 import '../services/api.service.dart';
 import '../services/token.service.dart';
 import 'form.dart';
@@ -34,7 +32,6 @@ class _LoginFormState extends State<LoginScreen> {
   bool isLoading = false;
   late List branches = [];
   final ApiService apiServices = ApiService();
-  final JwtService jwtService = JwtService();
   bool loggedIn = false;
   bool showForm = false;
   @override
@@ -60,6 +57,15 @@ class _LoginFormState extends State<LoginScreen> {
     });
   }
 
+  showToast(String toastMessage, ToastificationType type) {
+    toastification.show(
+      title: Text(toastMessage),
+      type: type,
+      style: ToastificationStyle.flatColored,
+      autoCloseDuration: const Duration(seconds: 2),
+    );
+  }
+
   void toggleHideShowPassword() {
     setState(() {
       hidePassword = !hidePassword;
@@ -71,16 +77,6 @@ class _LoginFormState extends State<LoginScreen> {
       await handleSubmit(context);
     }
   }
-
-  showToast(String? message) => Fluttertoast.showToast(
-      msg: message!,
-      toastLength: Toast.LENGTH_SHORT,
-      gravity: ToastGravity.CENTER,
-      timeInSecForIosWeb: 2,
-      backgroundColor: Colors.red,
-      textColor: Colors.white,
-      webShowClose: true,
-      fontSize: 16.0);
 
   handleAddLocation(String location) {
     setState(() {
@@ -101,12 +97,12 @@ class _LoginFormState extends State<LoginScreen> {
 
       if (response.statusCode! >= 200 && response.statusCode! <= 300) {
         token = response.data['access_token'];
+        var openBranch = branches.firstWhere(
+            (branch) => branch['_id'] == locations,
+            orElse: () => null);
         if (!mounted) return;
-        final auth = Provider.of<TokenNotifier>(context, listen: false);
-
-        await jwtService.saveToken(token);
-        auth.setToken(token, context);
-
+        SettingsService().setSettings = openBranch;
+        JwtService().setToken = token;
         setState(() {
           loggedIn = true;
         });
@@ -133,7 +129,7 @@ class _LoginFormState extends State<LoginScreen> {
       }
     } on DioException catch (e, _) {
       if (e.type == DioExceptionType.connectionError) {
-        showToast('Connection Error');
+        showToast('Connection Error', ToastificationType.error);
         setState(() {
           isLoading = false;
         });

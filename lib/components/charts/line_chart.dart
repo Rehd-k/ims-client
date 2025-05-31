@@ -150,9 +150,10 @@ class _LineChart extends StatelessWidget {
           show: true,
           border: Border(
             bottom: BorderSide(
-                color: AppColors.primary.withValues(alpha: 0.2), width: 4),
-            left: BorderSide(
-                color: AppColors.primary.withValues(alpha: 0.2), width: 4),
+                //  withValues()
+                color: AppColors.primary.withAlpha(2),
+                width: 4),
+            left: BorderSide(color: AppColors.primary.withAlpha(2), width: 4),
             right: const BorderSide(color: Colors.transparent),
             top: const BorderSide(color: Colors.transparent),
           ),
@@ -160,7 +161,7 @@ class _LineChart extends StatelessWidget {
         lineBarsData: [
           LineChartBarData(
             isCurved: true,
-            color: AppColors.primaryVariant.withValues(alpha: 0.5),
+            color: Colors.green,
             barWidth: 2,
             isStrokeCapRound: true,
             dotData: const FlDotData(show: true),

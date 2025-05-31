@@ -3,6 +3,8 @@ import 'package:data_table_2/data_table_2.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:shelf_sense/helpers/financial_string_formart.dart';
+import 'package:shelf_sense/services/token.service.dart';
+import 'package:toastification/toastification.dart';
 
 import '../../../app_router.gr.dart';
 
@@ -73,6 +75,15 @@ num getSold(List sold) {
 
 String formatSold(dynamic value) {
   return getSold(value).toString().formatToFinancial(isMoneySymbol: false);
+}
+
+doShowToast(String toastMessage, ToastificationType type) {
+  toastification.show(
+    title: Text(toastMessage),
+    type: type,
+    style: ToastificationStyle.flatColored,
+    autoCloseDuration: const Duration(seconds: 2),
+  );
 }
 
 class MyAsyncDataSource extends AsyncDataTableSource {
@@ -240,10 +251,14 @@ class MyAsyncDataSource extends AsyncDataTableSource {
           tooltip: 'View Details',
           splashRadius: 18,
           onPressed: () {
-            context.router.push(ProductDashboard(
-                productId: rowData['_id'], productName: rowData['title']));
-            // Potentially call a callback passed to the source
-            // e.g., onShowDetails?.call(rowData);
+            var userinfo = JwtService().decodedToken;
+            if (userinfo?['role'] == 'admin') {
+              context.router.push(ProductDashboard(
+                  productId: rowData['_id'], productName: rowData['title']));
+            } else {
+              doShowToast(
+                  'You Cannot Access This Section', ToastificationType.info);
+            }
           },
         ),
         // Add more action buttons if needed

@@ -1,7 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
-
-import '../../helpers/providers/token_provider.dart';
 import '../../services/api.service.dart';
 
 class AddUser extends StatefulWidget {
@@ -72,7 +69,6 @@ class AddUserState extends State<AddUser> {
         'username': username.text,
         'password': password.text,
         'role': role.text,
-        'initiator': userController.text,
         'location': locations
       });
       if (response.statusCode! >= 200 && response.statusCode! <= 300) {
@@ -94,156 +90,147 @@ class AddUserState extends State<AddUser> {
 
   @override
   Widget build(BuildContext context) {
-    return Consumer<TokenNotifier>(builder: (context, tokenNotifier, child) {
-      return SingleChildScrollView(
-        child: Container(
-          decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(10),
-              color: Theme.of(context).colorScheme.surface),
-          child: Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: Form(
-              key: _formKey,
-              child: Column(
-                children: <Widget>[
-                  TextFormField(
-                    controller: firstName,
-                    decoration: InputDecoration(
-                      labelText: 'First Name *',
-                      border: OutlineInputBorder(
-                          borderRadius: BorderRadius.all(Radius.circular(5.0)),
-                          borderSide: BorderSide(color: Colors.blue)),
-                      labelStyle: TextStyle(
-                          color: Theme.of(context).hintColor, fontSize: 15),
-                    ),
-                    validator: (value) {
-                      if (value == null || value.isEmpty) {
-                        return 'Please enter the first name';
-                      }
-                      return null;
-                    },
+    return SingleChildScrollView(
+      child: Container(
+        decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(10),
+            color: Theme.of(context).colorScheme.surface),
+        child: Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: Form(
+            key: _formKey,
+            child: Column(
+              children: <Widget>[
+                TextFormField(
+                  controller: firstName,
+                  decoration: InputDecoration(
+                    labelText: 'First Name *',
+                    border: OutlineInputBorder(
+                        borderRadius: BorderRadius.all(Radius.circular(5.0)),
+                        borderSide: BorderSide(color: Colors.blue)),
+                    labelStyle: TextStyle(
+                        color: Theme.of(context).hintColor, fontSize: 15),
                   ),
-                  SizedBox(height: 10),
-                  TextFormField(
-                    controller: lastName,
-                    decoration: InputDecoration(
-                      labelText: 'Last Name *',
-                      border: OutlineInputBorder(
-                          borderRadius: BorderRadius.all(Radius.circular(5.0)),
-                          borderSide: BorderSide(color: Colors.blue)),
-                      labelStyle: TextStyle(
-                          color: Theme.of(context).hintColor, fontSize: 15),
-                    ),
-                    validator: (value) {
-                      if (value == null || value.isEmpty) {
-                        return 'Please enter the first name';
-                      }
-                      return null;
-                    },
+                  validator: (value) {
+                    if (value == null || value.isEmpty) {
+                      return 'Please enter the first name';
+                    }
+                    return null;
+                  },
+                ),
+                SizedBox(height: 10),
+                TextFormField(
+                  controller: lastName,
+                  decoration: InputDecoration(
+                    labelText: 'Last Name *',
+                    border: OutlineInputBorder(
+                        borderRadius: BorderRadius.all(Radius.circular(5.0)),
+                        borderSide: BorderSide(color: Colors.blue)),
+                    labelStyle: TextStyle(
+                        color: Theme.of(context).hintColor, fontSize: 15),
                   ),
-                  SizedBox(height: 10),
-                  TextFormField(
-                    controller: username,
-                    decoration: InputDecoration(
-                      labelText: 'Username',
-                      border: OutlineInputBorder(
-                          borderRadius: BorderRadius.all(Radius.circular(5.0)),
-                          borderSide: BorderSide(color: Colors.blue)),
-                      labelStyle: TextStyle(
-                          color: Theme.of(context).hintColor, fontSize: 15),
-                      errorText: usernameErrorMessage,
-                    ),
+                  validator: (value) {
+                    if (value == null || value.isEmpty) {
+                      return 'Please enter the first name';
+                    }
+                    return null;
+                  },
+                ),
+                SizedBox(height: 10),
+                TextFormField(
+                  controller: username,
+                  decoration: InputDecoration(
+                    labelText: 'Username',
+                    border: OutlineInputBorder(
+                        borderRadius: BorderRadius.all(Radius.circular(5.0)),
+                        borderSide: BorderSide(color: Colors.blue)),
+                    labelStyle: TextStyle(
+                        color: Theme.of(context).hintColor, fontSize: 15),
+                    errorText: usernameErrorMessage,
                   ),
-                  // SizedBox(height: 10),
-                  TextFormField(
-                    controller: password,
-                    decoration: InputDecoration(
-                      labelText: 'Password',
-                      border: OutlineInputBorder(
-                          borderRadius: BorderRadius.all(Radius.circular(5.0)),
-                          borderSide: BorderSide(color: Colors.blue)),
-                      labelStyle: TextStyle(
-                          color: Theme.of(context).hintColor, fontSize: 15),
-                    ),
+                ),
+                // SizedBox(height: 10),
+                TextFormField(
+                  controller: password,
+                  decoration: InputDecoration(
+                    labelText: 'Password',
+                    border: OutlineInputBorder(
+                        borderRadius: BorderRadius.all(Radius.circular(5.0)),
+                        borderSide: BorderSide(color: Colors.blue)),
+                    labelStyle: TextStyle(
+                        color: Theme.of(context).hintColor, fontSize: 15),
                   ),
-                  SizedBox(height: 10),
-                  DropdownMenu(
-                    width: double.infinity,
-                    initialSelection: 'No Brand',
-                    controller: role,
+                ),
+                SizedBox(height: 10),
+                DropdownMenu(
+                  width: double.infinity,
+                  initialSelection: 'No Brand',
+                  controller: role,
 
-                    requestFocusOnTap: true,
-                    label: const Text('Role'),
-                    // onSelected: (ColorLabel? color) {
-                    //   setState(() {
-                    //     selectedColor = color;
-                    //   });
-                    // },
-                    dropdownMenuEntries: [
-                      'admin',
-                      'manager',
-                      'cashier',
-                      'staff'
-                    ].map<DropdownMenuEntry<String>>((category) {
-                      return DropdownMenuEntry(
-                          value: category, label: category);
-                    }).toList(),
-                  ),
-                  SizedBox(height: 10),
-                  DropdownButtonFormField<String>(
-                    decoration: InputDecoration(
-                      labelText: 'Select Location',
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(10.0),
-                      ),
+                  requestFocusOnTap: true,
+                  label: const Text('Role'),
+                  // onSelected: (ColorLabel? color) {
+                  //   setState(() {
+                  //     selectedColor = color;
+                  //   });
+                  // },
+                  dropdownMenuEntries: ['admin', 'manager', 'cashier', 'staff']
+                      .map<DropdownMenuEntry<String>>((category) {
+                    return DropdownMenuEntry(value: category, label: category);
+                  }).toList(),
+                ),
+                SizedBox(height: 10),
+                DropdownButtonFormField<String>(
+                  decoration: InputDecoration(
+                    labelText: 'Select Location',
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(10.0),
                     ),
-                    items: branches.map<DropdownMenuItem<String>>((branch) {
-                      return DropdownMenuItem<String>(
-                        value: branch['_id']
-                            .toString(), // Assuming 'id' is the key for the value
-                        child: Text(branch[
-                            'name']), // Assuming 'name' is the key for the display text
-                      );
-                    }).toList(),
-                    onChanged: (value) {
-                      handleAddLocation(value!);
-                    },
-                    validator: (value) {
-                      if (value == null || value.isEmpty) {
-                        return 'Please select a location';
-                      }
-                      return null;
-                    },
                   ),
-                  SizedBox(height: 40),
-                  ElevatedButton(
-                    onPressed: () {
-                      userController.text =
-                          tokenNotifier.decodedToken?['username'];
-                      handleSubmit(context);
-                      if (_formKey.currentState!.validate()) {
-                        // Process data
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(
-                            content: Text(
-                              'Processing Data',
-                              style: TextStyle(
-                                  color: Theme.of(context).colorScheme.primary),
-                            ),
-                            backgroundColor:
-                                Theme.of(context).colorScheme.surface,
+                  items: branches.map<DropdownMenuItem<String>>((branch) {
+                    return DropdownMenuItem<String>(
+                      value: branch['_id']
+                          .toString(), // Assuming 'id' is the key for the value
+                      child: Text(branch[
+                          'name']), // Assuming 'name' is the key for the display text
+                    );
+                  }).toList(),
+                  onChanged: (value) {
+                    handleAddLocation(value!);
+                  },
+                  validator: (value) {
+                    if (value == null || value.isEmpty) {
+                      return 'Please select a location';
+                    }
+                    return null;
+                  },
+                ),
+                SizedBox(height: 40),
+                ElevatedButton(
+                  onPressed: () {
+                    handleSubmit(context);
+                    if (_formKey.currentState!.validate()) {
+                      // Process data
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: Text(
+                            'Processing Data',
+                            style: TextStyle(
+                                color: Theme.of(context).colorScheme.primary),
                           ),
-                        );
-                      }
-                    },
-                    child: Text('Submit'),
-                  ),
-                ],
-              ),
+                          backgroundColor:
+                              Theme.of(context).colorScheme.surface,
+                        ),
+                      );
+                    }
+                  },
+                  child: Text('Submit'),
+                ),
+              ],
             ),
           ),
         ),
-      );
-    });
+      ),
+    );
   }
 }

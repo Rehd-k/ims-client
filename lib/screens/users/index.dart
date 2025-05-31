@@ -5,7 +5,6 @@ import 'package:provider/provider.dart';
 import '../../globals/actions.dart';
 import '../../globals/sidebar.dart';
 import '../../helpers/providers/theme_notifier.dart';
-import '../../helpers/providers/token_provider.dart';
 import 'add_user.dart';
 import 'view_users.dart';
 
@@ -28,8 +27,7 @@ class UserManagementScreenState extends State<UserManagementScreen> {
   Widget build(BuildContext context) {
     double width = MediaQuery.sizeOf(context).width;
     bool smallScreen = width <= 1200;
-    return Consumer2<TokenNotifier, ThemeNotifier>(
-        builder: (context, tokenNotifier, themeNotifier, child) {
+    return Consumer<ThemeNotifier>(builder: (context, themeNotifier, child) {
       return Scaffold(
         floatingActionButton: smallScreen
             ? FloatingActionButton(
@@ -47,13 +45,13 @@ class UserManagementScreenState extends State<UserManagementScreen> {
             : null,
         appBar: AppBar(actions: [
           IconButton(onPressed: () {}, icon: Icon(Icons.add_box_outlined)),
-          ...actions(context, themeNotifier, tokenNotifier),
+          ...actions(context, themeNotifier),
           IconButton(onPressed: () {}, icon: Icon(Icons.live_help_outlined)),
         ]),
         drawer: smallScreen
             ? Drawer(
                 backgroundColor: Theme.of(context).drawerTheme.backgroundColor,
-                child: SideBar(tokenNotifier: tokenNotifier))
+                child: SideBar())
             : null,
         body: Padding(
           padding: const EdgeInsets.only(top: 10),

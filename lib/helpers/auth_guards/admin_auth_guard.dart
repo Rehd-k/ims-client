@@ -5,11 +5,10 @@ import '../../services/token.service.dart';
 
 class AdminAuthGuard extends AutoRouteGuard {
   final Map? decodedToken;
-  final JwtService _jwtService = JwtService();
   AdminAuthGuard({required this.decodedToken});
   @override
-  void onNavigation(NavigationResolver resolver, StackRouter router) async {
-    Map? decodeToken = await _jwtService.checkToken();
+  void onNavigation(NavigationResolver resolver, StackRouter router) {
+    Map? decodeToken = JwtService().decodedToken;
 
     if (decodeToken != null) {
       if (decodeToken['role'] == 'admin') {

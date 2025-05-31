@@ -47,6 +47,7 @@ final List<Map<String, dynamic>> dropDownMaps = [
   {'name': 'Price', 'field': 'price'},
   {'name': 'ROQ', 'field': 'roq'},
   {'name': 'Quantity', 'field': 'quantity'},
+  {'name': 'SKU', 'field': 'barcode'},
   {'name': 'Description', 'field': 'description'},
   {'name': 'Brand', 'field': 'brand'},
   {'name': 'Weight', 'field': 'weight'},

@@ -23,3 +23,8 @@ if sold is not 0 cant delete
 when returns is make its reducsed from the sold
 when products section of a sale is empty the sale data is or can be deleted
 pagination for data table
+
+
+-----Do This After giving first client his work-------
+1) make printer both wireless, network and bluetooth
+2) do scanner for phone

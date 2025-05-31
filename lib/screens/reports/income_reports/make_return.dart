@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
+import 'package:shelf_sense/services/token.service.dart';
 
-import '../../../helpers/providers/token_provider.dart';
 import '../../../services/api.service.dart';
 
 class MakeReturn extends StatefulWidget {
@@ -56,7 +55,7 @@ class MakeReturnState extends State<MakeReturn> {
   }
 
   void doReturns() async {
-    final userRole = context.read<TokenNotifier>().decodedToken;
+    final userRole = JwtService().decodedToken;
     if (userRole == null) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(

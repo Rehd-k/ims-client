@@ -4,7 +4,6 @@ import 'package:provider/provider.dart';
 import 'package:toastification/toastification.dart';
 
 import '../../helpers/providers/theme_notifier.dart';
-import '../../helpers/providers/token_provider.dart';
 import '../../services/api.service.dart';
 import 'addcharge.dart';
 import 'viewcharges.dart';
@@ -122,8 +121,7 @@ class ChargesScreenState extends State<ChargesScreen> {
   Widget build(BuildContext context) {
     double width = MediaQuery.sizeOf(context).width;
     bool smallScreen = width <= 1200;
-    return Consumer2<ThemeNotifier, TokenNotifier>(
-        builder: (context, themeNotifier, tokenNotifier, child) {
+    return Consumer<ThemeNotifier>(builder: (context, themeNotifier, child) {
       return Scaffold(
           appBar: AppBar(),
           floatingActionButton: FloatingActionButton(

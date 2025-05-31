@@ -241,7 +241,7 @@ class ShowDetails extends StatelessWidget {
                   child: Text('Back\nDate')),
               ElevatedButton(
                   onPressed: () async {
-                    doRePrint();
+                    doRePrint(dataList);
                   },
                   child: Text('Reprint\nReceipt')),
             ],

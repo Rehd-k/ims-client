@@ -49,6 +49,10 @@ class IncomeReportsHeader extends StatelessWidget {
                       child: Text('Tran. Id'),
                     ),
                     DropdownMenuItem(
+                      value: 'barcodeId',
+                      child: Text('Please Select'),
+                    ),
+                    DropdownMenuItem(
                       value: 'handler',
                       child: Text('handler'),
                     ),

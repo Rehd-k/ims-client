@@ -46,13 +46,17 @@ dependencies:
   intl: ^0.20.1
   modal_bottom_sheet: ^3.0.0
   infinite_scroll_pagination: ^5.0.0
-  fluttertoast: ^8.2.12
   lottie: ^3.3.1
   flutter_native_splash: ^2.4.4
   flutter_launcher_icons: ^0.14.3
   toastification: ^3.0.2
   flutter_thermal_printer: ^1.1.0
   simple_barcode_scanner: ^0.3.0
+  esc_pos_utils_plus: ^2.0.4
+  qr_flutter: ^4.1.0
+  path_provider: ^2.1.5
+  image: ^4.5.4
+  auto_updater: ^1.0.0
 
 dev_dependencies:
   flutter_test:

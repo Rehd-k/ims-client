@@ -1,19 +1,24 @@
 import 'dart:async';
 import 'dart:ui';
 
+// import 'package:auto_updater/auto_updater.dart';
 import 'package:flutter/material.dart';
-import 'package:fluttertoast/fluttertoast.dart';
 import 'package:provider/provider.dart';
+import 'package:toastification/toastification.dart';
 
 import 'app.dart';
 import 'helpers/providers/theme_notifier.dart';
-import 'helpers/providers/token_provider.dart';
 import 'services/navigation.service.dart';
 
 void main() async {
 // Handle Asynchronous Errors
   runZonedGuarded(() async {
     WidgetsFlutterBinding.ensureInitialized();
+
+    // String feedURL = 'http://localhost:4000/appcast.xml';
+    // await autoUpdater.setFeedURL(feedURL);
+    // await autoUpdater.checkForUpdates();
+    // await autoUpdater.setScheduledCheckInterval(3600);
 
     // Catch Flutter framework (widget tree) errors
     FlutterError.onError = (FlutterErrorDetails details) {
@@ -22,7 +27,7 @@ void main() async {
       final errorString = details.exceptionAsString();
       final isNonCritical = _isNonCriticalError(errorString);
       if (isNonCritical) {
-        _showToast('Error: $errorString');
+        _showToast('Error: $errorString', ToastificationType.error);
       } else {
         NavigationService.goToErrorPage({'message': errorString}, null);
       }
@@ -36,7 +41,7 @@ void main() async {
       final isNonCritical = _isNonCriticalError(errorString);
 
       if (isNonCritical) {
-        _showToast('Error: $errorString');
+        _showToast('Error: $errorString', ToastificationType.error);
       } else {
         NavigationService.goToErrorPage({'message': errorString}, null);
       }
@@ -44,17 +49,17 @@ void main() async {
       return true; // prevent app crash
     };
 
-    runApp(MultiProvider(providers: [
-      ChangeNotifierProvider(create: (_) => ThemeNotifier()),
-      ChangeNotifierProvider(create: (_) => TokenNotifier()..tryAutoLogin())
-    ], child: MyApp()));
+    runApp(ChangeNotifierProvider(
+      create: (_) => ThemeNotifier(),
+      child: MyApp(),
+    ));
   }, (error, stack) {
     final errorString = error.toString();
     final isNonCritical = _isNonCriticalError(errorString);
     debugPrint(errorString);
     debugPrint(stack.toString());
     if (isNonCritical) {
-      _showToast('Error: $errorString');
+      _showToast('Error: $errorString', ToastificationType.error);
     } else {
       NavigationService.goToErrorPage({'message': errorString}, null);
     }
@@ -69,14 +74,11 @@ bool _isNonCriticalError(String error) {
       error.contains('RenderFlex');
 }
 
-void _showToast(String message) {
-  Fluttertoast.showToast(
-    msg: message,
-    toastLength: Toast.LENGTH_SHORT,
-    gravity: ToastGravity.BOTTOM,
-    timeInSecForIosWeb: 3,
-    backgroundColor: Colors.black87,
-    textColor: Colors.white,
-    fontSize: 14.0,
+_showToast(String toastMessage, ToastificationType type) {
+  toastification.show(
+    title: Text(toastMessage),
+    type: type,
+    style: ToastificationStyle.flatColored,
+    autoCloseDuration: const Duration(seconds: 2),
   );
 }

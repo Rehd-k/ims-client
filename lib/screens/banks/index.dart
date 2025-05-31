@@ -5,7 +5,6 @@ import 'package:provider/provider.dart';
 import '../../globals/actions.dart';
 import '../../globals/sidebar.dart';
 import '../../helpers/providers/theme_notifier.dart';
-import '../../helpers/providers/token_provider.dart';
 import 'add_bank.dart';
 import 'view_banks.dart';
 
@@ -28,8 +27,7 @@ class BankScreenState extends State<BankScreen> {
   Widget build(BuildContext context) {
     double width = MediaQuery.sizeOf(context).width;
     bool smallScreen = width <= 1200;
-    return Consumer2<ThemeNotifier, TokenNotifier>(
-        builder: (context, themeNotifier, tokenNotifier, child) {
+    return Consumer<ThemeNotifier>(builder: (context, themeNotifier, child) {
       return Scaffold(
           floatingActionButton: smallScreen
               ? FloatingActionButton(
@@ -46,13 +44,13 @@ class BankScreenState extends State<BankScreen> {
                   child: Icon(Icons.add_outlined))
               : null,
           appBar: AppBar(
-            actions: [...actions(context, themeNotifier, tokenNotifier)],
+            actions: [...actions(context, themeNotifier)],
           ),
           drawer: smallScreen
               ? Drawer(
                   backgroundColor:
                       Theme.of(context).drawerTheme.backgroundColor,
-                  child: SideBar(tokenNotifier: tokenNotifier))
+                  child: SideBar())
               : null,
           body: Padding(
             padding: const EdgeInsets.all(8.0),

@@ -1,51 +1,21 @@
-import 'package:shared_preferences/shared_preferences.dart';
 import 'package:jwt_decoder/jwt_decoder.dart';
 
+import 'settings.service.dart';
+
 class JwtService {
-  static const String _tokenKey = 'access_token';
+  static final JwtService _instance = JwtService._internal();
 
-  // Save token to local storage
-  Future<void> saveToken(String token) async {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setString(_tokenKey, token);
-  }
+  factory JwtService() => _instance;
 
-  // Retrieve token from local storage
-  Future<String?> getToken() async {
-    final prefs = await SharedPreferences.getInstance();
-    return prefs.getString(_tokenKey);
-  }
+  JwtService._internal();
 
-  Future<Map<String, dynamic>?> checkToken() async {
-    final prefs = await SharedPreferences.getInstance();
-    String? token = prefs.getString(_tokenKey);
+  String? token;
 
-    if (token != null) {
-      if (JwtDecoder.isExpired(token)) {
-        // Token is expired
-        await prefs.remove('jwt_token');
-        return null;
-      } else {
-        // Token is valid, return decoded token
-        return JwtDecoder.decode(token);
-      }
-    }
-    return null;
-  }
+  set setToken(String? value) => token = value;
 
-  // Decode JWT to extract user data
-  Map<String, dynamic> decodeToken(String token) {
-    return JwtDecoder.decode(token);
-  }
+  bool get isLoggedIn => token != null;
 
-  // Check if token is expired
-  bool isTokenExpired(String token) {
-    return JwtDecoder.isExpired(token);
-  }
+  void logout() => {SettingsService().removeSettings(), token = null};
 
-  // Clear token (for logout)
-  Future<void> clearToken() async {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.remove(_tokenKey);
-  }
+  Map? get decodedToken => token != null ? JwtDecoder.decode(token!) : {};
 }

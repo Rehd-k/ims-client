@@ -1,99 +1,52 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
-import 'package:toastification/toastification.dart';
 
 import '../../components/tables/gen_big_table/big_table.dart';
 import '../../components/tables/gen_big_table/big_table_source.dart';
-import '../../helpers/providers/token_provider.dart';
+
 import '../../services/api.service.dart';
 import 'table_column.dart';
 
-class ViewProducts extends StatefulWidget {
-  final TokenNotifier tokenNotifier;
-  const ViewProducts({super.key, required this.tokenNotifier});
+class ViewProducts extends StatelessWidget {
+  final String searchFeild;
+  final String searchQuery;
+  final String selectedCategory;
+  final String initialSort;
+  final bool isLoading;
+  final ApiService apiService;
+  final List categories;
+  final List<ColumnDefinition> columnDefinitions;
+  final Function setSelectField;
+  final Function submitSearch;
+  final Function onSearchChanged;
+  final Function setSelectedCategory;
+  final TextEditingController categoryController;
+  final TextEditingController searchController;
+  final List<TableDataModel> selectedRows;
+  final Function handleSelectedRows;
+  final JsonEncoder jsonEncoder;
+  final int rowsPerPage;
 
-  @override
-  ViewProductsState createState() => ViewProductsState();
-}
-
-class ViewProductsState extends State<ViewProducts> {
-  final apiService = ApiService();
-  final JsonEncoder jsonEncoder = JsonEncoder();
-  final TextEditingController _searchController = TextEditingController();
-  late List filteredProducts;
-  late List products;
-  bool isLoading = true;
-  String initialSort = 'title';
-  int rowsPerPage = PaginatedDataTable.defaultRowsPerPage;
-  String _searchQuery = "";
-  String searchFeild = 'title';
-  String selectedCategory = "";
-  List categories = [];
-
-  List<TableDataModel> _selectedRows = [];
-
-  printSelected() {
-    debugPrint(_selectedRows.toString());
-  }
-
-  // Convert maps to ColumnDefinition objects
-  late List<ColumnDefinition> _columnDefinitions;
-
-  @override
-  void initState() {
-    super.initState();
-    getCategories();
-    _columnDefinitions = columnDefinitionMaps
-        .map((map) => ColumnDefinition.fromMap(map))
-        .toList();
-  }
-
-  // --- Handler for submitting search (e.g., on button press or text field submit) ---
-  void _submitSearch() {
-    // Trigger rebuild only if the query actually changed
-    if (_searchQuery != _searchController.text.trim()) {
-      setState(() {
-        _searchQuery = _searchController.text.trim();
-        // The setState call will trigger didUpdateWidget in the child table
-      });
-    }
-  }
-
-  void _onSearchChanged() {
-    if (_searchQuery != _searchController.text) {
-      Future.delayed(const Duration(milliseconds: 300), () {
-        if (_searchQuery != _searchController.text) {
-          setState(() {
-            _searchQuery = _searchController.text;
-          });
-        }
-      });
-    }
-  }
-
-  doShowToast(String toastMessage, ToastificationType type) {
-    toastification.show(
-      title: Text(toastMessage),
-      type: type,
-      style: ToastificationStyle.flatColored,
-      autoCloseDuration: const Duration(seconds: 2),
-    );
-  }
-
-  @override
-  void dispose() {
-    // _selectedRowsNotifier.dispose();
-    _searchController.dispose(); // Dispose the controller
-    super.dispose();
-  }
-
-  void getCategories() async {
-    var dbCategories = await apiService.getRequest('category');
-    setState(() {
-      categories = dbCategories.data;
-      isLoading = false;
-    });
-  }
+  const ViewProducts(
+      {super.key,
+      required this.searchFeild,
+      required this.searchQuery,
+      required this.categoryController,
+      required this.isLoading,
+      required this.apiService,
+      required this.categories,
+      required this.setSelectField,
+      required this.submitSearch,
+      required this.onSearchChanged,
+      required this.setSelectedCategory,
+      required this.columnDefinitions,
+      required this.selectedCategory,
+      required this.initialSort,
+      required this.selectedRows,
+      required this.handleSelectedRows,
+      required this.jsonEncoder,
+      required this.searchController,
+      required this.rowsPerPage});
 
   Future<Map<String, dynamic>> _fetchServerData({
     required int offset,
@@ -105,7 +58,7 @@ class ViewProductsState extends State<ViewProducts> {
         .convert({"$sortField": (sortAscending ?? true) ? 'asc' : 'desc'});
 
     var dbproducts = await apiService.getRequest(
-        'products?filter={"$searchFeild" : {"\$regex" : "${_searchQuery.toLowerCase()}"}, "category" :  {"\$regex" : "${selectedCategory.toLowerCase()}"}}&skip=$offset&limit=$limit&sort=$sorting');
+        'products?filter={"$searchFeild" : {"\$regex" : "${searchQuery.toLowerCase()}"}, "category" :  {"\$regex" : "${categoryController.text.toLowerCase()}"}}&skip=$offset&limit=$limit&sort=$sorting');
 
     var {'products': products, 'totalDocuments': totalDocuments} =
         dbproducts.data;
@@ -115,7 +68,6 @@ class ViewProductsState extends State<ViewProducts> {
     // --- Pagination Logic (Mock) ---
     final totalRows = totalDocuments;
     final paginatedData = data.toList();
-
     return {
       'rows': paginatedData, // Return the list of maps
       'totalRows': totalRows,
@@ -125,78 +77,62 @@ class ViewProductsState extends State<ViewProducts> {
 
   @override
   Widget build(BuildContext context) {
+    double width = MediaQuery.sizeOf(context).width;
+    bool smallScreen = width <= 1200;
     return Column(children: [
       // --- Add Filter UI Elements ---
-      LayoutBuilder(
-        builder: (context, constraints) {
-          bool isSmallScreen = constraints.maxWidth < 600;
-          return Flex(
-            direction: isSmallScreen ? Axis.vertical : Axis.horizontal,
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const SizedBox(height: 10),
-              Flexible(
-                flex: isSmallScreen ? 0 : 1,
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    DropdownButton<String>(
-                      value: searchFeild,
-                      hint: const Text('Search Field'),
-                      items: dropDownMaps
-                          .map((field) => DropdownMenuItem<String>(
-                                value: field['field'],
-                                child: Text(field['name']),
-                              ))
-                          .toList(),
+      const SizedBox(height: 10),
+      smallScreen
+          ? Column(
+              children: [
+                DropdownButton<String>(
+                  value: searchFeild,
+                  hint: const Text('Search Field'),
+                  items: dropDownMaps
+                      .map((field) => DropdownMenuItem<String>(
+                            value: field['field'],
+                            child: Text(field['name']),
+                          ))
+                      .toList(),
+                  onChanged: (value) {
+                    setSelectField(value);
+                  },
+                ),
+                TextField(
+                  controller: searchController,
+                  decoration: const InputDecoration(
+                    labelText: 'Search',
+                    border: OutlineInputBorder(),
+                  ),
+                  onSubmitted: (_) => submitSearch(),
+                  onChanged: (_) => onSearchChanged(),
+                ),
+                const SizedBox(height: 10),
+                Row(children: [
+                  Expanded(
+                    child: DropdownButton<String>(
+                      value: selectedCategory.isEmpty ? null : selectedCategory,
+                      hint: const Text('Select Category'),
+                      items: [
+                        DropdownMenuItem<String>(
+                          value: '',
+                          child: Text(''),
+                        ),
+                        ...categories
+                            .map((category) => DropdownMenuItem<String>(
+                                  value: category['title'],
+                                  child: Text(category['title']),
+                                ))
+                      ],
                       onChanged: (value) {
-                        setState(() {
-                          searchFeild = value ?? "";
-                        });
+                        setSelectedCategory(value);
                       },
                     ),
-                    const SizedBox(height: 10),
-                    TextField(
-                      controller: _searchController,
-                      decoration: const InputDecoration(
-                        labelText: 'Search',
-                        border: OutlineInputBorder(),
-                      ),
-                      onSubmitted: (_) => _submitSearch(),
-                      onChanged: (_) => _onSearchChanged(),
-                    ),
-                  ],
-                ),
-              ),
-              Flexible(
-                flex: isSmallScreen ? 0 : 1,
-                child: Center(
-                  child: DropdownButton<String>(
-                    value: selectedCategory.isEmpty ? null : selectedCategory,
-                    hint: const Text('Select Category'),
-                    items: [
-                      DropdownMenuItem<String>(
-                        value: '',
-                        child: Text(''),
-                      ),
-                      ...categories.map((category) => DropdownMenuItem<String>(
-                            value: category['title'],
-                            child: Text(category['title']),
-                          ))
-                    ],
-                    onChanged: (value) {
-                      setState(() {
-                        selectedCategory = value ?? "";
-                      });
-                    },
                   ),
-                ),
-              ),
-            ],
-          );
-        },
-      ),
+                ]),
+              ],
+            )
+          : SizedBox(),
       Expanded(
         child: isLoading
             ? Center(
@@ -204,10 +140,10 @@ class ViewProductsState extends State<ViewProducts> {
                     width: 40, height: 40, child: CircularProgressIndicator()),
               )
             : ReusableAsyncPaginatedDataTable(
-                columnDefinitions: _columnDefinitions, // Pass definitions
+                columnDefinitions: columnDefinitions, // Pass definitions
                 fetchDataCallback: _fetchServerData,
                 onSelectionChanged: (selected) {
-                  _selectedRows = selected;
+                  handleSelectedRows(selected);
                 },
                 header: const Text('Products'),
                 initialSortField: initialSort,

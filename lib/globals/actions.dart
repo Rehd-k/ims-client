@@ -3,12 +3,9 @@ import 'package:flutter/material.dart';
 
 import '../app_router.gr.dart';
 import '../helpers/providers/theme_notifier.dart';
-import '../helpers/providers/token_provider.dart';
 import '../services/token.service.dart';
 
-List<Widget> actions(BuildContext context, ThemeNotifier themeNotifier,
-    TokenNotifier tokenNotifier) {
-  JwtService jwtService = JwtService();
+List<Widget> actions(BuildContext context, ThemeNotifier themeNotifier) {
   return [
     IconButton(
       icon: const Icon(Icons.light_mode_outlined),
@@ -23,8 +20,7 @@ List<Widget> actions(BuildContext context, ThemeNotifier themeNotifier,
     IconButton(
       icon: const Icon(Icons.logout_outlined),
       onPressed: () {
-        jwtService.clearToken();
-        tokenNotifier.logout();
+        JwtService().logout();
         context.replaceRoute(LoginRoute());
       },
     ),
