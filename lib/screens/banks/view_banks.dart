@@ -37,11 +37,9 @@ class ViewBanksState extends State<ViewBanks> {
     setState(() {
       isLoading = true;
     });
-    var dbbanks = await apiService.getRequest(
-      'bank?skip=${banks.length}',
-    );
+    var dbbanks = await apiService.getRequest('banks');
     setState(() {
-      banks.addAll(dbbanks.data);
+      banks = dbbanks.data;
       filteredBanks = List.from(banks);
       isLoading = false;
     });
@@ -82,6 +80,16 @@ class ViewBanksState extends State<ViewBanks> {
       default:
         return 0;
     }
+  }
+
+  Future deleteBank(String id) async {
+    await apiService.deleteRequest('banks/$id');
+
+    setState(() {
+      banks.removeWhere((bank) => bank['_id'] == id);
+      filteredBanks = List.from(banks);
+      isLoading = false;
+    });
   }
 
   @override
@@ -171,7 +179,10 @@ class ViewBanksState extends State<ViewBanks> {
               ),
               DataColumn2(label: Text('Actions'))
             ],
-            source: BanksDataSource(banks: getFilteredAndSortedRows()),
+            source: BanksDataSource(
+                banks: getFilteredAndSortedRows(),
+                deleteBank: deleteBank,
+                context: context),
             border: TableBorder(
               horizontalInside: BorderSide.none,
               verticalInside: BorderSide.none,
@@ -207,13 +218,16 @@ class ViewBanksState extends State<ViewBanks> {
 
 class BanksDataSource extends DataTableSource {
   final List banks;
+  final Function deleteBank;
+  final BuildContext context;
 
   String formatDate(String isoDate) {
     final DateTime parsedDate = DateTime.parse(isoDate);
     return DateFormat('dd-MM-yyyy').format(parsedDate);
   }
 
-  BanksDataSource({required this.banks});
+  BanksDataSource(
+      {required this.banks, required this.deleteBank, required this.context});
 
   @override
   DataRow? getRow(int index) {
@@ -231,11 +245,14 @@ class BanksDataSource extends DataTableSource {
         DataCell(Row(
           mainAxisAlignment: MainAxisAlignment.spaceAround,
           children: [
-            IconButton.outlined(
-                tooltip: 'Update', onPressed: () {}, icon: Icon(Icons.edit)),
-            IconButton.outlined(
-                onPressed: () {},
-                icon: Icon(Icons.delete_forever_outlined),
+            // IconButton.outlined(
+            //     tooltip: 'Update', onPressed: () {}, icon: Icon(Icons.edit)),
+            IconButton(
+                onPressed: () {
+                  deleteBank(bank['_id']);
+                },
+                icon: Icon(Icons.delete_forever_outlined,
+                    color: Theme.of(context).colorScheme.primary),
                 tooltip: 'Delete'),
           ],
         ))

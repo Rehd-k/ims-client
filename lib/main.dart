@@ -1,7 +1,8 @@
 import 'dart:async';
 import 'dart:ui';
 
-// import 'package:auto_updater/auto_updater.dart';
+import 'package:auto_updater/auto_updater.dart';
+
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:toastification/toastification.dart';
@@ -15,10 +16,8 @@ void main() async {
   runZonedGuarded(() async {
     WidgetsFlutterBinding.ensureInitialized();
 
-    // String feedURL = 'http://localhost:4000/appcast.xml';
-    // await autoUpdater.setFeedURL(feedURL);
-    // await autoUpdater.checkForUpdates();
-    // await autoUpdater.setScheduledCheckInterval(3600);
+    String feedURL = 'https://vessellabs.org/shelfsense/ifite/appcast.xml';
+    await autoUpdater.setFeedURL(feedURL);
 
     // Catch Flutter framework (widget tree) errors
     FlutterError.onError = (FlutterErrorDetails details) {

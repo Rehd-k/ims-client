@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:shelf_sense/services/token.service.dart';
+import 'package:toastification/toastification.dart';
 
 import '../../components/tables/gen_big_table/big_table_source.dart';
 import '../../globals/actions.dart';
@@ -27,6 +28,10 @@ class ProductsIndexState extends State<ProductsIndex> {
   final apiService = ApiService();
   final StringBuffer buffer = StringBuffer();
   final TextEditingController _searchController = TextEditingController();
+
+  final FocusNode _scannerFocusNode = FocusNode();
+  final FocusNode _searchFocusNode = FocusNode();
+
   final categoryController = TextEditingController();
   late List<ColumnDefinition> _columnDefinitions;
   final JsonEncoder jsonEncoder = JsonEncoder();
@@ -38,6 +43,7 @@ class ProductsIndexState extends State<ProductsIndex> {
   List<TableDataModel> selectedRows = [];
   String _searchQuery = '';
   String? barcodeHolder;
+  bool _scannerActive = true;
   int rowsPerPage = PaginatedDataTable.defaultRowsPerPage;
   void getCategories() async {
     var dbCategories = await apiService.getRequest('category');
@@ -89,13 +95,20 @@ class ProductsIndexState extends State<ProductsIndex> {
 
   handleShowModal(barcode) {
     showModalBottomSheet(
-      isScrollControlled: true,
-      context: context,
+      enableDrag: true,
+      // Close the modal when tapping outside or inside AddProducts
+      isDismissible: true,
+      // Pass a callback to AddProducts to close the modal on click
       builder: (context) => Container(
         height: MediaQuery.of(context).size.height * 1,
         padding: const EdgeInsets.all(8.0),
-        child: AddProducts(barcode: barcode),
+        child: AddProducts(
+          barcode: barcode,
+          onClose: () => Navigator.of(context).pop(),
+        ),
       ),
+      isScrollControlled: true,
+      context: context,
     );
   }
 
@@ -105,6 +118,9 @@ class ProductsIndexState extends State<ProductsIndex> {
     _columnDefinitions = columnDefinitionMaps
         .map((map) => ColumnDefinition.fromMap(map))
         .toList();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _scannerFocusNode.requestFocus();
+    });
     super.initState();
   }
 
@@ -115,8 +131,12 @@ class ProductsIndexState extends State<ProductsIndex> {
     var {'products': products, 'totalDocuments': _} = dbproducts.data;
 
     if (products.length < 1) {
-      barcodeHolder = barcode;
-      handleShowModal(barcode);
+      if (JwtService().decodedToken?['role'] != 'admin') {
+        doShowToast('Product Dossnt Exist', ToastificationType.info);
+      } else {
+        barcodeHolder = barcode;
+        handleShowModal(barcode);
+      }
     } else {
       setState(() {
         searchFeild = 'barcode';
@@ -128,8 +148,21 @@ class ProductsIndexState extends State<ProductsIndex> {
   @override
   void dispose() {
     categoryController.dispose();
+    _scannerFocusNode.dispose();
+    _searchFocusNode.dispose();
     _searchController.dispose(); // Dispose the controller
     super.dispose();
+  }
+
+  void _toggleFocus() {
+    setState(() {
+      _scannerActive = !_scannerActive;
+      if (_scannerActive) {
+        _scannerFocusNode.requestFocus();
+      } else {
+        _searchFocusNode.requestFocus();
+      }
+    });
   }
 
   @override
@@ -152,6 +185,7 @@ class ProductsIndexState extends State<ProductsIndex> {
                       child: Row(children: [
                       SizedBox(width: 10),
                       Expanded(
+                        flex: 4,
                         child: DropdownButton<String>(
                           value: searchFeild,
                           hint: Text(
@@ -176,45 +210,64 @@ class ProductsIndexState extends State<ProductsIndex> {
                       ),
                       SizedBox(width: 10),
                       Expanded(
+                        flex: 4,
                         child: TextField(
-                          controller: _searchController,
-                          decoration: const InputDecoration(
-                            labelText: 'Search',
-                            border: OutlineInputBorder(),
-                          ),
-                          onSubmitted: (_) => _submitSearch(),
-                          onChanged: (_) => _onSearchChanged(),
-                        ),
+                            focusNode: _searchFocusNode,
+                            controller: _searchController,
+                            decoration: const InputDecoration(
+                              labelText: 'Search',
+                              border: OutlineInputBorder(),
+                            ),
+                            onSubmitted: (_) => _submitSearch(),
+                            onChanged: (_) => _onSearchChanged(),
+                            onEditingComplete: () {
+                              // Optional: return to scanner after search
+                              if (_scannerActive) {
+                                _scannerFocusNode.requestFocus();
+                              }
+                            }),
                       ),
                       SizedBox(width: 10),
                       Expanded(
+                          flex: 4,
                           child: DropdownButton<String>(
-                        value:
-                            selectedCategory.isEmpty ? null : selectedCategory,
-                        hint: Text(
-                          'Select Category',
-                          style: TextStyle(
-                            color: Theme.of(context).colorScheme.surface,
-                          ),
-                        ),
-                        items: [
-                          DropdownMenuItem<String>(
-                            value: '',
-                            child: Text(''),
-                          ),
-                          ...categories
-                              .map((category) => DropdownMenuItem<String>(
-                                    value: category['title'],
-                                    child: Text(category['title'],
-                                        style: TextStyle(color: Colors.blue)),
-                                  ))
-                        ],
-                        onChanged: (value) {
-                          setState(() {
-                            selectedCategory = value ?? "";
-                          });
-                        },
-                      )),
+                            value: selectedCategory.isEmpty
+                                ? null
+                                : selectedCategory,
+                            hint: Text(
+                              'Select Category',
+                              style: TextStyle(
+                                color: Theme.of(context).colorScheme.surface,
+                              ),
+                            ),
+                            items: [
+                              DropdownMenuItem<String>(
+                                value: '',
+                                child: Text(''),
+                              ),
+                              ...categories
+                                  .map((category) => DropdownMenuItem<String>(
+                                        value: category['title'],
+                                        child: Text(category['title'],
+                                            style:
+                                                TextStyle(color: Colors.blue)),
+                                      ))
+                            ],
+                            onChanged: (value) {
+                              setState(() {
+                                selectedCategory = value ?? "";
+                              });
+                            },
+                          )),
+                      ElevatedButton.icon(
+                        icon: Icon(_scannerActive
+                            ? Icons.search
+                            : Icons.barcode_reader),
+                        label: Text(_scannerActive
+                            ? "Switch to Search"
+                            : "Switch to Scanner"),
+                        onPressed: _toggleFocus,
+                      ),
                     ]))
                   : SizedBox.shrink(),
               JwtService().decodedToken!['role'] == 'cashier'
@@ -234,8 +287,9 @@ class ProductsIndexState extends State<ProductsIndex> {
                   child: SideBar())
               : null,
           body: KeyboardListener(
-              focusNode: FocusNode()..requestFocus(),
+              focusNode: _scannerFocusNode,
               onKeyEvent: (event) async {
+                if (!_scannerActive) return;
                 if (event is KeyDownEvent) {
                   // Collect barcode characters
                   buffer.write(event.character ?? '');

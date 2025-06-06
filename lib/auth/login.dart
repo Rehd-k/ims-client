@@ -5,6 +5,7 @@ import 'package:shelf_sense/services/settings.service.dart';
 import 'package:toastification/toastification.dart';
 
 import '../app_router.gr.dart';
+import '../globals/sidebar.dart';
 import '../services/api.service.dart';
 import '../services/token.service.dart';
 import 'form.dart';
@@ -19,6 +20,7 @@ class LoginScreen extends StatefulWidget {
 }
 
 class _LoginFormState extends State<LoginScreen> {
+  final GlobalKey<SideBarState> _sidebarKey = GlobalKey<SideBarState>();
   final _formKey = GlobalKey<FormState>();
   final TextEditingController _userController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
@@ -103,6 +105,7 @@ class _LoginFormState extends State<LoginScreen> {
         if (!mounted) return;
         SettingsService().setSettings = openBranch;
         JwtService().setToken = token;
+        _sidebarKey.currentState?.doMenuReload();
         setState(() {
           loggedIn = true;
         });

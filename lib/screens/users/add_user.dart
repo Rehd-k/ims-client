@@ -164,17 +164,11 @@ class AddUserState extends State<AddUser> {
                 SizedBox(height: 10),
                 DropdownMenu(
                   width: double.infinity,
-                  initialSelection: 'No Brand',
+                  initialSelection: 'cashier',
                   controller: role,
-
                   requestFocusOnTap: true,
                   label: const Text('Role'),
-                  // onSelected: (ColorLabel? color) {
-                  //   setState(() {
-                  //     selectedColor = color;
-                  //   });
-                  // },
-                  dropdownMenuEntries: ['admin', 'manager', 'cashier', 'staff']
+                  dropdownMenuEntries: ['admin', 'cashier']
                       .map<DropdownMenuEntry<String>>((category) {
                     return DropdownMenuEntry(value: category, label: category);
                   }).toList(),

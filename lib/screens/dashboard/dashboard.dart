@@ -129,24 +129,6 @@ class DashboardState extends State<DashboardScreen> {
                     SizedBox(height: 20),
                     Financialsummary(salesData: dashboardInfo[4]),
                     SizedBox(height: 20),
-                    // Container(
-                    //   padding: EdgeInsets.symmetric(vertical: 5),
-                    //   child: Row(
-                    //     mainAxisAlignment: MainAxisAlignment.spaceAround,
-                    //     children: [
-                    //       Text(
-                    //         'Powered by Vessel-Labs',
-                    //         style: TextStyle(
-                    //             fontSize: 14, fontWeight: FontWeight.w500),
-                    //       ),
-                    //       Text(
-                    //         'Reserved @ ${DateTime.now().year}',
-                    //         style: TextStyle(
-                    //             fontSize: 14, fontWeight: FontWeight.w500),
-                    //       ),
-                    //     ],
-                    //   ),
-                    // )
                   ]),
                 )),
       );

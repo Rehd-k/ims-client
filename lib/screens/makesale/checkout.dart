@@ -9,6 +9,7 @@ import 'package:toastification/toastification.dart';
 
 import '../../helpers/financial_string_formart.dart';
 import '../../services/api.service.dart';
+import '../../services/defaultprinter.service.dart';
 import '../../services/printer.service.dart';
 import '../../services/receipt_holder.dart';
 import '../customers/add_customer.dart';
@@ -102,7 +103,10 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
       );
       setState(() {
         banks = dbbanks.data;
-        bank = banks[0];
+        if (banks.isNotEmpty) {
+          bank = banks[0];
+        }
+
         isBankLoading = false;
       });
     } else {
@@ -127,7 +131,9 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
     setState(() {
       charges = response.data;
       isChargesLoading = false;
-      charge = charges[0];
+      if (charges.isNotEmpty) {
+        charge = charges[0];
+      }
     });
   }
 
@@ -315,7 +321,13 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                                       final profile =
                                           await CapabilityProfile.load();
                                       _printerService.printData(
-                                          _printerService.printers[0],
+                                          _printerService.printers.firstWhere(
+                                            (printer) =>
+                                                printer.name ==
+                                                getDefaultPrinter(),
+                                            orElse: () =>
+                                                _printerService.printers[0],
+                                          ),
                                           generateReceipt(
                                               PaperSize.mm58,
                                               profile,
@@ -323,11 +335,11 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                                               SettingsService().settings));
                                     },
                                     child: Text('Print Receipt')),
-                                OutlinedButton(
-                                    onPressed: () {
-                                      saveReceipt();
-                                    },
-                                    child: Text('Send Receipt'))
+                                // OutlinedButton(
+                                //     onPressed: () {
+                                //       saveReceipt();
+                                //     },
+                                //     child: Text('Send Receipt'))
                               ],
                             )
                           : ElevatedButton(

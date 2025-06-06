@@ -1,7 +1,6 @@
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:toastification/toastification.dart';
 
 import '../../helpers/providers/theme_notifier.dart';
 import '../../services/api.service.dart';
@@ -26,17 +25,7 @@ class ChargesScreenState extends State<ChargesScreen> {
 
   final amountController = TextEditingController();
 
-  doShowToast(String toastMessage, ToastificationType type) {
-    toastification.show(
-      title: Text(toastMessage),
-      type: type,
-      style: ToastificationStyle.flatColored,
-      autoCloseDuration: const Duration(seconds: 2),
-    );
-  }
-
   Future<void> handleSubmit() async {
-    doShowToast('Creating charge...', ToastificationType.info);
     try {
       final dynamic response = await apiService.postRequest('/charges', {
         'title': titleController.text,
@@ -76,11 +65,20 @@ class ChargesScreenState extends State<ChargesScreen> {
       isLoading = true;
     });
     var dbcharges = await apiService.getRequest(
-      'charges?skip=${charges.length}',
+      'charges',
     );
-    doShowToast('Done', ToastificationType.success);
+
     setState(() {
-      charges.addAll(dbcharges.data);
+      charges = dbcharges.data;
+      filteredCharges = List.from(charges);
+      isLoading = false;
+    });
+  }
+
+  Future deleteCharge(String id) async {
+    await apiService.deleteRequest('charges/$id');
+    setState(() {
+      charges.removeWhere((bank) => bank['_id'] == id);
       filteredCharges = List.from(charges);
       isLoading = false;
     });
@@ -166,6 +164,7 @@ class ChargesScreenState extends State<ChargesScreen> {
                     ascending: ascending,
                     filterCharges: filterCharges,
                     getFilteredAndSortedRows: getFilteredAndSortedRows,
+                    deleteCharge: deleteCharge,
                   ),
                 ),
               ],

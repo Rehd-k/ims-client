@@ -43,7 +43,7 @@ class PrinterService {
       printers
           .removeWhere((element) => element.name == null || element.name == '');
 
-      log(event.map((e) => e.name).toList().toString());
+      // log(event.map((e) => e.address).toList().toString());
     });
   }
 

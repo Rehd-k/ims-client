@@ -1,4 +1,5 @@
 import 'package:auto_route/auto_route.dart';
+import 'package:auto_updater/auto_updater.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 
@@ -148,6 +149,10 @@ class SideBarState extends State<SideBar> {
   @override
   void initState() {
     super.initState();
+    doMenuReload();
+  }
+
+  void doMenuReload() {
     if (JwtService().decodedToken?['role'] == 'admin') {
       menuData = fullMenu;
     } else if (JwtService().decodedToken?['role'] == 'cashier') {
@@ -305,6 +310,19 @@ class SideBarState extends State<SideBar> {
                 );
               }),
         ),
+        Divider(
+          color: Theme.of(context).colorScheme.primary.withAlpha(50),
+          height: 1,
+          thickness: 1,
+        ),
+        InkWell(
+            onTap: () async {
+              await autoUpdater.checkForUpdates();
+            },
+            child: SizedBox(
+                width: double.infinity,
+                height: 54,
+                child: Center(child: Text('Check For Update'))))
       ]);
     } else {
       return Center(

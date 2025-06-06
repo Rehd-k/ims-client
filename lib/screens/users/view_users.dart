@@ -111,6 +111,15 @@ class ViewUsersState extends State<ViewUsers> {
     }
   }
 
+  Future deleteUser(String id) async {
+    await apiService.deleteRequest('user/$id');
+    setState(() {
+      users.removeWhere((bank) => bank['_id'] == id);
+      getFilteredAndSortedRows();
+      isLoading = false;
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     double width = MediaQuery.sizeOf(context).width;
@@ -263,7 +272,8 @@ class ViewUsersState extends State<ViewUsers> {
               ),
               DataColumn2(label: Text('Actions'))
             ],
-            source: UserDataSource(users: filteredUsers, context: context),
+            source: UserDataSource(
+                users: filteredUsers, context: context, deleteUser: deleteUser),
             border: TableBorder(
               horizontalInside: BorderSide.none,
               verticalInside: BorderSide.none,
@@ -304,13 +314,15 @@ class ViewUsersState extends State<ViewUsers> {
 class UserDataSource extends DataTableSource {
   final List users;
   final BuildContext context;
+  final Function deleteUser;
 
   String formatDate(String isoDate) {
     final DateTime parsedDate = DateTime.parse(isoDate);
     return DateFormat('dd-MM-yyyy').format(parsedDate);
   }
 
-  UserDataSource({required this.context, required this.users});
+  UserDataSource(
+      {required this.context, required this.users, required this.deleteUser});
 
   @override
   DataRow? getRow(int index) {
@@ -324,7 +336,12 @@ class UserDataSource extends DataTableSource {
         DataCell(Text(user['role'])),
         DataCell(Text(formatDate(user['createdAt']))),
         DataCell(Text(user['initiator'])),
-        DataCell(Text(user['location']['name'] ?? '')),
+        user['location'] == null
+            ? DataCell(Text(
+                'Location Deleted',
+                style: TextStyle(color: Colors.red),
+              ))
+            : DataCell(Text(user['location']['name'])),
         DataCell(
           PopupMenuButton<int>(
             padding: const EdgeInsets.all(1),
@@ -357,30 +374,32 @@ class UserDataSource extends DataTableSource {
                 ),
                 onTap: () => {},
               ),
-              PopupMenuItem(
-                child: Row(
-                  children: [
-                    Icon(Icons.delete_forever_outlined,
-                        color: Theme.of(context)
-                            .colorScheme
-                            .onSurface
-                            .withAlpha(180),
-                        size: 16),
-                    const SizedBox(
-                      width: 10,
-                    ),
-                    Text("Delete",
-                        style: TextStyle(
-                          fontSize: 12,
-                          color: Theme.of(context)
-                              .colorScheme
-                              .onSurface
-                              .withAlpha(180),
-                        ))
-                  ],
-                ),
-                onTap: () => {},
-              ),
+              user['role'] != "admin"
+                  ? PopupMenuItem(
+                      child: Row(
+                        children: [
+                          Icon(Icons.delete_forever_outlined,
+                              color: Theme.of(context)
+                                  .colorScheme
+                                  .onSurface
+                                  .withAlpha(180),
+                              size: 16),
+                          const SizedBox(
+                            width: 10,
+                          ),
+                          Text("Delete",
+                              style: TextStyle(
+                                fontSize: 12,
+                                color: Theme.of(context)
+                                    .colorScheme
+                                    .onSurface
+                                    .withAlpha(180),
+                              ))
+                        ],
+                      ),
+                      onTap: () => {deleteUser(user['_id'])},
+                    )
+                  : PopupMenuItem(child: SizedBox())
             ],
           ),
           //   Column(

@@ -125,6 +125,15 @@ class LocationIndexState extends State<LocationIndex> {
     }
   }
 
+  Future deleteLocation(String id) async {
+    await apiService.deleteRequest('location/$id');
+    setState(() {
+      locations.removeWhere((bank) => bank['_id'] == id);
+      filteredLocations = List.from(locations);
+      isLoading = false;
+    });
+  }
+
   @override
   void initState() {
     super.initState();
@@ -224,6 +233,7 @@ class LocationIndexState extends State<LocationIndex> {
                 Expanded(
                     flex: 2,
                     child: ViewLocations(
+                      deleteLocation: deleteLocation,
                       filteredLocations: filteredLocations,
                       searchController: searchController,
                       isLoading: isLoading,

@@ -5,7 +5,8 @@ import '../../services/api.service.dart';
 
 class AddProducts extends StatefulWidget {
   final String? barcode;
-  const AddProducts({super.key, this.barcode});
+  final Function onClose;
+  const AddProducts({super.key, this.barcode, required this.onClose});
 
   @override
   AddProductsState createState() => AddProductsState();
@@ -38,7 +39,7 @@ class AddProductsState extends State<AddProducts> {
 
   final imageUrlController = TextEditingController();
 
-  var isAvailableController = false;
+  var isAvailableController = true;
 
   final soldController = TextEditingController();
 
@@ -73,6 +74,7 @@ class AddProductsState extends State<AddProducts> {
   }
 
   Future<void> handleSubmit(BuildContext context) async {
+    if (!_formKey.currentState!.validate()) return;
     try {
       final dynamic response = await apiServices.postRequest('/products', {
         'title': titleController.text,
@@ -89,6 +91,7 @@ class AddProductsState extends State<AddProducts> {
 
       if (response.statusCode! >= 200 && response.statusCode! <= 300) {
         doShowToast('Added', ToastificationType.success);
+        widget.onClose();
         _formKey.currentState!.reset();
       } else {
         doShowToast('Error', ToastificationType.error);
@@ -317,19 +320,6 @@ class AddProductsState extends State<AddProducts> {
                 ),
                 ListTile(
                   contentPadding: EdgeInsets.zero,
-                  title: const Text('False'),
-                  leading: Radio<bool>(
-                    value: false,
-                    groupValue: isAvailableController,
-                    onChanged: (bool? value) {
-                      setState(() {
-                        isAvailableController = value!;
-                      });
-                    },
-                  ),
-                ),
-                ListTile(
-                  contentPadding: EdgeInsets.zero,
                   title: const Text('True'),
                   leading: Radio<bool>(
                     value: true,
@@ -341,15 +331,22 @@ class AddProductsState extends State<AddProducts> {
                     },
                   ),
                 ),
+                ListTile(
+                  contentPadding: EdgeInsets.zero,
+                  title: const Text('False'),
+                  leading: Radio<bool>(
+                    value: false,
+                    groupValue: isAvailableController,
+                    onChanged: (bool? value) {
+                      setState(() {
+                        isAvailableController = value!;
+                      });
+                    },
+                  ),
+                ),
                 ElevatedButton(
                   onPressed: () {
                     handleSubmit(context);
-                    if (_formKey.currentState!.validate()) {
-                      // Process data
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(content: Text('Processing Data')),
-                      );
-                    }
                   },
                   child: Text('Submit'),
                 ),

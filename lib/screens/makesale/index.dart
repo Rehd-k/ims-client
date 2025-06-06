@@ -30,6 +30,10 @@ class MakeSaleIndex extends StatefulWidget {
 class MakeSaleIndexState extends State<MakeSaleIndex> {
   ApiService apiService = ApiService();
   Timer? _debounce;
+
+  final FocusNode _scannerFocusNode = FocusNode();
+  final FocusNode _searchFocusNode = FocusNode();
+
   TextEditingController searchController = TextEditingController();
   final StringBuffer buffer = StringBuffer();
   String _searchQuery = '';
@@ -39,6 +43,7 @@ class MakeSaleIndexState extends State<MakeSaleIndex> {
   List savedCarts = [];
   String searchFeild = 'title';
   List<dynamic> localproducts = [];
+  bool _scannerActive = false;
 
   late final _pagingController = PagingController<int, dynamic>(
     getNextPageKey: (state) => ProductService()
@@ -66,8 +71,20 @@ class MakeSaleIndexState extends State<MakeSaleIndex> {
 
   // Handle Product qunaity
 
+  void _toggleFocus() {
+    setState(() {
+      _scannerActive = !_scannerActive;
+      if (_scannerActive) {
+        searchFeild = 'barcode';
+        _scannerFocusNode.requestFocus();
+      } else {
+        searchFeild = 'title';
+        _searchFocusNode.requestFocus();
+      }
+    });
+  }
+
   void addToCart(Product product) {
-    searchFeild = 'title';
     if (product.quantity > 0) {
       setState(() {
         int existingIndex =
@@ -217,6 +234,8 @@ class MakeSaleIndexState extends State<MakeSaleIndex> {
   @override
   void dispose() {
     _debounce?.cancel();
+    _scannerFocusNode.dispose();
+    _searchFocusNode.dispose();
     _pagingController.dispose();
     super.dispose();
   }
@@ -224,11 +243,16 @@ class MakeSaleIndexState extends State<MakeSaleIndex> {
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _scannerFocusNode.requestFocus();
+    });
     getCartsFromStorage();
   }
 
   void _onSearchChanged() async {
-    await Future.delayed(const Duration(milliseconds: 300), () {
+    if (_debounce?.isActive ?? false) _debounce!.cancel();
+
+    _debounce = Timer(const Duration(milliseconds: 300), () {
       localproducts = [];
       apiCount = 0;
       _searchQuery = searchController.text;
@@ -241,20 +265,17 @@ class MakeSaleIndexState extends State<MakeSaleIndex> {
     double width = MediaQuery.sizeOf(context).width;
     bool smallScreen = width <= 1200;
     return KeyboardListener(
-        focusNode: FocusNode()..requestFocus(),
+        focusNode: _scannerFocusNode,
         onKeyEvent: (event) async {
+          if (!_scannerActive) return;
+
           if (event is KeyDownEvent) {
             // Collect barcode characters
+
             buffer.write(event.character ?? '');
             if (event.logicalKey == LogicalKeyboardKey.enter) {
-              final scannedData = buffer.toString().trim();
-              searchController.text = scannedData;
-              searchFeild = 'barcode';
+              searchController.text = buffer.toString().trim();
               _onSearchChanged();
-              await Future.delayed(const Duration(milliseconds: 400), () {
-                searchFeild = 'title';
-              });
-
               buffer.clear();
             }
           }
@@ -264,6 +285,14 @@ class MakeSaleIndexState extends State<MakeSaleIndex> {
           return Scaffold(
               appBar: AppBar(
                 actions: [
+                  ElevatedButton.icon(
+                    icon: Icon(
+                        _scannerActive ? Icons.search : Icons.barcode_reader),
+                    label: Text(_scannerActive
+                        ? "Switch to Search"
+                        : "Switch to Scanner"),
+                    onPressed: _toggleFocus,
+                  ),
                   ...savedCarts.asMap().entries.map((res) {
                     int index = res.key; // Get the index
                     // String value = res.value;

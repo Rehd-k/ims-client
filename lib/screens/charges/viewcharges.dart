@@ -11,17 +11,18 @@ class Viewcharges extends StatelessWidget {
   final bool ascending;
   final Function filterCharges;
   final Function getFilteredAndSortedRows;
+  final Function deleteCharge;
 
-  const Viewcharges({
-    super.key,
-    required this.filteredCharges,
-    required this.searchController,
-    required this.isLoading,
-    required this.sortBy,
-    required this.ascending,
-    required this.filterCharges,
-    required this.getFilteredAndSortedRows,
-  });
+  const Viewcharges(
+      {super.key,
+      required this.filteredCharges,
+      required this.searchController,
+      required this.isLoading,
+      required this.sortBy,
+      required this.ascending,
+      required this.filterCharges,
+      required this.getFilteredAndSortedRows,
+      required this.deleteCharge});
 
   @override
   Widget build(BuildContext context) {
@@ -52,18 +53,11 @@ class Viewcharges extends StatelessWidget {
                   '')),
               DataCell(Text(charge['initiator'] ?? '')),
               DataCell(Text(formatDate(charge['createdAt']))),
-              DataCell(Row(
-                children: [
-                  IconButton(
-                    icon: const Icon(Icons.edit, color: Colors.blue),
-                    onPressed: () {},
-                  ),
-                  IconButton(
-                    icon: const Icon(Icons.delete, color: Colors.red),
-                    onPressed: () {},
-                  ),
-                ],
-              )),
+              DataCell(OutlinedButton(
+                  onPressed: () {
+                    deleteCharge(charge['_id']);
+                  },
+                  child: Text('Delete'))),
             ],
           );
         }).toList(),

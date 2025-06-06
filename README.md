@@ -28,3 +28,5 @@ pagination for data table
 -----Do This After giving first client his work-------
 1) make printer both wireless, network and bluetooth
 2) do scanner for phone
+
+https://gemini.google.com/app/9231581f2a156c4d -- this link is for how to do the auto update thing ( check everytime you wan tot update)

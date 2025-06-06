@@ -233,12 +233,6 @@ class ProductDashboardState extends State<ProductDashboard> {
                       ),
                   icon: Icon(Icons.add_box_outlined)),
               IconButton(
-                onPressed: () {
-                  openBox(context, deleteProduct);
-                },
-                icon: Icon(Icons.delete_outline),
-              ),
-              IconButton(
                   tooltip: 'Edit Product',
                   onPressed: () => showBarModalBottomSheet(
                         expand: true,
@@ -249,7 +243,13 @@ class ProductDashboardState extends State<ProductDashboard> {
                           productId: widget.productId,
                         ),
                       ),
-                  icon: Icon(Icons.edit_note_outlined))
+                  icon: Icon(Icons.edit_note_outlined)),
+              IconButton(
+                onPressed: () {
+                  openBox(context, deleteProduct);
+                },
+                icon: Icon(Icons.delete_outline),
+              ),
             ],
           ),
           floatingActionButton: isBigScreen

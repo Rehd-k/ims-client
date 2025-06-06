@@ -13,6 +13,7 @@ class ViewLocations extends StatelessWidget {
   final Function filterLocations;
   final Function getFilteredAndSortedRows;
   final Function getColumnIndex;
+  final Function deleteLocation;
   const ViewLocations(
       {super.key,
       required this.filteredLocations,
@@ -23,7 +24,8 @@ class ViewLocations extends StatelessWidget {
       required this.ascending,
       required this.filterLocations,
       required this.getFilteredAndSortedRows,
-      required this.getColumnIndex});
+      required this.getColumnIndex,
+      required this.deleteLocation});
 
   @override
   Widget build(BuildContext context) {
@@ -91,7 +93,9 @@ class ViewLocations extends StatelessWidget {
               ),
               DataColumn2(label: Text('Actions'))
             ],
-            source: LocationsDataSource(locations: getFilteredAndSortedRows()),
+            source: LocationsDataSource(
+                locations: getFilteredAndSortedRows(),
+                deleteLocation: deleteLocation),
             border: TableBorder(
               horizontalInside: BorderSide.none,
               verticalInside: BorderSide.none,
@@ -127,13 +131,14 @@ class ViewLocations extends StatelessWidget {
 
 class LocationsDataSource extends DataTableSource {
   final List locations;
+  final Function deleteLocation;
 
   String formatDate(String isoDate) {
     final DateTime parsedDate = DateTime.parse(isoDate);
     return DateFormat('dd-MM-yyyy').format(parsedDate);
   }
 
-  LocationsDataSource({required this.locations});
+  LocationsDataSource({required this.locations, required this.deleteLocation});
 
   @override
   DataRow? getRow(int index) {
@@ -152,7 +157,13 @@ class LocationsDataSource extends DataTableSource {
           mainAxisAlignment: MainAxisAlignment.spaceAround,
           children: [
             // OutlinedButton(onPressed: () {}, child: Text('Update'))
-            // OutlinedButton(onPressed: () {}, child: Text('Delete'))
+            location['name'] != 'main'
+                ? OutlinedButton(
+                    onPressed: () {
+                      deleteLocation(location['_id']);
+                    },
+                    child: Text('Delete'))
+                : SizedBox()
           ],
         ))
       ],

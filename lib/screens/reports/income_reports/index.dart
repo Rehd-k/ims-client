@@ -20,6 +20,7 @@ import '../../../globals/sidebar.dart';
 
 import '../../../helpers/providers/theme_notifier.dart';
 import '../../../services/api.service.dart';
+import '../../../services/defaultprinter.service.dart';
 import '../../../services/receipt_holder.dart';
 import 'collums_deff.dart';
 import 'header.dart';
@@ -243,7 +244,10 @@ class IncomeReportsScreenState extends State<IncomeReportsScreen> {
   doRePrint(Map saleData) async {
     final profile = await CapabilityProfile.load();
     _printerService.printData(
-        _printerService.printers[0],
+        _printerService.printers.firstWhere(
+          (printer) => printer.name == getDefaultPrinter(),
+          orElse: () => _printerService.printers[0],
+        ),
         generateReceipt(
             PaperSize.mm58, profile, saleData, SettingsService().settings));
   }

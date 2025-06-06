@@ -140,6 +140,7 @@ class ViewProducts extends StatelessWidget {
                     width: 40, height: 40, child: CircularProgressIndicator()),
               )
             : ReusableAsyncPaginatedDataTable(
+                showCheckboxColumn: false,
                 columnDefinitions: columnDefinitions, // Pass definitions
                 fetchDataCallback: _fetchServerData,
                 onSelectionChanged: (selected) {
@@ -150,7 +151,6 @@ class ViewProducts extends StatelessWidget {
                 initialSortAscending: true,
                 rowsPerPage: 15,
                 availableRowsPerPage: const [10, 15, 25, 50],
-                showCheckboxColumn: true,
                 fixedLeftColumns: 1,
                 minWidth: 2500,
                 empty: const Center(child: CircularProgressIndicator()),
