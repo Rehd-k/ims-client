@@ -10,7 +10,12 @@ final List<Map<String, dynamic>> salesColumnDefinitionMaps = [
   {'name': 'Transfer', 'sortable': true, 'type': 'money', 'field': 'transfer'},
   {'name': 'Discount', 'sortable': false, 'type': 'money', 'field': 'discount'},
   {'name': 'Total', 'sortable': true, 'type': 'money', 'field': 'totalAmount'},
-  {'name': 'Date', 'sortable': true, 'type': 'date', 'field': 'createdAt'},
+  {
+    'name': 'Date',
+    'sortable': true,
+    'type': 'date',
+    'field': 'transactionDate'
+  },
   {'name': 'Initiator', 'sortable': false, 'type': 'text', 'field': 'handler'},
   {
     'name': 'Action',

@@ -5,7 +5,9 @@ import 'package:auto_updater/auto_updater.dart';
 
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:shelf_sense/services/mywindowlistener.dart';
 import 'package:toastification/toastification.dart';
+import 'package:window_manager/window_manager.dart';
 
 import 'app.dart';
 import 'helpers/providers/theme_notifier.dart';
@@ -19,6 +21,11 @@ void main() async {
     String feedURL = 'https://vessellabs.org/shelfsense/ifite/appcast.xml';
     await autoUpdater.setFeedURL(feedURL);
 
+    await windowManager.ensureInitialized();
+
+    windowManager.setPreventClose(true);
+
+    windowManager.addListener(MyWindowListener());
     // Catch Flutter framework (widget tree) errors
     FlutterError.onError = (FlutterErrorDetails details) {
       FlutterError.presentError(details);

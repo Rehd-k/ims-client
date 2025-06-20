@@ -185,7 +185,8 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
       'bank': bank?['_id'],
       'products': widget.cart,
       'customer': selectedName?['_id'],
-      'charges': selectedCharges
+      'charges': selectedCharges,
+      'transactionDate': DateTime.now().toLocal().toString()
     };
 
     // Capture the context before the async gap

@@ -3,9 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:modal_bottom_sheet/modal_bottom_sheet.dart';
 
 Future<void> showDamagedGoodsForm(
-    BuildContext context,
-    Function(Map<String, dynamic> data) handleDamagedGoods,
-    num goodRemaining) async {
+    BuildContext context, handleDamagedGoods, id, num goodRemaining) async {
   DateTime selectedDate = DateTime.now();
   final quantityController = TextEditingController();
   final reasonController = TextEditingController();
@@ -23,7 +21,7 @@ Future<void> showDamagedGoodsForm(
                 'Register Damaged Goods',
                 style: Theme.of(context).textTheme.titleLarge,
               ),
-              Text(goodRemaining.toString())
+              Text('(Total Remaining -  ${goodRemaining.toString()})')
             ],
           ),
           SizedBox(height: 16),
@@ -99,6 +97,7 @@ Future<void> showDamagedGoodsForm(
                   if (quantityController.text.isNotEmpty &&
                       reasonController.text.isNotEmpty) {
                     await handleDamagedGoods({
+                      "_id": id,
                       'quantity': int.parse(quantityController.text),
                       'reason': reasonController.text,
                       'date': selectedDate.toLocal().toString().split(' ')[0],

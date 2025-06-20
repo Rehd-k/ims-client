@@ -193,7 +193,7 @@ class IncomeReportsScreenState extends State<IncomeReportsScreen> {
         .convert({"$initialSort": (sortAscending ?? true) ? 'asc' : 'desc'});
 
     var dbproducts = await apiService.getRequest(
-        'sales?filter={"$searchFeild" : {"\$regex" : "${query.toLowerCase()}"}}&sort=$sorting&startDate=$_fromDate&endDate=$_toDate&skip=$offset&limit=$limit');
+        'sales?filter={"$searchFeild" : {"\$regex" : "${query.toLowerCase()}"}, "handler" : "$selectedAccount", "paymentMethod" : "$paymentMethordToShow"}&sort=$sorting&startDate=$_fromDate&endDate=$_toDate&skip=$offset&limit=$limit');
 
     var {
       'sales': sales,
@@ -215,9 +215,12 @@ class IncomeReportsScreenState extends State<IncomeReportsScreen> {
 
   handleCalculations() async {
     var dbproducts = await apiService.getRequest(
-        'sales?filter={"$searchFeild" : {"\$regex" : "${query.toLowerCase()}"}}&startDate=$_fromDate&endDate=$_toDate');
-    var {"summary": summary, "totalDocuments": totalDocuments} =
-        dbproducts.data;
+        'sales?filter={"$searchFeild" : {"\$regex" : "${query.toLowerCase()}"}, "handler" : "$selectedAccount", "paymentMethod" : "$paymentMethordToShow"}&startDate=$_fromDate&endDate=$_toDate');
+    var {
+      "summary": summary,
+      'handlers': handlers,
+      "totalDocuments": totalDocuments
+    } = dbproducts.data;
 
     double totalSales = summary['totalAmount'].toDouble();
     double transfer = summary['totalTransfer'].toDouble();
@@ -227,6 +230,7 @@ class IncomeReportsScreenState extends State<IncomeReportsScreen> {
     double profit = summary['totalProfit'].toDouble();
     setState(() {
       loading = false;
+      cashiers = ['', ...handlers];
       summaryCalculations = {
         'no_of_sale': totalDocuments,
         'total_sales': totalSales,
@@ -334,11 +338,13 @@ class IncomeReportsScreenState extends State<IncomeReportsScreen> {
                                 setState(() {
                                   selectedAccount = value;
                                 });
+                                handleCalculations();
                               },
                               onPaymentMethodChange: (value) {
                                 setState(() {
                                   paymentMethordToShow = value;
                                 });
+                                handleCalculations();
                               },
                               onSearcfieldChange: (value) {
                                 searchThroughSales(value);

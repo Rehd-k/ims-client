@@ -44,7 +44,7 @@ class AddInvoiceState extends State<AddInvoice> {
   Map? selectedName;
   bool isBankLoading = true;
   List<dynamic> banks = [];
-  late Map bank;
+  Map? bank;
 
   Future<List<Map>> _fetchProducts(String query) async {
     final response = await apiService.getRequest(
@@ -115,7 +115,7 @@ class AddInvoiceState extends State<AddInvoice> {
       'items': selectedProducts,
       'discount': _calculateDiscount(),
       'totalAmount': _calculateDueAmount(),
-      'bank': bank['_id'],
+      'bank': bank?['_id'],
       'tax': 0, //add selected tax values later,
       'previouslyPaidAmount': receivedAmount,
       'note': noteController.text == ''
@@ -159,7 +159,9 @@ class AddInvoiceState extends State<AddInvoice> {
     );
     setState(() {
       banks = dbbanks.data;
-      bank = banks[0];
+      if (banks.isNotEmpty) {
+        bank = banks[0];
+      }
       isBankLoading = false;
     });
   }
@@ -391,7 +393,7 @@ class AddInvoiceState extends State<AddInvoice> {
                                           child: CircularProgressIndicator(),
                                         )
                                       : DropdownButtonFormField<String>(
-                                          value: bank['accountNumber'],
+                                          value: bank?['accountNumber'],
                                           decoration: InputDecoration(
                                             labelText: 'Select Bank',
                                             border: OutlineInputBorder(

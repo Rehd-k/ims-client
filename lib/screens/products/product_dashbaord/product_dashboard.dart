@@ -18,6 +18,7 @@ import 'add_order.dart';
 import 'header.dart';
 // import 'helpers/damaged_goods.dart';
 // import 'helpers/damaged_goods.dart';
+import 'helpers/damaged_goods.dart';
 import 'helpers/edit_product.dart';
 import 'table_collums.dart';
 
@@ -137,14 +138,20 @@ class ProductDashboardState extends State<ProductDashboard> {
   }
 
   handleDamagedGoodsClicked(rowData) async {
+    // print(rowData);
     if (returnedSelection.isEmpty) {
       if (rowData['quantity'] == getSold(rowData['sold'])) {
         doAlerts('This batch have been sold out');
       } else {
-        // showDamagedGoodsForm(context, handleDamagedGoods,
-        //     (rowData['quantity'] - getSold(rowData['sold'])));
+        showDamagedGoodsForm(context, handleDamagedGoods, rowData['_id'],
+            (rowData['quantity'] - getSold(rowData['sold'])));
       }
     }
+  }
+
+  handleDamagedGoods(data) async {
+    await apiService.putRequest(
+        'purchases/update/${data['_id']}', {...data, "productId": productId});
   }
 
   handleRangeChange(String? select, DateTime? picked) async {
@@ -404,240 +411,7 @@ class ProductDashboardState extends State<ProductDashboard> {
                               doDamagedGoods: (rowData) {
                                 handleDamagedGoodsClicked(rowData);
                               },
-                            )
-                      // MainTable(
-                      //     showCheckboxColumn: false,
-                      //     isLoading: loadingTable,
-                      //     data: purchases,
-                      //     columnDefs: [
-                      //       {
-                      //         'name': 'Quantity',
-                      //         'sortable': true,
-                      //         'type': 'number',
-                      //         'field': 'quantity'
-                      //       },
-                      //       {
-                      //         'name': 'Sold',
-                      //         'sortable': true,
-                      //         'type': 'sold',
-                      //         'field': 'sold'
-                      //       },
-                      //       {
-                      //         'name': 'Price',
-                      //         'sortable': true,
-                      //         'type': 'money',
-                      //         'field': 'price'
-                      //       },
-                      //       {
-                      //         'name': 'Total',
-                      //         'sortable': true,
-                      //         'type': 'money',
-                      //         'field': 'total'
-                      //       },
-                      //       {
-                      //         'name': 'Discount',
-                      //         'sortable': true,
-                      //         'type': 'money',
-                      //         'field': 'discount'
-                      //       },
-                      //       {
-                      //         'name': 'Total Payable',
-                      //         'sortable': true,
-                      //         'type': 'money',
-                      //         'field': 'totalPayable'
-                      //       },
-                      //       {
-                      //         'name': 'Purchase Date',
-                      //         'sortable': false,
-                      //         'type': 'date',
-                      //         'field': 'purchaseDate'
-                      //       },
-                      //       {
-                      //         'name': 'Status',
-                      //         'sortable': false,
-                      //         'type': 'text',
-                      //         'field': 'status'
-                      //       },
-                      //       {
-                      //         'name': 'Delivery Date',
-                      //         'sortable': true,
-                      //         'type': 'date',
-                      //         'field': 'deliveryDate'
-                      //       },
-                      //       {
-                      //         'name': 'Expiry Date',
-                      //         'sortable': true,
-                      //         'type': 'date',
-                      //         'field': 'expiryDate'
-                      //       },
-                      //       {
-                      //         'name': 'Cash',
-                      //         'sortable': false,
-                      //         'type': 'money',
-                      //         'field': 'cash'
-                      //       },
-                      //       {
-                      //         'name': 'Transfer',
-                      //         'sortable': false,
-                      //         'type': 'money',
-                      //         'field': 'transfer'
-                      //       },
-                      //       {
-                      //         'name': 'Card',
-                      //         'sortable': false,
-                      //         'type': 'money',
-                      //         'field': 'card'
-                      //       },
-                      //       {
-                      //         'name': 'Initiator',
-                      //         'sortable': false,
-                      //         'type': 'text',
-                      //         'field': 'initiator'
-                      //       },
-                      //       {
-                      //         'name': 'Date',
-                      //         'sortable': true,
-                      //         'type': 'date',
-                      //         'field': 'createdAt'
-                      //       },
-                      //       {
-                      //         'name': 'Actions',
-                      //         'sortable': false,
-                      //         'type': 'actions',
-                      //         'field': 'Actions'
-                      //       }
-                      //     ],
-                      //
-                      // sortableColumns: {
-                      //       0: 'quantity',
-                      //       1: 'price',
-                      //       2: 'total',
-                      //       3: 'discount',
-                      //       4: 'totalPayable',
-                      //       5: 'purchaseDate',
-                      //       6: 'createdAt'
-                      //     },
-                      //     actions: [
-                      //       IconButton(
-                      //           onPressed: () {
-                      //             if (returnedSelection.isEmpty) {
-                      //               doAlerts(
-                      //                   'Please select an item first');
-                      //             } else if (returnedSelection[0]
-                      //                     ['quantity'] ==
-                      //                 getSold(returnedSelection[0]
-                      //                     ['sold'])) {
-                      //               doAlerts(
-                      //                   'This batch have been sold out');
-                      //             } else {
-                      //               showDamagedGoodsForm(
-                      //                   context,
-                      //                   handleDamagedGoods,
-                      //                   (returnedSelection[0]
-                      //                           ['quantity'] -
-                      //                       getSold(returnedSelection[0]
-                      //                           ['sold'])));
-                      //             }
-                      //           },
-                      //           icon: Icon(Icons.delete))
-                      //     ],
-                      //     title: '',
-                      //     range: Container(
-                      //       padding:
-                      //           EdgeInsets.symmetric(horizontal: 20),
-                      //       decoration: BoxDecoration(
-                      //           color: Theme.of(context)
-                      //               .colorScheme
-                      //               .surfaceBright,
-                      //           borderRadius: BorderRadius.circular(5)),
-                      //       child: Row(
-                      //         children: [
-                      //           Row(
-                      //             children: [
-                      //               IconButton(
-                      //                 icon: Icon(Icons.calendar_today),
-                      //                 tooltip: 'From date',
-                      //                 onPressed: () async {
-                      //                   final DateTime? picked =
-                      //                       await showDatePicker(
-                      //                     context: context,
-                      //                     initialDate: _fromDate ??
-                      //                         DateTime.now(),
-                      //                     firstDate: DateTime(2000),
-                      //                     lastDate:
-                      //                         _toDate ?? DateTime.now(),
-                      //                   );
-                      //                   if (picked != null) {
-                      //                     setState(() {
-                      //                       _fromDate = picked;
-                      //                     });
-                      //                   }
-                      //                 },
-                      //               ),
-                      //               Text(
-                      //                 _fromDate != null
-                      //                     ? "${_fromDate!.toLocal()}"
-                      //                         .split(' ')[0]
-                      //                     : "From",
-                      //               ),
-                      //             ],
-                      //           ),
-                      //           SizedBox(width: 16),
-                      //           Row(
-                      //             children: [
-                      //               IconButton(
-                      //                 icon: Icon(Icons.calendar_today),
-                      //                 tooltip: 'To date',
-                      //                 onPressed: () async {
-                      //                   final DateTime? picked =
-                      //                       await showDatePicker(
-                      //                     context: context,
-                      //                     initialDate:
-                      //                         _toDate ?? DateTime.now(),
-                      //                     firstDate: _fromDate ??
-                      //                         DateTime(2000),
-                      //                     lastDate: DateTime.now(),
-                      //                   );
-                      //                   if (picked != null) {
-                      //                     setState(() {
-                      //                       _toDate = picked;
-                      //                     });
-                      //                   }
-                      //                 },
-                      //               ),
-                      //               Text(
-                      //                 _toDate != null
-                      //                     ? "${_toDate!.toLocal()}"
-                      //                         .split(' ')[0]
-                      //                     : "To",
-                      //               ),
-                      //             ],
-                      //           ),
-                      //           Spacer(),
-                      //           SizedBox(width: 8),
-                      //           OutlinedButton(
-                      //             onPressed: () {
-                      //               setState(() {
-                      //                 _fromDate = null;
-                      //                 _toDate = null;
-                      //               });
-                      //             },
-                      //             child: Text('Reset'),
-                      //           ),
-                      //         ],
-                      //       ),
-                      //     ),
-                      //     allowMultipleSelection: false,
-                      //     // returnSelection: handleSelection,
-                      //     longPress: false,
-                      //     onSelectionChanged: (List) {},
-                      //     onSort: (int, bool) {},
-                      //     onPageChanged: (int) {},
-                      //     currentPage: 1,
-                      //     rowsPerPage: 50,
-                      //   )
-
-                      )
+                            ))
                 ])),
           ));
     } else {

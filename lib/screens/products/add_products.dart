@@ -109,7 +109,8 @@ class AddProductsState extends State<AddProducts> {
 
   Future<void> fetchCategories() async {
     try {
-      final response = await apiServices.getRequest('/category');
+      final response =
+          await apiServices.getRequest('/category?sort={"title" : "1"}');
       if (response.statusCode == 200) {
         final List<dynamic> data = response.data;
         setState(() {
@@ -175,16 +176,38 @@ class AddProductsState extends State<AddProducts> {
                   },
                 ),
                 SizedBox(height: 10),
-                DropdownMenu(
-                  width: double.infinity,
-                  initialSelection: '',
-                  controller: categoryController,
-                  requestFocusOnTap: true,
-                  label: const Text('Category'),
-                  dropdownMenuEntries:
-                      categories.map<DropdownMenuEntry<String>>((category) {
-                    return DropdownMenuEntry(value: category, label: category);
+                DropdownButtonFormField<String>(
+                  value: categoryController.text.isNotEmpty
+                      ? categoryController.text
+                      : null,
+                  decoration: InputDecoration(
+                    labelText: 'Category',
+                    border: OutlineInputBorder(
+                        borderRadius: BorderRadius.all(Radius.circular(5.0)),
+                        borderSide: BorderSide(color: Colors.blue)),
+                    labelStyle: TextStyle(
+                        color: Theme.of(context).hintColor, fontSize: 15),
+                  ),
+                  isExpanded: false,
+                  items: categories
+                      .where((c) => c.isNotEmpty)
+                      .map<DropdownMenuItem<String>>((category) {
+                    return DropdownMenuItem<String>(
+                      value: category,
+                      child: Text(category),
+                    );
                   }).toList(),
+                  onChanged: (value) {
+                    setState(() {
+                      categoryController.text = value ?? '';
+                    });
+                  },
+                  validator: (value) {
+                    if (value == null || value.isEmpty) {
+                      return 'Please select a category';
+                    }
+                    return null;
+                  },
                 ),
                 SizedBox(height: 10),
                 TextFormField(

@@ -107,6 +107,7 @@ List fullMenu = [
     'link': '/expenses',
   },
 ];
+
 List cashierMenu = [
   {
     'icon': Icons.inventory_2_outlined,

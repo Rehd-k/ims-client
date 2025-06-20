@@ -77,7 +77,9 @@ class IncomeReportsHeader extends StatelessWidget {
                   items: cashiers.map<DropdownMenuItem<String>>((cashier) {
                     return DropdownMenuItem<String>(
                       value: cashier.toString(),
-                      child: Text(cashier.toString()),
+                      child: Text(cashier.toString() == ''
+                          ? 'All'
+                          : cashier.toString()),
                     );
                   }).toList(),
                   onChanged: onAccountChange,
