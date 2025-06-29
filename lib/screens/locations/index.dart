@@ -34,6 +34,8 @@ class LocationIndexState extends State<LocationIndex> {
 
   final closingController = TextEditingController();
 
+  final firmNameController = TextEditingController();
+
   Future<void> handleSubmit() async {
     try {
       final dynamic response = await apiService.postRequest('/location', {
@@ -41,7 +43,8 @@ class LocationIndexState extends State<LocationIndex> {
         'location': locationController.text,
         'manager': managerController.text,
         'openingHours': openingController.text,
-        'closingHours': closingController.text
+        'closingHours': closingController.text,
+        'firm_name': firmNameController.text
       });
 
       if (response.statusCode! >= 200 && response.statusCode! <= 300) {

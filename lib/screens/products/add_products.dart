@@ -49,6 +49,8 @@ class AddProductsState extends State<AddProducts> {
 
   final ApiService apiServices = ApiService();
 
+  bool isUnit = true;
+
   int quantity = 0;
 
   List<String> categories = [''];
@@ -87,6 +89,7 @@ class AddProductsState extends State<AddProducts> {
         'unit': unitController.text,
         'barcode': barcodeController.text,
         'isAvailable': isAvailableController,
+        'type': isUnit ? 'unit' : 'carton'
       });
 
       if (response.statusCode! >= 200 && response.statusCode! <= 300) {
@@ -210,6 +213,66 @@ class AddProductsState extends State<AddProducts> {
                   },
                 ),
                 SizedBox(height: 10),
+                DropdownButtonFormField<String>(
+                  value: isUnit ? 'unit' : 'carton',
+                  decoration: InputDecoration(
+                    labelText: 'Product Type',
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.all(Radius.circular(5.0)),
+                      borderSide: BorderSide(color: Colors.blue),
+                    ),
+                    labelStyle: TextStyle(
+                        color: Theme.of(context).hintColor, fontSize: 15),
+                  ),
+                  items: ['unit', 'carton']
+                      .map((type) => DropdownMenuItem<String>(
+                            value: type,
+                            child:
+                                Text(type[0].toUpperCase() + type.substring(1)),
+                          ))
+                      .toList(),
+                  onChanged: (value) {
+                    setState(() {
+                      isUnit = value == 'unit';
+                    });
+                  },
+                  validator: (value) {
+                    if (value == null || value.isEmpty) {
+                      return 'Please select a product type';
+                    }
+                    return null;
+                  },
+                ),
+                SizedBox(height: 10),
+                if (!isUnit)
+                  TextFormField(
+                    keyboardType: TextInputType.number,
+                    inputFormatters: <TextInputFormatter>[
+                      FilteringTextInputFormatter.digitsOnly
+                    ],
+                    controller: quantityController,
+                    decoration: InputDecoration(
+                      labelText: 'Carton Quantity *',
+                      border: OutlineInputBorder(
+                          borderRadius: BorderRadius.all(Radius.circular(5.0)),
+                          borderSide: BorderSide(color: Colors.blue)),
+                      labelStyle: TextStyle(
+                          color: Theme.of(context).hintColor, fontSize: 15),
+                    ),
+                    validator: (value) {
+                      if (!isUnit && (value == null || value.isEmpty)) {
+                        return 'Please enter Carton Quantity';
+                      }
+                      if (!isUnit && int.tryParse(value ?? '') == null) {
+                        return 'Carton Quantity must be a number';
+                      }
+                      if (!isUnit && int.parse(value!) < 1) {
+                        return 'Carton Quantity cannot be less than 1';
+                      }
+                      return null;
+                    },
+                  ),
+                if (!isUnit) SizedBox(height: 10),
                 TextFormField(
                   keyboardType: TextInputType.number,
                   inputFormatters: <TextInputFormatter>[

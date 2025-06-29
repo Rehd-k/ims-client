@@ -40,6 +40,7 @@ class AddExpensesState extends State<AddExpenses> {
         'amount': amountController.text,
         'amountPaid': amountPaidController.text,
         'paid': paidController.text,
+        'createdAt': DateTime.now().toString()
       });
 
       if (response.statusCode! >= 200 && response.statusCode! <= 300) {

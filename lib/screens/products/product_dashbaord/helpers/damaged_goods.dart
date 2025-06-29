@@ -100,7 +100,7 @@ Future<void> showDamagedGoodsForm(
                       "_id": id,
                       'quantity': int.parse(quantityController.text),
                       'reason': reasonController.text,
-                      'date': selectedDate.toLocal().toString().split(' ')[0],
+                      'date': selectedDate.toString().split(' ')[0],
                     });
                     if (context.mounted) {
                       Navigator.pop(context);

@@ -25,7 +25,7 @@ class MainMenuScreen extends StatelessWidget {
                       color: Theme.of(context).colorScheme.onPrimary,
                       child: SideBar()))
               : Container(),
-          Expanded(flex: 5, child: AutoRouter())
+          Expanded(flex: 5, child: SafeArea(child: AutoRouter()))
         ],
       ));
     });

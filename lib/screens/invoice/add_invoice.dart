@@ -68,13 +68,20 @@ class AddInvoiceState extends State<AddInvoice> {
     }
   }
 
-  void updateQuantity(int index, int newQuantity) {
+  void updateQuantity(int index, int? newQuantity) {
     setState(() {
-      if (newQuantity <= selectedProducts[index]['remaining']) {
+      if (newQuantity! <= selectedProducts[index]['remaining']) {
         selectedProducts[index]['quantity'] = newQuantity;
         selectedProducts[index]['total'] = selectedProducts[index]['quantity'] *
             selectedProducts[index]['price'];
         quantityControllers[index].text = newQuantity.toString();
+      } else {
+        toastification.show(
+          title: Text('Nope Finished'),
+          type: ToastificationType.info,
+          style: ToastificationStyle.flatColored,
+          autoCloseDuration: const Duration(seconds: 3),
+        );
       }
 
       if (newQuantity == 0) {
@@ -110,11 +117,12 @@ class AddInvoiceState extends State<AddInvoice> {
       'customer': selectedName?['_id'],
       'issuedDate': issueDate.toIso8601String(),
       'dueDate': dueDate.toIso8601String(),
-      'invoiceNumber': referenceNumber,
+      'invoiceNumber': referenceNumber.toLowerCase(),
       'recurring': isRecurring,
       'items': selectedProducts,
       'discount': _calculateDiscount(),
       'totalAmount': _calculateDueAmount(),
+      // 'createdAt': DateTime.now().toIso8601String(),
       'bank': bank?['_id'],
       'tax': 0, //add selected tax values later,
       'previouslyPaidAmount': receivedAmount,
@@ -203,23 +211,31 @@ class AddInvoiceState extends State<AddInvoice> {
   }
 
   selectProduct(suggestion) {
-    setState(() {
-      final existingIndex = selectedProducts
-          .indexWhere((product) => product['_id'] == suggestion['_id']);
-      if (existingIndex != -1) {
-        selectedProducts.removeAt(existingIndex);
-        quantityControllers.removeAt(existingIndex);
-      } else {
-        suggestion['quantity'] = 1;
-        suggestion['total'] = suggestion['quantity'] * suggestion['price'];
-        selectedProducts.add(suggestion);
-        quantityControllers.add(
-          TextEditingController(text: suggestion['quantity'].toString()),
-        );
-      }
-      // selectedProducts.add(suggestion);
-      productController.clear();
-    });
+    suggestion['quantity'] > 0
+        ? setState(() {
+            final existingIndex = selectedProducts
+                .indexWhere((product) => product['_id'] == suggestion['_id']);
+            if (existingIndex != -1) {
+              selectedProducts.removeAt(existingIndex);
+              quantityControllers.removeAt(existingIndex);
+            } else {
+              suggestion['quantity'] = 1;
+              suggestion['total'] =
+                  suggestion['quantity'] * suggestion['price'];
+              selectedProducts.add(suggestion);
+              quantityControllers.add(
+                TextEditingController(text: suggestion['quantity'].toString()),
+              );
+            }
+            // selectedProducts.add(suggestion);
+            productController.clear();
+          })
+        : toastification.show(
+            title: Text('Out Of Stock'),
+            type: ToastificationType.info,
+            style: ToastificationStyle.flatColored,
+            autoCloseDuration: const Duration(seconds: 3),
+          );
   }
 
   @override
@@ -474,45 +490,48 @@ class AddInvoiceState extends State<AddInvoice> {
                                           },
                                         ),
                                         SizedBox(
-                                          width: 60,
+                                          width: 50,
                                           child: TextFormField(
-                                            decoration: InputDecoration(
-                                              border: OutlineInputBorder(
-                                                  borderSide:
-                                                      BorderSide(width: 0)),
-                                            ),
-                                            inputFormatters: [
-                                              FilteringTextInputFormatter
-                                                  .digitsOnly,
-                                            ],
-                                            validator: (value) {
-                                              if (value == null ||
-                                                  value.isEmpty) {
-                                                return 'Enter a valid number';
-                                              } else {
-                                                final intValue =
-                                                    int.parse(value);
-                                                if (intValue < 1) {
-                                                  return 'Minimum value is 1';
-                                                } else if (intValue >
-                                                    selectedProducts[index]
-                                                        ['remaining']) {
-                                                  return 'Maximum value is ${selectedProducts[index]['remaining']}';
-                                                }
-                                              }
-                                              return null;
-                                            },
                                             controller:
                                                 quantityControllers[index],
                                             textAlign: TextAlign.center,
                                             keyboardType: TextInputType.number,
-                                            onChanged: (val) {
-                                              final newQty = int.tryParse(val);
-                                              if (newQty != null &&
-                                                  newQty >= 0) {
+                                            inputFormatters: [
+                                              FilteringTextInputFormatter
+                                                  .digitsOnly,
+                                            ],
+                                            onFieldSubmitted: (val) {
+                                              int? newQty = int.tryParse(val);
+                                              if (newQty == null ||
+                                                  newQty < 1) {
+                                                newQty = 1;
+                                              } else if (newQty >
+                                                  product['remaining']) {
+                                                newQty = product['remaining'];
+                                              }
+                                              if (newQty !=
+                                                  product['quantity']) {
                                                 updateQuantity(index, newQty);
+                                              } else {
+                                                // To update the text if user enters invalid value
+                                                quantityControllers[index]
+                                                    .text = newQty.toString();
                                               }
                                             },
+                                            onEditingComplete: () {
+                                              FocusScope.of(context).unfocus();
+                                            },
+                                            decoration: InputDecoration(
+                                              border: OutlineInputBorder(
+                                                borderSide: BorderSide(
+                                                    width: 0,
+                                                    style: BorderStyle.none),
+                                              ),
+                                              isDense: true,
+                                              contentPadding:
+                                                  EdgeInsets.symmetric(
+                                                      vertical: 8),
+                                            ),
                                           ),
                                         ),
                                         IconButton(
@@ -700,7 +719,7 @@ class AddInvoiceState extends State<AddInvoice> {
                     onPressed: () {
                       handleSave();
                     },
-                    label: Text('Save And Send'),
+                    label: Text('Save And Print'),
                     icon: Icon(Icons.send_and_archive_outlined))
               ],
             )

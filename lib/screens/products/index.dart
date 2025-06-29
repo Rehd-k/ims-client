@@ -17,14 +17,14 @@ import 'table_column.dart';
 import 'view_products.dart';
 
 @RoutePage()
-class ProductsIndex extends StatefulWidget {
-  const ProductsIndex({super.key});
+class ProductsScreen extends StatefulWidget {
+  const ProductsScreen({super.key});
 
   @override
   ProductsIndexState createState() => ProductsIndexState();
 }
 
-class ProductsIndexState extends State<ProductsIndex> {
+class ProductsIndexState extends State<ProductsScreen> {
   final apiService = ApiService();
   final StringBuffer buffer = StringBuffer();
   final TextEditingController _searchController = TextEditingController();
@@ -33,7 +33,8 @@ class ProductsIndexState extends State<ProductsIndex> {
   final FocusNode _searchFocusNode = FocusNode();
 
   final categoryController = TextEditingController();
-  late List<ColumnDefinition> _columnDefinitions;
+  final List<ColumnDefinition> _columnDefinitions =
+      columnDefinitionMaps.map((map) => ColumnDefinition.fromMap(map)).toList();
   final JsonEncoder jsonEncoder = JsonEncoder();
   bool isLoading = true;
   List categories = [];
@@ -115,9 +116,7 @@ class ProductsIndexState extends State<ProductsIndex> {
   @override
   void initState() {
     getCategories();
-    _columnDefinitions = columnDefinitionMaps
-        .map((map) => ColumnDefinition.fromMap(map))
-        .toList();
+
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _scannerFocusNode.requestFocus();
     });

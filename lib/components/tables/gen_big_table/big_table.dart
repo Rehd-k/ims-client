@@ -236,7 +236,6 @@ class _ReusableAsyncPaginatedDataTableState
             _currentRowsPerPage = value;
           });
           widget.onRowsPerPageChanged?.call(value);
-          // Table should refetch automatically with new limit
         }
       },
       dragStartBehavior: widget.dragStartBehavior,

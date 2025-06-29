@@ -13,7 +13,8 @@ import 'components/infinite_table.dart';
 
 @RoutePage()
 class ViewInvoices extends StatefulWidget {
-  const ViewInvoices({super.key});
+  final String? invoiceId;
+  const ViewInvoices({super.key, this.invoiceId});
 
   @override
   ViewInvoicesState createState() => ViewInvoicesState();
@@ -96,20 +97,30 @@ class ViewInvoicesState extends State<ViewInvoices> {
     });
   }
 
+  checkIfInvoiceIdAndGetIno() {
+    if (widget.invoiceId != null) {
+      searchParams = widget.invoiceId!;
+      _fromDate = DateTime(2000);
+      _toDate = DateTime.now();
+      _fetchInvoices();
+    } else {
+      _fetchInvoices();
+
+      _scrollController.addListener(() {
+        if (_scrollController.position.pixels >=
+                _scrollController.position.maxScrollExtent - 200 &&
+            !_isLoading &&
+            _hasMore) {
+          _fetchInvoices();
+        }
+      });
+    }
+  }
+
   @override
   void initState() {
     super.initState();
-
-    _fetchInvoices();
-
-    _scrollController.addListener(() {
-      if (_scrollController.position.pixels >=
-              _scrollController.position.maxScrollExtent - 200 &&
-          !_isLoading &&
-          _hasMore) {
-        _fetchInvoices();
-      }
-    });
+    checkIfInvoiceIdAndGetIno();
   }
 
   @override
@@ -146,7 +157,8 @@ class ViewInvoicesState extends State<ViewInvoices> {
           dueDate: item['dueDate'],
           recurringCycle: item['recurring'],
           total: item['totalAmount'],
-          amountPaid: item['transactionId'],
+          amountPaid:
+              (item['transactionId'] as List<dynamic>?)?.join(', ') ?? '',
           status: item['status'],
           items: item['items'],
           discount: item['discount'],
@@ -247,18 +259,19 @@ class ViewInvoicesState extends State<ViewInvoices> {
     await apiService.getRequest('invoice/send-whatsapp/$id');
   }
 
-  Future<void> _updateInvoice(String id, String transactionId) async {
+  Future<void> _updateInvoice(String id, transaction) async {
     try {
       final response = await apiService.putRequest(
         'invoice/update/${jsonEncoder.convert({'_id': id})}',
-        {'status': 'paid', 'transactionId': transactionId},
+        transaction,
       );
+
       if (response.statusCode == 200) {
         setState(() {
           _invoices = _invoices.map((invoice) {
             if (invoice.id == id) {
               return invoice.copyWith(
-                  status: 'paid', transactionId: transactionId);
+                  status: 'paid', transactionId: transaction['transactionId']);
             }
             return invoice;
           }).toList();
@@ -291,7 +304,7 @@ class ViewInvoicesState extends State<ViewInvoices> {
             padding: EdgeInsets.all(isSmallScreen ? 2 : 16),
             child: Column(
               children: [
-                SizedBox(height: !isSmallScreen ? 40 : 20),
+                SizedBox(height: 5),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
@@ -310,7 +323,7 @@ class ViewInvoicesState extends State<ViewInvoices> {
                         icon: const Icon(Icons.add)),
                   ],
                 ),
-                const SizedBox(height: 20),
+                const SizedBox(height: 5),
                 FilterHeader(
                   selectedDateField: selectedDateField,
                   selectedForSearch: selectedForSearch,
@@ -323,11 +336,11 @@ class ViewInvoicesState extends State<ViewInvoices> {
                   handleRangeChange: handleRangeChange,
                   handleDateReset: handleDateReset,
                   fromDate: _fromDate,
-                  toDate: _fromDate,
+                  toDate: _toDate,
                 ),
                 const SizedBox(height: 20),
                 Container(
-                  constraints: BoxConstraints(maxHeight: 500, minHeight: 200),
+                  constraints: BoxConstraints(minHeight: 200),
                   child: InvoiceTablePage(
                       invoices: _invoices,
                       scrollController: _scrollController,

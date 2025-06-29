@@ -1,6 +1,8 @@
+import 'package:auto_route/auto_route.dart';
 import 'package:data_table_2/data_table_2.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import '../../app_router.gr.dart';
 import '../../helpers/financial_string_formart.dart';
 import 'package:modal_bottom_sheet/modal_bottom_sheet.dart';
 
@@ -176,7 +178,8 @@ class ViewCustomersState extends State<ViewCustomers> {
               ),
               DataColumn2(label: Text('Actions'))
             ],
-            source: CustomersDataSource(customers: getFilteredAndSortedRows()),
+            source: CustomersDataSource(
+                customers: getFilteredAndSortedRows(), context: context),
             border: TableBorder(
               horizontalInside: BorderSide.none,
               verticalInside: BorderSide.none,
@@ -212,13 +215,14 @@ class ViewCustomersState extends State<ViewCustomers> {
 
 class CustomersDataSource extends DataTableSource {
   final List customers;
+  final BuildContext context;
 
   String formatDate(String isoDate) {
     final DateTime parsedDate = DateTime.parse(isoDate);
     return DateFormat('dd-MM-yyyy').format(parsedDate);
   }
 
-  CustomersDataSource({required this.customers});
+  CustomersDataSource({required this.context, required this.customers});
 
   @override
   DataRow? getRow(int index) {
@@ -236,14 +240,15 @@ class CustomersDataSource extends DataTableSource {
         DataCell(Text(customer['initiator'])),
         DataCell(Text(formatDate(customer['createdAt']))),
         DataCell(Row(
-          mainAxisAlignment: MainAxisAlignment.spaceAround,
+          mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            IconButton.outlined(
-                tooltip: 'Update', onPressed: () {}, icon: Icon(Icons.edit)),
-            IconButton.outlined(
-                onPressed: () {},
-                icon: Icon(Icons.delete_forever_outlined),
-                tooltip: 'Delete'),
+            IconButton(
+                onPressed: () {
+                  context.router.push(CustomerDetails(customer: customer));
+                },
+                icon: Icon(Icons.login_outlined,
+                    color: Theme.of(context).colorScheme.primary),
+                tooltip: 'View Customer'),
           ],
         ))
       ],

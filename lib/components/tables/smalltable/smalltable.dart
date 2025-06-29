@@ -26,9 +26,12 @@ class SmallTable extends StatelessWidget {
               return DataRow(
                 cells: [
                   DataCell(Text(res['name'].toString())),
-                  DataCell(
-                      Text(formatDate(res['lastPurchaseDate'].toString()))),
-                  DataCell(Text(res['lastPurchaseAmount'].toString())),
+                  DataCell(Text(res['lastPurchaseDate'] != null
+                      ? formatDate(res['lastPurchaseDate'].toString())
+                      : 'No Purchase Yet')),
+                  DataCell(Text(res['lastPurchaseAmount'] != null
+                      ? res['lastPurchaseAmount'].toString()
+                      : '0')),
                   DataCell(Text(res['total_spent'].toString()))
                 ],
               );

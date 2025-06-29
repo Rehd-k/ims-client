@@ -25,6 +25,11 @@ class AddCustomerState extends State<AddCustomer> {
 
   final initiatorController = TextEditingController();
 
+  final cityController = TextEditingController();
+  final stateController = TextEditingController();
+  final zipCodeController = TextEditingController();
+  final countryController = TextEditingController();
+
   @override
   void dispose() {
     nameController.dispose();
@@ -32,6 +37,10 @@ class AddCustomerState extends State<AddCustomer> {
     phoneNumberController.dispose();
     addressController.dispose();
     initiatorController.dispose();
+    cityController.dispose();
+    stateController.dispose();
+    zipCodeController.dispose();
+    contactController.dispose();
     super.dispose();
   }
 
@@ -41,7 +50,11 @@ class AddCustomerState extends State<AddCustomer> {
         'name': nameController.text,
         'email': emailController.text,
         'phone_number': phoneNumberController.text,
-        'address': addressController.text
+        'address': addressController.text,
+        'city': cityController.text,
+        'state': stateController.text,
+        'zipCode': zipCodeController.text,
+        'country': countryController.text
       });
 
       if (response.statusCode! >= 200 && response.statusCode! <= 300) {
@@ -139,6 +152,97 @@ class AddCustomerState extends State<AddCustomer> {
                       labelStyle: TextStyle(
                           color: Theme.of(context).hintColor, fontSize: 15),
                     )),
+                SizedBox(height: 10),
+                TextFormField(
+                    controller: cityController,
+                    decoration: InputDecoration(
+                      labelText: 'City',
+                      border: OutlineInputBorder(
+                          borderRadius: BorderRadius.all(Radius.circular(5.0)),
+                          borderSide: BorderSide(color: Colors.blue)),
+                      labelStyle: TextStyle(
+                          color: Theme.of(context).hintColor, fontSize: 15),
+                    )),
+                SizedBox(height: 10),
+                TextFormField(
+                    controller: zipCodeController,
+                    decoration: InputDecoration(
+                      labelText: 'Zip Code',
+                      border: OutlineInputBorder(
+                          borderRadius: BorderRadius.all(Radius.circular(5.0)),
+                          borderSide: BorderSide(color: Colors.blue)),
+                      labelStyle: TextStyle(
+                          color: Theme.of(context).hintColor, fontSize: 15),
+                    )),
+                SizedBox(height: 10),
+                DropdownButtonFormField<String>(
+                  value: stateController.text.isNotEmpty
+                      ? stateController.text
+                      : null,
+                  decoration: InputDecoration(
+                    labelText: 'State',
+                    border: OutlineInputBorder(
+                        borderRadius: BorderRadius.all(Radius.circular(5.0)),
+                        borderSide: BorderSide(color: Colors.blue)),
+                    labelStyle: TextStyle(
+                        color: Theme.of(context).hintColor, fontSize: 15),
+                  ),
+                  items: [
+                    'Abia',
+                    'Adamawa',
+                    'Akwa Ibom',
+                    'Anambra',
+                    'Bauchi',
+                    'Bayelsa',
+                    'Benue',
+                    'Borno',
+                    'Cross River',
+                    'Delta',
+                    'Ebonyi',
+                    'Edo',
+                    'Ekiti',
+                    'Enugu',
+                    'FCT',
+                    'Gombe',
+                    'Imo',
+                    'Jigawa',
+                    'Kaduna',
+                    'Kano',
+                    'Katsina',
+                    'Kebbi',
+                    'Kogi',
+                    'Kwara',
+                    'Lagos',
+                    'Nasarawa',
+                    'Niger',
+                    'Ogun',
+                    'Ondo',
+                    'Osun',
+                    'Oyo',
+                    'Plateau',
+                    'Rivers',
+                    'Sokoto',
+                    'Taraba',
+                    'Yobe',
+                    'Zamfara'
+                  ]
+                      .map((state) => DropdownMenuItem(
+                            value: state,
+                            child: Text(state),
+                          ))
+                      .toList(),
+                  onChanged: (value) {
+                    setState(() {
+                      stateController.text = value ?? '';
+                    });
+                  },
+                  validator: (value) {
+                    if (value == null || value.isEmpty) {
+                      return 'Please select a state';
+                    }
+                    return null;
+                  },
+                ),
                 SizedBox(height: 10),
                 ElevatedButton(
                   onPressed: () {

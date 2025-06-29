@@ -19,15 +19,15 @@ import 'product_grid.dart';
 import 'product_service.dart';
 
 @RoutePage()
-class MakeSaleIndex extends StatefulWidget {
+class MakeSaleScreen extends StatefulWidget {
   final Function()? onResult;
-  const MakeSaleIndex({super.key, this.onResult});
+  const MakeSaleScreen({super.key, this.onResult});
 
   @override
   MakeSaleIndexState createState() => MakeSaleIndexState();
 }
 
-class MakeSaleIndexState extends State<MakeSaleIndex> {
+class MakeSaleIndexState extends State<MakeSaleScreen> {
   ApiService apiService = ApiService();
   Timer? _debounce;
 

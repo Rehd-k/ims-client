@@ -10,14 +10,14 @@ import 'add_category.dart';
 import 'view_category.dart';
 
 @RoutePage()
-class CategoryIndex extends StatefulWidget {
-  const CategoryIndex({super.key});
+class CategoryScreen extends StatefulWidget {
+  const CategoryScreen({super.key});
 
   @override
   CategoryIndexState createState() => CategoryIndexState();
 }
 
-class CategoryIndexState extends State<CategoryIndex> {
+class CategoryIndexState extends State<CategoryScreen> {
   final GlobalKey<ViewCategoryState> _viewProductKey =
       GlobalKey<ViewCategoryState>();
 

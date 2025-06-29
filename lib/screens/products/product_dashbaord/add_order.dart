@@ -157,6 +157,7 @@ class AddOrderState extends State<AddOrder> {
       'debt': total - getTotalPaid(),
       'discount': int.tryParse(discountController.text) ?? 0,
       'deliveryDate': selectedDeliveryDate.toString(),
+      'createdAt': DateTime.now().toString()
     };
     try {
       final dynamic response =

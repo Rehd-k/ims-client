@@ -13,7 +13,7 @@ class LogedinGuard extends AutoRouteGuard {
       if (decodeToken['role'] == 'admin') {
         resolver.next(true); // Allow navigation
       } else if (decodeToken['role'] == 'cashier') {
-        router.replaceAll([MakeSaleIndex()]);
+        router.replaceAll([MakeSaleRoute()]);
       } else {
         resolver.redirectUntil(LoginRoute());
       }

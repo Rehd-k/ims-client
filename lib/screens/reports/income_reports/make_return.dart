@@ -96,6 +96,7 @@ class MakeReturnState extends State<MakeReturn> {
             'description':
                 'Return "${product['quantity']}" of the ${product['title']}  product for transaction with id ${widget.transactionId}',
             'from': userRole['username'],
+            'createdAt': DateTime.now().toString()
           });
           if (info.statusCode >= 200 && info.statusCode <= 300) {
             if (!mounted) return;

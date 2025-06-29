@@ -1,9 +1,10 @@
-import 'package:auto_route/auto_route.dart';
+// import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:shelf_sense/helpers/financial_string_formart.dart';
 
-import '../../../app_router.gr.dart';
+// import '../../../app_router.gr.dart';
+import 'handle.payments.dart';
 import 'preview.dart';
 
 class Invoice {
@@ -78,7 +79,7 @@ class InvoiceTablePage extends StatelessWidget {
   final bool isLoading;
   final bool hasMore;
   final Function(String id) handleSendMessage;
-  final Function(String id, String transactionId) updateInvoice;
+  final Function updateInvoice;
 
   const InvoiceTablePage(
       {super.key,
@@ -137,7 +138,7 @@ class InvoiceTablePage extends StatelessWidget {
               return DataRow(
                   color: WidgetStateProperty.all(_rowColor(invoice.status)),
                   cells: [
-                    DataCell(Text(invoice.invoiceNumber)),
+                    DataCell(Text(invoice.invoiceNumber.toUpperCase())),
                     DataCell(Text(invoice.customer['name'])),
                     DataCell(Text(formatDate(invoice.issueDate))),
                     DataCell(Text(formatDate(invoice.dueDate))),
@@ -215,15 +216,21 @@ class InvoiceTablePage extends StatelessWidget {
                                   ],
                                 ),
                                 onTap: () => {
-                                  context.router.push(CheckoutRoute(
-                                      total: (invoice.total + invoice.discount)
-                                          .toDouble(),
-                                      cart: invoice.items,
-                                      selectedBank: invoice.bank,
-                                      selectedUser: invoice.customer,
-                                      discount: invoice.discount,
-                                      invoiceId: invoice.id,
-                                      handleComplete: updateInvoice))
+                                  showModalBottomSheet(
+                                      context: context,
+                                      builder: (BuildContext context) {
+                                        return HandlePayments(
+                                            total: (invoice.total +
+                                                    invoice.discount)
+                                                .toDouble(),
+                                            cart: invoice.items,
+                                            selectedBank: invoice.bank,
+                                            selectedUser: invoice.customer,
+                                            discount: invoice.discount,
+                                            invoiceId: invoice.id,
+                                            handleComplete: updateInvoice);
+                                      },
+                                      isScrollControlled: true)
                                 },
                               ),
                         PopupMenuItem(
@@ -278,6 +285,7 @@ class InvoiceTablePage extends StatelessWidget {
                                 builder: (BuildContext context) {
                                   return InvoicePage(
                                     invoice: invoice,
+                                    // location : location
                                   );
                                 },
                                 isScrollControlled: true)

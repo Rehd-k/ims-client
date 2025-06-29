@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 
 import '../../../helpers/financial_string_formart.dart';
 
@@ -12,6 +13,11 @@ class InvoicePage extends StatelessWidget {
     super.key,
     required this.invoice,
   });
+
+  String formatDate(String isoDate) {
+    final DateTime parsedDate = DateTime.parse(isoDate);
+    return DateFormat('dd-MM-yyyy').format(parsedDate);
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -32,16 +38,16 @@ class InvoicePage extends StatelessWidget {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                _contactInfo("Kinzo-tech Global", [
+                _contactInfo("Nenz Global", [
                   "1234 Elm Street",
                   "City, State 12345",
                   "(234) 906-470-6633",
                   "frontdesk@Kinzo-techglobal.com",
                 ]),
                 _contactInfo("BILL TO", [
-                  "John Doe",
-                  "5679 Oak Avenue",
-                  "City, State 67890",
+                  invoice.customer['name'],
+                  invoice.customer['address'],
+                  "${invoice.customer['city']}, ${invoice.customer['state']} ${invoice.customer['zipCode']}",
                 ]),
               ],
             ),
@@ -49,9 +55,9 @@ class InvoicePage extends StatelessWidget {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                _invoiceMeta("INVOICE #", invoice.invoiceNumber),
-                _invoiceMeta("DATE", invoice.issueDate),
-                _invoiceMeta("DUE DATE", invoice.dueDate),
+                _invoiceMeta("INVOICE #", invoice.invoiceNumber.toUpperCase()),
+                _invoiceMeta("DATE", formatDate(invoice.issueDate)),
+                _invoiceMeta("DUE DATE", formatDate(invoice.dueDate)),
                 _invoiceMeta(
                     "AMOUNT DUE",
                     invoice.total
@@ -136,8 +142,8 @@ class InvoicePage extends StatelessWidget {
           return _buildTableRow([
             item['title'],
             item['price'].toString().formatToFinancial(isMoneySymbol: true),
-            item['buying_quantity'].toString(),
-            item['amount'].toString().formatToFinancial(isMoneySymbol: true),
+            item['quantity'].toString(),
+            item['total'].toString().formatToFinancial(isMoneySymbol: true),
           ]);
         }),
       ],

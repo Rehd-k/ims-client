@@ -97,6 +97,7 @@ class IncomeReportsScreenState extends State<IncomeReportsScreen> {
           'description':
               'Change the date of transaction with Id  ${_selectedRows[0]['transactionId']} to ${formatDate(transactionUpdate['transactionDate'])}',
           'from': userRole['username'],
+          'createdAt': DateTime.now().toString()
         });
 
         toastification.show(

@@ -16,7 +16,7 @@ class AdminAuthGuard extends AutoRouteGuard {
           resolver.next(true);
         }));
       } else if (decodeToken['role'] == 'cashier') {
-        router.push(MakeSaleIndex(onResult: () {
+        router.push(MakeSaleRoute(onResult: () {
           resolver.next(true);
         }));
       } else {

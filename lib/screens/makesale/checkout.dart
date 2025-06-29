@@ -7,6 +7,7 @@ import 'package:flutter/services.dart';
 import 'package:shelf_sense/services/settings.service.dart';
 import 'package:toastification/toastification.dart';
 
+import '../../app_router.gr.dart';
 import '../../helpers/financial_string_formart.dart';
 import '../../services/api.service.dart';
 import '../../services/defaultprinter.service.dart';
@@ -186,9 +187,9 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
       'products': widget.cart,
       'customer': selectedName?['_id'],
       'charges': selectedCharges,
-      'transactionDate': DateTime.now().toLocal().toString()
+      'transactionDate': DateTime.now().toString(),
+      'createdAt': DateTime.now().toUtc().toIso8601String()
     };
-
     // Capture the context before the async gap
     var scaffoldMessenger = ScaffoldMessenger.of(context);
 
@@ -206,7 +207,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
     );
 
     if (widget.invoiceId != null) {
-      widget.handleComplete(widget.invoiceId, responce.data['transactionId']);
+      widget.handleComplete(widget.invoiceId, responce.data);
     } else {
       widget.handleComplete();
     }
@@ -270,6 +271,15 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
     return Scaffold(
       appBar: AppBar(
         title: Text('Checkout'),
+        leading: IconButton(
+            onPressed: () {
+              if (widget.invoiceId != null) {
+                context.router.replaceAll([ViewInvoices()]);
+              } else {
+                context.router.replaceAll([MakeSaleRoute()]);
+              }
+            },
+            icon: Icon(Icons.arrow_back)),
       ),
       body: LayoutBuilder(
         builder: (context, constraints) {

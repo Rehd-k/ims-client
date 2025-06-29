@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:io';
 import 'dart:ui';
 
 import 'package:auto_updater/auto_updater.dart';
@@ -18,15 +19,17 @@ void main() async {
   runZonedGuarded(() async {
     WidgetsFlutterBinding.ensureInitialized();
 
-    String feedURL = 'https://vessellabs.org/shelfsense/ifite/appcast.xml';
-    await autoUpdater.setFeedURL(feedURL);
+    if (Platform.isWindows) {
+      await windowManager.ensureInitialized();
+      String feedURL = 'https://vessellabs.org/shelfsense/ifite/appcast.xml';
 
-    await windowManager.ensureInitialized();
+      await autoUpdater.setFeedURL(feedURL);
 
-    windowManager.setPreventClose(true);
+      windowManager.setPreventClose(true);
+      windowManager.addListener(MyWindowListener());
+      // Catch Flutter framework (widget tree) errors
+    }
 
-    windowManager.addListener(MyWindowListener());
-    // Catch Flutter framework (widget tree) errors
     FlutterError.onError = (FlutterErrorDetails details) {
       FlutterError.presentError(details);
       debugPrint(details.toString());

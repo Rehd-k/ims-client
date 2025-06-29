@@ -151,7 +151,7 @@ class ViewProducts extends StatelessWidget {
                 initialSortAscending: true,
                 rowsPerPage: 15,
                 availableRowsPerPage: const [10, 15, 25, 50],
-                fixedLeftColumns: 1,
+                fixedLeftColumns: smallScreen ? 0 : 1,
                 minWidth: 2500,
                 empty: const Center(child: CircularProgressIndicator()),
                 border: TableBorder.all(color: Colors.grey.shade200, width: 1),

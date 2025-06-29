@@ -3,10 +3,10 @@ import 'package:data_table_2/data_table_2.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:shelf_sense/helpers/financial_string_formart.dart';
-import 'package:shelf_sense/services/token.service.dart';
 import 'package:toastification/toastification.dart';
 
 import '../../../app_router.gr.dart';
+import '../../../services/token.service.dart';
 
 /// Represents the definition of a single column passed from the parent.
 class ColumnDefinition {
@@ -193,6 +193,16 @@ class MyAsyncDataSource extends AsyncDataTableSource {
       return DataCell(viewProductDetails(rowData));
     }
 
+    if (colDef.field == 'invoiceActions') {
+      return DataCell(IconButton(
+        icon: Icon(Icons.login_outlined),
+        onPressed: () {
+          context.router
+              .push(ViewInvoices(invoiceId: rowData['invoiceNumber']));
+        },
+      ));
+    }
+
     if (colDef.field == 'show_sales_details') {
       return DataCell(IconButton(
           onPressed: () {
@@ -331,6 +341,7 @@ class MyAsyncDataSource extends AsyncDataTableSource {
       final rows = _data.asMap().entries.map((entry) {
         final index = entry.key + startIndex;
         final rowData = entry.value;
+
         // Ensure the row has an ID for the key and selection
         final String rowId =
             rowData['_id'] as String? ?? UniqueKey().toString();
