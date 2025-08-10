@@ -1,9 +1,15 @@
 // import 'package:auto_route/auto_route.dart';
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:path_provider/path_provider.dart';
 import 'package:shelf_sense/helpers/financial_string_formart.dart';
+import 'package:permission_handler/permission_handler.dart';
+import 'package:share_plus/share_plus.dart';
 
 // import '../../../app_router.gr.dart';
+import '../../../services/invoice.pdf.dart';
 import 'handle.payments.dart';
 import 'preview.dart';
 
@@ -80,6 +86,7 @@ class InvoiceTablePage extends StatelessWidget {
   final bool hasMore;
   final Function(String id) handleSendMessage;
   final Function updateInvoice;
+  final Function(String id) deleteInvoice;
 
   const InvoiceTablePage(
       {super.key,
@@ -88,7 +95,8 @@ class InvoiceTablePage extends StatelessWidget {
       required this.isLoading,
       required this.hasMore,
       required this.handleSendMessage,
-      required this.updateInvoice});
+      required this.updateInvoice,
+      required this.deleteInvoice});
 
   Color _rowColor(String status) {
     switch (status.toLowerCase()) {
@@ -106,6 +114,54 @@ class InvoiceTablePage extends StatelessWidget {
   String formatDate(String isoDate) {
     final DateTime parsedDate = DateTime.parse(isoDate);
     return DateFormat('dd-MM-yyyy').format(parsedDate);
+  }
+
+  Future<String> getDownloadsPath() async {
+    if (Platform.isWindows) {
+      final home = Platform.environment['USERPROFILE'] ?? '';
+      return '$home\\Downloads';
+    } else if (Platform.isMacOS) {
+      final home = Platform.environment['HOME'] ?? '';
+      return '$home/Downloads';
+    } else if (Platform.isAndroid) {
+      // For Android, save to public Downloads folder
+      return '/storage/emulated/0/Download';
+    } else {
+      // Fallback: use documents directory
+      final dir = await getApplicationDocumentsDirectory();
+      return dir.path;
+    }
+  }
+
+  Future<void> savePdf(Invoice invoice, BuildContext context) async {
+    final file = await generateInvoicePdf(invoice);
+    final downloadsPath = await getDownloadsPath();
+
+    if (Platform.isAndroid) {
+      if (!await Permission.storage.request().isGranted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text("Storage permission denied")),
+        );
+        return;
+      }
+    }
+
+    await file
+        .copy('$downloadsPath/${invoice.customer['name']}\'s invoice.pdf');
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text("Saved to $downloadsPath")),
+    );
+  }
+
+  Future<void> sharePdf(Invoice invoice) async {
+    final file = await generateInvoicePdf(invoice);
+    await SharePlus.instance.share(
+      ShareParams(
+          files: [XFile(file.path)],
+          text: "Here's your invoice",
+          subject: "Invoice"),
+    );
   }
 
   @override
@@ -303,7 +359,7 @@ class InvoiceTablePage extends StatelessWidget {
                               const SizedBox(
                                 width: 10,
                               ),
-                              Text("Re Send",
+                              Text("Send Invoice",
                                   style: TextStyle(
                                     fontSize: 12,
                                     color: Theme.of(context)
@@ -313,7 +369,9 @@ class InvoiceTablePage extends StatelessWidget {
                                   )),
                             ],
                           ),
-                          onTap: () => {handleSendMessage(invoice.id)},
+                          onTap: () async {
+                            sharePdf(invoice);
+                          },
                         ),
                         PopupMenuItem(
                           child: Row(
@@ -337,7 +395,9 @@ class InvoiceTablePage extends StatelessWidget {
                                   )),
                             ],
                           ),
-                          onTap: () {},
+                          onTap: () async {
+                            savePdf(invoice, context);
+                          },
                         ),
                         PopupMenuItem(
                           child: Row(
@@ -361,7 +421,7 @@ class InvoiceTablePage extends StatelessWidget {
                                   )),
                             ],
                           ),
-                          onTap: () => {},
+                          onTap: () => {deleteInvoice(invoice.id)},
                         ),
                       ],
                       // offset: const Offset(0, 100),

@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:toastification/toastification.dart';
 
 import '../../globals/actions.dart';
 import '../../globals/sidebar.dart';
@@ -115,6 +116,25 @@ class ViewInvoicesState extends State<ViewInvoices> {
         }
       });
     }
+  }
+
+  Future<void> deleteInvoice(String id) async {
+    toastification.show(
+      title: Text('Loading'),
+      type: ToastificationType.info,
+      style: ToastificationStyle.flatColored,
+      autoCloseDuration: const Duration(seconds: 3),
+    );
+    await apiService.deleteRequest('invoice?filter={"_id": "$id"}');
+    setState(() {
+      _invoices.removeWhere((invoice) => invoice.id == id);
+    });
+    toastification.show(
+      title: Text('Done - Invoice deleted'),
+      type: ToastificationType.info,
+      style: ToastificationStyle.flatColored,
+      autoCloseDuration: const Duration(seconds: 3),
+    );
   }
 
   @override
@@ -342,6 +362,7 @@ class ViewInvoicesState extends State<ViewInvoices> {
                 Container(
                   constraints: BoxConstraints(minHeight: 200),
                   child: InvoiceTablePage(
+                      deleteInvoice: deleteInvoice,
                       invoices: _invoices,
                       scrollController: _scrollController,
                       isLoading: _isLoading,

@@ -2,6 +2,7 @@ import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
+import 'package:share_plus/share_plus.dart';
 import '../../globals/actions.dart';
 import '../../globals/sidebar.dart';
 import '../../helpers/financial_string_formart.dart';
@@ -11,6 +12,7 @@ import '../../components/inputs/customer_finder.dart';
 import '../../components/inputs/product_finder.dart';
 import '../../helpers/providers/theme_notifier.dart';
 import '../../services/api.service.dart';
+import '../../services/invoice.pdf.dart';
 
 @RoutePage()
 class AddInvoice extends StatefulWidget {
@@ -21,6 +23,7 @@ class AddInvoice extends StatefulWidget {
 }
 
 class AddInvoiceState extends State<AddInvoice> {
+  List<FocusNode> focusNodes = [];
   final List<String> taxes = List.generate(10, (index) => 'Tax $index');
   final TextEditingController productController = TextEditingController();
   final TextEditingController nameController = TextEditingController();
@@ -91,7 +94,7 @@ class AddInvoiceState extends State<AddInvoice> {
     });
   }
 
-  void handleSave() async {
+  void handleSave(String shouldShare) async {
     // Validate required fields
     if (selectedName == null ||
         selectedProducts.isEmpty ||
@@ -133,6 +136,7 @@ class AddInvoiceState extends State<AddInvoice> {
 
     var response = await apiService.postRequest('invoice', info);
     if (response.statusCode! >= 200 && response.statusCode! <= 300) {
+      shouldShare == 'share' ? sharePdf(response) : null;
       toastification.show(
         title: Text('Invoice Created Successfully'),
         type: ToastificationType.success,
@@ -142,10 +146,21 @@ class AddInvoiceState extends State<AddInvoice> {
     }
   }
 
+  Future<void> sharePdf(invoice) async {
+    final file = await generateInvoicePdf(invoice);
+    await SharePlus.instance.share(
+      ShareParams(
+          files: [XFile(file.path)],
+          text: "Here's your invoice",
+          subject: "Invoice"),
+    );
+  }
+
   @override
   void initState() {
     super.initState();
     updateBankList();
+
     quantityControllers = List.generate(
       selectedProducts.length,
       (index) => TextEditingController(
@@ -174,13 +189,19 @@ class AddInvoiceState extends State<AddInvoice> {
     });
   }
 
-  @override
-  void dispose() {
-    productController.dispose();
-    for (var controller in quantityControllers) {
-      controller.dispose();
+  _onFieldUnfocus(int index, String value) {
+    int? newQty = int.tryParse(value);
+    if (newQty == null || newQty < 1) {
+      newQty = 1;
+    } else if (newQty > selectedProducts[index]['remaining']) {
+      newQty = selectedProducts[index]['remaining'];
     }
-    super.dispose();
+    if (newQty != selectedProducts[index]['quantity']) {
+      updateQuantity(index, newQty);
+    } else {
+      // To update the text if user enters invalid value
+      quantityControllers[index].text = newQty.toString();
+    }
   }
 
   selectUserFromSugestion(suggestion) {
@@ -218,6 +239,7 @@ class AddInvoiceState extends State<AddInvoice> {
             if (existingIndex != -1) {
               selectedProducts.removeAt(existingIndex);
               quantityControllers.removeAt(existingIndex);
+              focusNodes.removeAt(existingIndex);
             } else {
               suggestion['quantity'] = 1;
               suggestion['total'] =
@@ -226,6 +248,16 @@ class AddInvoiceState extends State<AddInvoice> {
               quantityControllers.add(
                 TextEditingController(text: suggestion['quantity'].toString()),
               );
+              final node = FocusNode();
+              node.addListener(() {
+                if (!node.hasFocus) {
+                  final idx = focusNodes.indexOf(node);
+                  if (idx != -1) {
+                    _onFieldUnfocus(idx, quantityControllers[idx].text);
+                  }
+                }
+              });
+              focusNodes.add(node);
             }
             // selectedProducts.add(suggestion);
             productController.clear();
@@ -236,6 +268,18 @@ class AddInvoiceState extends State<AddInvoice> {
             style: ToastificationStyle.flatColored,
             autoCloseDuration: const Duration(seconds: 3),
           );
+  }
+
+  @override
+  void dispose() {
+    productController.dispose();
+    for (var controller in quantityControllers) {
+      controller.dispose();
+    }
+    for (var node in focusNodes) {
+      node.dispose();
+    }
+    super.dispose();
   }
 
   @override
@@ -492,6 +536,7 @@ class AddInvoiceState extends State<AddInvoice> {
                                         SizedBox(
                                           width: 50,
                                           child: TextFormField(
+                                            focusNode: focusNodes[index],
                                             controller:
                                                 quantityControllers[index],
                                             textAlign: TextAlign.center,
@@ -500,27 +545,6 @@ class AddInvoiceState extends State<AddInvoice> {
                                               FilteringTextInputFormatter
                                                   .digitsOnly,
                                             ],
-                                            onFieldSubmitted: (val) {
-                                              int? newQty = int.tryParse(val);
-                                              if (newQty == null ||
-                                                  newQty < 1) {
-                                                newQty = 1;
-                                              } else if (newQty >
-                                                  product['remaining']) {
-                                                newQty = product['remaining'];
-                                              }
-                                              if (newQty !=
-                                                  product['quantity']) {
-                                                updateQuantity(index, newQty);
-                                              } else {
-                                                // To update the text if user enters invalid value
-                                                quantityControllers[index]
-                                                    .text = newQty.toString();
-                                              }
-                                            },
-                                            onEditingComplete: () {
-                                              FocusScope.of(context).unfocus();
-                                            },
                                             decoration: InputDecoration(
                                               border: OutlineInputBorder(
                                                 borderSide: BorderSide(
@@ -712,15 +736,17 @@ class AddInvoiceState extends State<AddInvoice> {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 FilledButton.icon(
-                    onPressed: () {},
+                    onPressed: () {
+                      handleSave('');
+                    },
                     label: Text('Save'),
                     icon: Icon(Icons.send_outlined)),
-                OutlinedButton.icon(
-                    onPressed: () {
-                      handleSave();
-                    },
-                    label: Text('Save And Print'),
-                    icon: Icon(Icons.send_and_archive_outlined))
+                // OutlinedButton.icon(
+                //     onPressed: () {
+                //       handleSave('share');
+                //     },
+                //     label: Text('Save And Send'),
+                //     icon: Icon(Icons.send_and_archive_outlined))
               ],
             )
           ],

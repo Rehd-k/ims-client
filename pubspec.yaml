@@ -60,6 +60,9 @@ dependencies:
   ffi: ^2.1.4
   win32: ^5.13.0
   window_manager: ^0.5.0
+  pdf: ^3.11.3
+  share_plus: ^11.0.0
+  permission_handler: ^11.4.0
 
 dev_dependencies:
   flutter_test:
@@ -131,6 +134,11 @@ flutter:
         - asset: assets/fonts/Poppins-BoldItalic.ttf
           weight: 700
           style: italic
+    - family: DejaVuSans
+      fonts:
+        - asset: assets/fonts/DejaVuSans.ttf
+        - asset: assets/fonts/DejaVuSans-Bold.ttf
+          weight: 700
 
           
 flutter_native_splash:
