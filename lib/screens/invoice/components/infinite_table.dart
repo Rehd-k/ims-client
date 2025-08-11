@@ -142,6 +142,7 @@ class InvoiceTablePage extends StatelessWidget {
     final downloadsPath = await getDownloadsPath();
 
     if (Platform.isAndroid) {
+      await Permission.storage.request();
       if (!await Permission.storage.request().isGranted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text("Storage permission denied")),

@@ -36,19 +36,31 @@ Column buildProductInput(
               return ListView(
                 shrinkWrap: true,
                 children: snapshot.data!.map((suggestion) {
+                  dynamic cartonAmout;
+                  if (suggestion['cartonAmount'] == 0 ||
+                      suggestion['cartonAmount'] == null ||
+                      suggestion['cartonAmount'].isEmpty) {
+                    cartonAmout = 1;
+                  } else {
+                    cartonAmout = suggestion['cartonAmount'];
+                  }
+
                   return ListTile(
                     title: Text(suggestion['title']),
                     subtitle: Row(children: [
                       suggestion['type'] == 'carton'
                           ? Text(
-                              '${(suggestion['quantity'] * suggestion['cartonAmount']).toString().formatToFinancial(isMoneySymbol: false)} Cartons',
+                              '${(suggestion['quantity'] ~/ cartonAmout).toString().formatToFinancial(isMoneySymbol: false)} Cartons',
                             )
                           : SizedBox(),
                       suggestion['type'] == 'carton'
                           ? SizedBox(width: 10)
                           : SizedBox(),
-                      Text(
-                          '${suggestion['quantity'].toString().formatToFinancial(isMoneySymbol: false)} Units'),
+                      suggestion['type'] == 'carton'
+                          ? Text(
+                              '${(suggestion['quantity'] % suggestion['cartonAmount']).toString().formatToFinancial(isMoneySymbol: false)} Units')
+                          : Text(
+                              '${suggestion['quantity'].toString().formatToFinancial(isMoneySymbol: false)} Units'),
                     ]),
                     trailing: Text(suggestion['price']
                         .toString()

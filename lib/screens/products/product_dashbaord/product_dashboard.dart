@@ -521,13 +521,13 @@ class ProductDashboardState extends State<ProductDashboard> {
         //     value: data['totalExpiredQuantity'].toString(),
         //     fontSize: isBigScreen ? 20 : 10,
         //     color: Theme.of(context).colorScheme.surface),
-        InfoCard(
-            title: 'Damaged',
-            icon: Icons.dangerous_outlined,
-            currency: false,
-            value: data['totalDamagedQuantity'].toString(),
-            fontSize: isBigScreen ? 20 : 10,
-            color: Theme.of(context).colorScheme.surface),
+        // InfoCard(
+        //     title: 'Damaged',
+        //     icon: Icons.dangerous_outlined,
+        //     currency: false,
+        //     value: data['totalDamagedQuantity'].toString(),
+        //     fontSize: isBigScreen ? 20 : 10,
+        //     color: Theme.of(context).colorScheme.surface),
         InfoCard(
           title: 'Cartons',
           icon: Icons.dangerous_outlined,
