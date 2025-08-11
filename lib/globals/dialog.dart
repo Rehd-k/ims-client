@@ -4,24 +4,26 @@ void openBox(BuildContext context, doDelete) {
   showDialog(
     context: context,
     builder: (BuildContext context) {
+      final isSmallScreen = MediaQuery.of(context).size.width < 600;
       return SafeArea(
         child: Container(
-            width: 2,
             padding: EdgeInsets.all(0),
             child: Dialog(
                 shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.all(Radius.circular(10))),
                 child: ConstrainedBox(
-                  constraints: BoxConstraints(minHeight: 120, maxHeight: 140),
+                  constraints: BoxConstraints(
+                      minHeight: 120, maxHeight: isSmallScreen ? 180 : 140),
                   child: SizedBox(
-                    width: MediaQuery.of(context).size.width * 0.4,
+                    width: MediaQuery.of(context).size.width * 0.5,
                     child: Column(
                         mainAxisAlignment: MainAxisAlignment.center,
                         crossAxisAlignment: CrossAxisAlignment.center,
                         children: [
                           Container(
                             padding: EdgeInsets.only(top: 10, bottom: 5),
-                            width: MediaQuery.of(context).size.width * 0.2,
+                            width: MediaQuery.of(context).size.width *
+                                (isSmallScreen ? 0.8 : 0.2),
                             child: Column(
                               children: [
                                 Text(

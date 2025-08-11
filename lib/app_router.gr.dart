@@ -501,6 +501,8 @@ class ProductDashboard extends _i24.PageRouteInfo<ProductDashboardArgs> {
     _i25.Key? key,
     String? productId,
     String? productName,
+    required String type,
+    String? cartonAmount,
     List<_i24.PageRouteInfo>? children,
   }) : super(
          ProductDashboard.name,
@@ -508,6 +510,8 @@ class ProductDashboard extends _i24.PageRouteInfo<ProductDashboardArgs> {
            key: key,
            productId: productId,
            productName: productName,
+           type: type,
+           cartonAmount: cartonAmount,
          ),
          initialChildren: children,
        );
@@ -517,20 +521,26 @@ class ProductDashboard extends _i24.PageRouteInfo<ProductDashboardArgs> {
   static _i24.PageInfo page = _i24.PageInfo(
     name,
     builder: (data) {
-      final args = data.argsAs<ProductDashboardArgs>(
-        orElse: () => const ProductDashboardArgs(),
-      );
+      final args = data.argsAs<ProductDashboardArgs>();
       return _i18.ProductDashboard(
         key: args.key,
         productId: args.productId,
         productName: args.productName,
+        type: args.type,
+        cartonAmount: args.cartonAmount,
       );
     },
   );
 }
 
 class ProductDashboardArgs {
-  const ProductDashboardArgs({this.key, this.productId, this.productName});
+  const ProductDashboardArgs({
+    this.key,
+    this.productId,
+    this.productName,
+    required this.type,
+    this.cartonAmount,
+  });
 
   final _i25.Key? key;
 
@@ -538,9 +548,13 @@ class ProductDashboardArgs {
 
   final String? productName;
 
+  final String type;
+
+  final String? cartonAmount;
+
   @override
   String toString() {
-    return 'ProductDashboardArgs{key: $key, productId: $productId, productName: $productName}';
+    return 'ProductDashboardArgs{key: $key, productId: $productId, productName: $productName, type: $type, cartonAmount: $cartonAmount}';
   }
 }
 

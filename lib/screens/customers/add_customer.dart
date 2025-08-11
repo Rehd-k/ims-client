@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:toastification/toastification.dart';
 import '../../services/api.service.dart';
 
 class AddCustomer extends StatefulWidget {
@@ -44,6 +45,15 @@ class AddCustomerState extends State<AddCustomer> {
     super.dispose();
   }
 
+  _showToast(String toastMessage, ToastificationType type) {
+    toastification.show(
+      title: Text(toastMessage),
+      type: type,
+      style: ToastificationStyle.flatColored,
+      autoCloseDuration: const Duration(seconds: 2),
+    );
+  }
+
   Future<void> handleSubmit(BuildContext context) async {
     try {
       final dynamic response = await apiService.postRequest('/customer', {
@@ -56,6 +66,8 @@ class AddCustomerState extends State<AddCustomer> {
         'zipCode': zipCodeController.text,
         'country': countryController.text
       });
+
+      _showToast("Done", ToastificationType.success);
 
       if (response.statusCode! >= 200 && response.statusCode! <= 300) {
         if (widget.updateCustomer != null) {
@@ -236,12 +248,12 @@ class AddCustomerState extends State<AddCustomer> {
                       stateController.text = value ?? '';
                     });
                   },
-                  validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return 'Please select a state';
-                    }
-                    return null;
-                  },
+                  // validator: (value) {
+                  //   if (value == null || value.isEmpty) {
+                  //     return 'Please select a state';
+                  //   }
+                  //   return null;
+                  // },
                 ),
                 SizedBox(height: 10),
                 ElevatedButton(

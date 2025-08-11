@@ -26,8 +26,15 @@ import 'table_collums.dart';
 class ProductDashboard extends StatefulWidget {
   final String? productId;
   final String? productName;
+  final String type;
+  final String? cartonAmount;
 
-  const ProductDashboard({super.key, this.productId, this.productName});
+  const ProductDashboard(
+      {super.key,
+      this.productId,
+      this.productName,
+      required this.type,
+      this.cartonAmount});
 
   @override
   ProductDashboardState createState() => ProductDashboardState();
@@ -59,6 +66,8 @@ class ProductDashboardState extends State<ProductDashboard> {
   dynamic totalSales = 0;
   bool hasError = false;
 
+  dynamic cartonAmount = 1;
+
   String initialSort = 'createdAt';
   int rowsPerPage = PaginatedDataTable.defaultRowsPerPage;
   String searchQuery = "";
@@ -72,12 +81,18 @@ class ProductDashboardState extends State<ProductDashboard> {
     _columnDefinitions =
         columnDefs.map((map) => ColumnDefinition.fromMap(map)).toList();
 
+    if (widget.cartonAmount != null && widget.cartonAmount!.isNotEmpty) {
+      if (int.tryParse(widget.cartonAmount!) != null) {
+        cartonAmount = int.parse(widget.cartonAmount!);
+      }
+    }
     if (widget.productId != null) {
       productId = widget.productId!;
     } else {
       hasError = true;
       return;
     }
+
     getAllData();
     super.initState();
   }
@@ -242,7 +257,7 @@ class ProductDashboardState extends State<ProductDashboard> {
               IconButton(
                   tooltip: 'Edit Product',
                   onPressed: () => showBarModalBottomSheet(
-                        expand: true,
+                        expand: false,
                         context: context,
                         backgroundColor: Colors.transparent,
                         builder: (context) => EditProduct(
@@ -252,6 +267,7 @@ class ProductDashboardState extends State<ProductDashboard> {
                       ),
                   icon: Icon(Icons.edit_note_outlined)),
               IconButton(
+                tooltip: 'Delete Product',
                 onPressed: () {
                   openBox(context, deleteProduct);
                 },
@@ -490,19 +506,21 @@ class ProductDashboardState extends State<ProductDashboard> {
             fontSize: isBigScreen ? 20 : 10,
             color: Theme.of(context).colorScheme.surface),
         InfoCard(
-            title: 'Quanitity at Store',
-            icon: Icons.inventory_2_outlined,
-            currency: false,
-            value: (data['quantity'] - data['totalSales']).toString(),
-            fontSize: isBigScreen ? 20 : 10,
-            color: Theme.of(context).colorScheme.surface),
-        InfoCard(
-            title: 'Expired',
-            icon: Icons.calendar_month_outlined,
-            currency: false,
-            value: data['totalExpiredQuantity'].toString(),
-            fontSize: isBigScreen ? 20 : 10,
-            color: Theme.of(context).colorScheme.surface),
+          title: 'Quanitity at Store',
+          icon: Icons.inventory_2_outlined,
+          currency: false,
+          value:
+              ((data['quantity'] ?? 0) - (data['totalSales'] ?? 0)).toString(),
+          fontSize: isBigScreen ? 20 : 10,
+          color: Theme.of(context).colorScheme.surface,
+        ),
+        // InfoCard(
+        //     title: 'Expired',
+        //     icon: Icons.calendar_month_outlined,
+        //     currency: false,
+        //     value: data['totalExpiredQuantity'].toString(),
+        //     fontSize: isBigScreen ? 20 : 10,
+        //     color: Theme.of(context).colorScheme.surface),
         InfoCard(
             title: 'Damaged',
             icon: Icons.dangerous_outlined,
@@ -510,6 +528,26 @@ class ProductDashboardState extends State<ProductDashboard> {
             value: data['totalDamagedQuantity'].toString(),
             fontSize: isBigScreen ? 20 : 10,
             color: Theme.of(context).colorScheme.surface),
+        InfoCard(
+          title: 'Cartons',
+          icon: Icons.dangerous_outlined,
+          currency: false,
+          value: (((data['quantity'] ?? 0) - (data['totalSales'] ?? 0)) ~/
+                  cartonAmount)
+              .toString(),
+          fontSize: isBigScreen ? 20 : 10,
+          color: Theme.of(context).colorScheme.surface,
+        ),
+        InfoCard(
+          title: 'Units',
+          icon: Icons.dangerous_outlined,
+          currency: false,
+          value: (((data['quantity'] ?? 0) - (data['totalSales'] ?? 0)) %
+                  cartonAmount)
+              .toString(),
+          fontSize: isBigScreen ? 20 : 10,
+          color: Theme.of(context).colorScheme.surface,
+        )
       ],
     );
   }

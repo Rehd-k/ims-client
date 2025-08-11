@@ -170,13 +170,13 @@ class ProductsIndexState extends State<ProductsScreen> {
     bool smallScreen = width <= 1200;
     return Consumer<ThemeNotifier>(builder: (context, themeNotifier, child) {
       return Scaffold(
-          floatingActionButton: smallScreen
-              ? FloatingActionButton(
-                  onPressed: () {
-                    handleShowModal(barcodeHolder);
-                  },
-                  child: Icon(Icons.add_outlined))
-              : null,
+          // floatingActionButton: smallScreen
+          //     ? FloatingActionButton(
+          //         onPressed: () {
+          //           handleShowModal(barcodeHolder);
+          //         },
+          //         child: Icon(Icons.add_outlined))
+          //     : null,
           appBar: AppBar(
             actions: [
               !smallScreen

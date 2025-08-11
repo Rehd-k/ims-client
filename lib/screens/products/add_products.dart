@@ -41,6 +41,10 @@ class AddProductsState extends State<AddProducts> {
 
   var isAvailableController = true;
 
+  final cartonPrice = TextEditingController();
+
+  final cartonAmount = TextEditingController();
+
   final soldController = TextEditingController();
 
   final userController = TextEditingController();
@@ -69,8 +73,9 @@ class AddProductsState extends State<AddProducts> {
     unitController.dispose();
     barcodeController.dispose();
     imageUrlController.dispose();
-    // isAvailableController.dispose();
+    cartonAmount.dispose();
     soldController.dispose();
+    cartonPrice.dispose();
 
     super.dispose();
   }
@@ -89,7 +94,9 @@ class AddProductsState extends State<AddProducts> {
         'unit': unitController.text,
         'barcode': barcodeController.text,
         'isAvailable': isAvailableController,
-        'type': isUnit ? 'unit' : 'carton'
+        'type': isUnit ? 'unit' : 'carton',
+        'cartonAmount': cartonAmount.text,
+        'cartonPrice': cartonPrice.text
       });
 
       if (response.statusCode! >= 200 && response.statusCode! <= 300) {
@@ -250,7 +257,7 @@ class AddProductsState extends State<AddProducts> {
                     inputFormatters: <TextInputFormatter>[
                       FilteringTextInputFormatter.digitsOnly
                     ],
-                    controller: quantityController,
+                    controller: cartonAmount,
                     decoration: InputDecoration(
                       labelText: 'Carton Quantity *',
                       border: OutlineInputBorder(
@@ -268,6 +275,35 @@ class AddProductsState extends State<AddProducts> {
                       }
                       if (!isUnit && int.parse(value!) < 1) {
                         return 'Carton Quantity cannot be less than 1';
+                      }
+                      return null;
+                    },
+                  ),
+                if (!isUnit) SizedBox(height: 10),
+                if (!isUnit)
+                  TextFormField(
+                    keyboardType: TextInputType.number,
+                    inputFormatters: <TextInputFormatter>[
+                      FilteringTextInputFormatter.digitsOnly
+                    ],
+                    controller: cartonPrice,
+                    decoration: InputDecoration(
+                      labelText: 'Carton Seling Price *',
+                      border: OutlineInputBorder(
+                          borderRadius: BorderRadius.all(Radius.circular(5.0)),
+                          borderSide: BorderSide(color: Colors.blue)),
+                      labelStyle: TextStyle(
+                          color: Theme.of(context).hintColor, fontSize: 15),
+                    ),
+                    validator: (value) {
+                      if (!isUnit && (value == null || value.isEmpty)) {
+                        return 'Please enter Carton Price';
+                      }
+                      if (!isUnit && int.tryParse(value ?? '') == null) {
+                        return 'Carton Price must be a number';
+                      }
+                      if (!isUnit && int.parse(value!) < 1) {
+                        return 'Carton Price cannot be less than 1';
                       }
                       return null;
                     },

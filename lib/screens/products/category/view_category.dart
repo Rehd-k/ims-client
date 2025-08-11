@@ -2,6 +2,7 @@ import 'package:data_table_2/data_table_2.dart';
 import 'package:intl/intl.dart';
 import 'package:flutter/material.dart';
 import 'package:modal_bottom_sheet/modal_bottom_sheet.dart';
+import 'package:toastification/toastification.dart';
 
 import '../../../services/api.service.dart';
 import 'add_category.dart';
@@ -32,6 +33,15 @@ class ViewCategoryState extends State<ViewCategory> {
     filteredCategories = List.from(categories);
   }
 
+  _showToast(String toastMessage, ToastificationType type) {
+    toastification.show(
+      title: Text(toastMessage),
+      type: type,
+      style: ToastificationStyle.flatColored,
+      autoCloseDuration: const Duration(seconds: 2),
+    );
+  }
+
   // Search logic
   void filterProducts(String query) {
     setState(() {
@@ -52,6 +62,22 @@ class ViewCategoryState extends State<ViewCategory> {
     setState(() {
       categories.addAll(dbcategories.data);
       filteredCategories = List.from(categories);
+      isLoading = false;
+    });
+  }
+
+  Future<void> deleteCategory(String id) async {
+    setState(() {
+      isLoading = true;
+    });
+    var response = await apiService.deleteRequest('category/$id');
+    if (response.statusCode! >= 200 && response.statusCode! <= 300) {
+      _showToast('Category deleted successfully', ToastificationType.success);
+      widget.updateCategory!();
+    } else {
+      _showToast('Failed to delete category', ToastificationType.error);
+    }
+    setState(() {
       isLoading = false;
     });
   }
@@ -97,6 +123,19 @@ class ViewCategoryState extends State<ViewCategory> {
     }
   }
 
+  void doCategoryActions(String? id, String? title, String? description) {
+    showBarModalBottomSheet(
+      expand: false,
+      context: context,
+      backgroundColor: Colors.transparent,
+      builder: (context) => AddCategory(
+          updateCategory: widget.updateCategory,
+          id: id,
+          title: title,
+          description: description),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     double width = MediaQuery.sizeOf(context).width;
@@ -117,64 +156,17 @@ class ViewCategoryState extends State<ViewCategory> {
                 rowsPerPage = value ?? rowsPerPage;
               });
             },
-            // empty: Text('No Products Yet'),
-            // minWidth: 500,
             actions: [
-              DropdownButton(
-                  elevation: 0,
-                  hint: Padding(
-                    padding: const EdgeInsets.all(8.0),
-                    child: Text(
-                      'Filter',
-                      style:
-                          TextStyle(fontSize: 10, fontWeight: FontWeight.w100),
-                    ),
-                  ),
-                  borderRadius: BorderRadius.circular(10),
-                  icon: Icon(Icons.filter_alt_outlined, size: 10),
-                  // value: 'all',
-                  items: [
-                    DropdownMenuItem(
-                      value: 'all',
-                      child: Text('All'),
-                    ),
-                    DropdownMenuItem(
-                      value: 'low stock',
-                      child: Text('Low Stock'),
-                    ),
-                    DropdownMenuItem(
-                      value: 'no   stock',
-                      child: Text('No Stock'),
-                    )
-                  ],
-                  onChanged: (v) {}),
               FilledButton.icon(
-                onPressed: () {},
-                icon: Icon(
-                  Icons.exit_to_app,
-                  size: 10,
-                ),
-                label: Text(
-                  'Extract',
-                  style: TextStyle(fontWeight: FontWeight.w100, fontSize: 10),
-                ),
+                onPressed: () {
+                  doCategoryActions('', '', '');
+                },
+                label: Text('Add new'),
+                icon: Icon(Icons.add_box_outlined),
               )
             ],
             header: smallScreen
-                ? SizedBox(
-                    width: 10,
-                    child: FilledButton.icon(
-                      onPressed: () => showBarModalBottomSheet(
-                        expand: true,
-                        context: context,
-                        backgroundColor: Colors.transparent,
-                        builder: (context) =>
-                            AddCategory(updateCategory: widget.updateCategory),
-                      ),
-                      label: Text('Add Product'),
-                      icon: Icon(Icons.add_box_outlined),
-                    ),
-                  )
+                ? SizedBox()
                 : Row(
                     children: [searchBox(smallScreen)],
                   ),
@@ -188,8 +180,7 @@ class ViewCategoryState extends State<ViewCategory> {
                       this.ascending = ascending;
                     });
                   }),
-              DataColumn2(label: Text("Description"), size: ColumnSize.L),
-              DataColumn2(label: Text("Initiator")),
+              // DataColumn2(label: Text("Description"), size: ColumnSize.L),
               DataColumn2(
                 label: Text('Added On'),
                 size: ColumnSize.L,
@@ -202,7 +193,11 @@ class ViewCategoryState extends State<ViewCategory> {
               ),
               DataColumn2(label: Text('Actions'))
             ],
-            source: CategoryDataSource(categories: getFilteredAndSortedRows()),
+            source: CategoryDataSource(
+                doCategoryActions: doCategoryActions,
+                categories: getFilteredAndSortedRows(),
+                deleteCategory: deleteCategory,
+                context: context),
             border: TableBorder(
               horizontalInside: BorderSide.none,
               verticalInside: BorderSide.none,
@@ -238,13 +233,22 @@ class ViewCategoryState extends State<ViewCategory> {
 
 class CategoryDataSource extends DataTableSource {
   final List categories;
+  final BuildContext context;
+  final Function(String id) deleteCategory;
+  final Function(String? id, String? title, String? description)?
+      doCategoryActions;
 
   String formatDate(String isoDate) {
     final DateTime parsedDate = DateTime.parse(isoDate);
     return DateFormat('dd-MM-yyyy').format(parsedDate);
   }
 
-  CategoryDataSource({required this.categories});
+  CategoryDataSource({
+    required this.deleteCategory,
+    required this.doCategoryActions,
+    required this.categories,
+    required this.context,
+  });
 
   @override
   DataRow? getRow(int index) {
@@ -253,14 +257,29 @@ class CategoryDataSource extends DataTableSource {
     return DataRow(
       cells: [
         DataCell(Text(category['title'])),
-        DataCell(Text(category['description'])),
-        DataCell(Text(category['user'])),
+        // DataCell(Text(category['description'])),
+        // DataCell(Text(category['user'])),
         DataCell(Text(formatDate(category['createdAt']))),
-        DataCell(Column(
+        DataCell(Row(
           mainAxisAlignment: MainAxisAlignment.spaceAround,
           children: [
-            // OutlinedButton(onPressed: () {}, child: Text('Update'))
-            // OutlinedButton(onPressed: () {}, child: Text('Delete'))
+            IconButton(
+                onPressed: () {
+                  doCategoryActions!(category['_id'], category['title'],
+                      category['description']);
+                },
+                icon: Icon(
+                  Icons.edit,
+                  color: Theme.of(context).colorScheme.primary,
+                )),
+            IconButton(
+                onPressed: () {
+                  deleteCategory(category['_id']);
+                },
+                icon: Icon(
+                  Icons.delete,
+                  color: Theme.of(context).colorScheme.primary,
+                ))
           ],
         ))
       ],

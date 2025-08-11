@@ -96,7 +96,7 @@ class InvoicePage extends StatelessWidget {
             ),
             SizedBox(height: 24),
             Text("NOTES", style: TextStyle(fontWeight: FontWeight.bold)),
-            Text("Thank you for your business!"),
+            Text(invoice.note),
           ],
         ),
       ),

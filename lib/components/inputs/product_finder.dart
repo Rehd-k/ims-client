@@ -38,9 +38,18 @@ Column buildProductInput(
                 children: snapshot.data!.map((suggestion) {
                   return ListTile(
                     title: Text(suggestion['title']),
-                    subtitle: Text(suggestion['quantity']
-                        .toString()
-                        .formatToFinancial(isMoneySymbol: false)),
+                    subtitle: Row(children: [
+                      suggestion['type'] == 'carton'
+                          ? Text(
+                              '${(suggestion['quantity'] * suggestion['cartonAmount']).toString().formatToFinancial(isMoneySymbol: false)} Cartons',
+                            )
+                          : SizedBox(),
+                      suggestion['type'] == 'carton'
+                          ? SizedBox(width: 10)
+                          : SizedBox(),
+                      Text(
+                          '${suggestion['quantity'].toString().formatToFinancial(isMoneySymbol: false)} Units'),
+                    ]),
                     trailing: Text(suggestion['price']
                         .toString()
                         .formatToFinancial(isMoneySymbol: true)),

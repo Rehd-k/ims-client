@@ -27,9 +27,11 @@ class Invoice {
   final num discount;
   final num tax;
   final Map bank;
+  final String note;
   final String? transactionId;
 
   Invoice({
+    required this.note,
     required this.id,
     required this.invoiceNumber,
     required this.customer,
@@ -60,7 +62,8 @@ class Invoice {
       double? discount,
       double? tax,
       Map? bank,
-      String? transactionId}) {
+      String? transactionId,
+      String? note}) {
     return Invoice(
         id: id ?? this.id,
         invoiceNumber: invoiceNumber ?? this.invoiceNumber,
@@ -75,7 +78,8 @@ class Invoice {
         discount: discount ?? this.discount,
         tax: tax ?? this.tax,
         bank: bank ?? this.bank,
-        transactionId: transactionId ?? this.transactionId);
+        transactionId: transactionId ?? this.transactionId,
+        note: note ?? this.note);
   }
 }
 

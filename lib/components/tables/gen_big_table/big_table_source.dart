@@ -264,7 +264,10 @@ class MyAsyncDataSource extends AsyncDataTableSource {
             var userinfo = JwtService().decodedToken;
             if (userinfo?['role'] == 'admin') {
               context.router.push(ProductDashboard(
-                  productId: rowData['_id'], productName: rowData['title']));
+                  productId: rowData['_id'],
+                  productName: rowData['title'],
+                  type: rowData['type'],
+                  cartonAmount: rowData['cartonAmount'].toString()));
             } else {
               doShowToast(
                   'You Cannot Access This Section', ToastificationType.info);

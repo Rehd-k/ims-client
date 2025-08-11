@@ -183,7 +183,10 @@ class ViewInvoicesState extends State<ViewInvoices> {
           items: item['items'],
           discount: item['discount'],
           tax: item['tax'],
-          bank: item['bank']);
+          bank: item['bank'],
+          note: item['note'].isEmpty
+              ? 'Thank\'s For Doing Business With Us'
+              : item['note']);
     });
   }
 

@@ -5,7 +5,9 @@ import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
 import 'package:shelf_sense/helpers/financial_string_formart.dart';
 
-Future<File> generateInvoicePdf(invoice) async {
+import '../screens/invoice/components/infinite_table.dart';
+
+Future<File> generateInvoicePdf(Invoice invoice) async {
   final pdf = pw.Document();
   // Load Poppins for general text
   final poppinsRegularData =
@@ -38,7 +40,7 @@ Future<File> generateInvoicePdf(invoice) async {
         pw.Row(
           mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
           children: [
-            _contactInfo("Nenz Global", [
+            _contactInfo("Rikanenz Integrated Service LTD", [
               "Ekit Itam, Itam",
               "Uyo, Akwa Ibom 458784",
               "(234) 803-977-0324",
@@ -100,7 +102,7 @@ Future<File> generateInvoicePdf(invoice) async {
         ),
         pw.SizedBox(height: 24),
         pw.Text("NOTES", style: pw.TextStyle(fontWeight: pw.FontWeight.bold)),
-        pw.Text("Thank you for your business!"),
+        pw.Text(invoice.note),
       ],
     ),
   );
