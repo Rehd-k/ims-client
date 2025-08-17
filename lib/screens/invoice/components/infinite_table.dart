@@ -5,10 +5,8 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:shelf_sense/helpers/financial_string_formart.dart';
-import 'package:permission_handler/permission_handler.dart';
 import 'package:share_plus/share_plus.dart';
 
-// import '../../../app_router.gr.dart';
 import '../../../services/invoice.pdf.dart';
 import 'handle.payments.dart';
 import 'preview.dart';
@@ -141,21 +139,25 @@ class InvoiceTablePage extends StatelessWidget {
     final file = await generateInvoicePdf(invoice);
     final downloadsPath = await getDownloadsPath();
 
-    if (Platform.isAndroid) {
-      await Permission.storage.request();
-      if (!await Permission.storage.request().isGranted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text("Storage permission denied")),
-        );
-        return;
-      }
+    final filePath =
+        File('$downloadsPath/${invoice.customer['name']}\'s invoce.pdf');
+    try {
+      await filePath.writeAsBytes(file.readAsBytesSync());
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text("Canceled, Not Saved")),
+      );
     }
 
-    await file
-        .copy('$downloadsPath/${invoice.customer['name']}\'s invoice.pdf');
+    if (downloadsPath.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text("Canceled, Not Saved")),
+      );
+      return;
+    }
 
     ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text("Saved to $downloadsPath")),
+      SnackBar(content: Text("Saved to Downloads")),
     );
   }
 

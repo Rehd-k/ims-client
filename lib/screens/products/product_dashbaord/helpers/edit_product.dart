@@ -29,6 +29,7 @@ class _EditProductState extends State<EditProduct> {
   late TextEditingController _roqController;
   late TextEditingController _weightController;
   late TextEditingController _brandController;
+  late TextEditingController _cartonPrice;
   late bool _isAvailable;
   bool _isLoading = false;
 
@@ -58,7 +59,8 @@ class _EditProductState extends State<EditProduct> {
       _weightController =
           TextEditingController(text: product['weight'].toString());
       _brandController = TextEditingController(text: product['brand']);
-
+      _cartonPrice = TextEditingController(
+          text: product['cartonPrice']?.toString() ?? '0');
       isLoading = false;
     });
   }
@@ -70,6 +72,10 @@ class _EditProductState extends State<EditProduct> {
     _priceController.dispose();
     _quantityController.dispose();
     _cartonAmount.dispose();
+    _roqController.dispose();
+    _weightController.dispose();
+    _brandController.dispose();
+    _cartonPrice.dispose();
     super.dispose();
   }
 
@@ -91,6 +97,7 @@ class _EditProductState extends State<EditProduct> {
         'weight': int.parse(_weightController.text),
         'brand': _brandController.text,
         'cartonAmount': int.parse(_cartonAmount.text),
+        'cartonPrice': double.tryParse(_cartonPrice.text) ?? 0.0,
       };
       await apiService.putRequest(
           'products/update/${widget.productId}', updatedProduct);
@@ -155,6 +162,22 @@ class _EditProductState extends State<EditProduct> {
                       validator: (value) {
                         if (value == null || value.isEmpty) {
                           return 'Please enter a price';
+                        }
+                        if (double.tryParse(value) == null) {
+                          return 'Please enter a valid number';
+                        }
+                        return null;
+                      },
+                    ),
+                    const SizedBox(height: 16),
+                    TextFormField(
+                      controller: _cartonPrice,
+                      decoration:
+                          const InputDecoration(labelText: 'Carton Price'),
+                      keyboardType: TextInputType.number,
+                      validator: (value) {
+                        if (value == null || value.isEmpty) {
+                          return 'Please enter a carton price';
                         }
                         if (double.tryParse(value) == null) {
                           return 'Please enter a valid number';

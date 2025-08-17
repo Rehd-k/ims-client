@@ -16,8 +16,6 @@ import '../../../globals/error.dart';
 import '../../../services/api.service.dart';
 import 'add_order.dart';
 import 'header.dart';
-// import 'helpers/damaged_goods.dart';
-// import 'helpers/damaged_goods.dart';
 import 'helpers/damaged_goods.dart';
 import 'helpers/edit_product.dart';
 import 'table_collums.dart';
@@ -214,7 +212,6 @@ class ProductDashboardState extends State<ProductDashboard> {
       'totalRows': totalRows,
     };
   }
-  // --- End Mock Backend ---
 
   @override
   Widget build(BuildContext context) {
@@ -275,18 +272,6 @@ class ProductDashboardState extends State<ProductDashboard> {
               ),
             ],
           ),
-          floatingActionButton: isBigScreen
-              ? null
-              : FloatingActionButton(
-                  tooltip: 'Make an Order',
-                  onPressed: () => showBarModalBottomSheet(
-                        expand: true,
-                        context: context,
-                        backgroundColor: Colors.transparent,
-                        builder: (context) => AddOrder(
-                            productId: productId, getUpDate: getAllData),
-                      ),
-                  child: Icon(Icons.add_outlined)),
           body: Padding(
             padding: const EdgeInsets.all(8.0),
             child: SingleChildScrollView(
@@ -334,7 +319,7 @@ class ProductDashboardState extends State<ProductDashboard> {
                   ),
                   SizedBox(
                       width: double.infinity,
-                      height: isBigScreen ? 450 : 350,
+                      height: isBigScreen ? 500 : 500,
                       child: loading
                           ? Center(
                               child: SizedBox(
@@ -514,20 +499,20 @@ class ProductDashboardState extends State<ProductDashboard> {
           fontSize: isBigScreen ? 20 : 10,
           color: Theme.of(context).colorScheme.surface,
         ),
-        // InfoCard(
-        //     title: 'Expired',
-        //     icon: Icons.calendar_month_outlined,
-        //     currency: false,
-        //     value: data['totalExpiredQuantity'].toString(),
-        //     fontSize: isBigScreen ? 20 : 10,
-        //     color: Theme.of(context).colorScheme.surface),
-        // InfoCard(
-        //     title: 'Damaged',
-        //     icon: Icons.dangerous_outlined,
-        //     currency: false,
-        //     value: data['totalDamagedQuantity'].toString(),
-        //     fontSize: isBigScreen ? 20 : 10,
-        //     color: Theme.of(context).colorScheme.surface),
+        InfoCard(
+            title: 'Expired',
+            icon: Icons.calendar_month_outlined,
+            currency: false,
+            value: data['totalExpiredQuantity'].toString(),
+            fontSize: isBigScreen ? 20 : 10,
+            color: Theme.of(context).colorScheme.surface),
+        InfoCard(
+            title: 'Damaged',
+            icon: Icons.dangerous_outlined,
+            currency: false,
+            value: data['totalDamagedQuantity'].toString(),
+            fontSize: isBigScreen ? 20 : 10,
+            color: Theme.of(context).colorScheme.surface),
         InfoCard(
           title: 'Cartons',
           icon: Icons.dangerous_outlined,

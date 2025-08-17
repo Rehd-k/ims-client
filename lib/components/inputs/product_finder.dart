@@ -38,8 +38,7 @@ Column buildProductInput(
                 children: snapshot.data!.map((suggestion) {
                   dynamic cartonAmout;
                   if (suggestion['cartonAmount'] == 0 ||
-                      suggestion['cartonAmount'] == null ||
-                      suggestion['cartonAmount'].isEmpty) {
+                      suggestion['cartonAmount'] == null) {
                     cartonAmout = 1;
                   } else {
                     cartonAmout = suggestion['cartonAmount'];

@@ -54,7 +54,6 @@ class AddInvoiceState extends State<AddInvoice> {
         'products?filter={"isAvailable" : true, "title": {"\$regex": "$query"}}&sort={"title": 1}&limit=20&skip=0&select=" title price quantity type cartonAmount "');
     var {"products": products, "totalDocuments": totalDocuments} =
         response.data;
-    print(response.data);
     if (response.statusCode == 200) {
       return List<Map>.from(products);
     } else {

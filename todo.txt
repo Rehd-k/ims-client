@@ -47,3 +47,9 @@ Centralized dashboard for multiple locations
 Stock transfer between branches
 Performance comparison across stores
 Would you like any additional features, such as AI-driven analytics or chatbot support for customer inquiries?
+
+
+
+Editable serving size
+purchase with transfer whould be able to select the bank its coming from 
+add payments after purchases have been made for a pacrticular product
