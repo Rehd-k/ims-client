@@ -3,7 +3,20 @@ final List<Map<String, dynamic>> columnDefinitionMaps = [
   {'name': 'Title', 'sortable': true, 'type': 'text', 'field': 'title'},
   {'name': 'Category', 'sortable': true, 'type': 'text', 'field': 'category'},
   {'name': 'Price', 'sortable': true, 'type': 'money', 'field': 'price'},
+  {
+    'name': 'Carton Price',
+    'sortable': true,
+    'type': 'money',
+    'field': 'cartonPrice'
+  },
   {'name': 'ROQ', 'sortable': false, 'type': 'number', 'field': 'roq'},
+  {
+    'name': 'Carton Amount',
+    'sortable': false,
+    'type': 'number',
+    'field': 'cartonAmount'
+  },
+
   {'name': 'Quantity', 'sortable': true, 'type': 'number', 'field': 'quantity'},
   {
     'name': 'Description',

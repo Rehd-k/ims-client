@@ -26,6 +26,7 @@ class ViewProducts extends StatelessWidget {
   final Function handleSelectedRows;
   final JsonEncoder jsonEncoder;
   final int rowsPerPage;
+  final Function refreshTable;
 
   const ViewProducts(
       {super.key,
@@ -46,7 +47,8 @@ class ViewProducts extends StatelessWidget {
       required this.handleSelectedRows,
       required this.jsonEncoder,
       required this.searchController,
-      required this.rowsPerPage});
+      required this.rowsPerPage,
+      required this.refreshTable});
 
   Future<Map<String, dynamic>> _fetchServerData({
     required int offset,
@@ -150,6 +152,14 @@ class ViewProducts extends StatelessWidget {
                 initialSortField: initialSort,
                 initialSortAscending: true,
                 rowsPerPage: 15,
+                actions: [
+                  IconButton(
+                      onPressed: () {
+                        refreshTable();
+                      },
+                      icon: Icon(Icons.refresh_outlined,
+                          color: Theme.of(context).colorScheme.primary))
+                ],
                 availableRowsPerPage: const [10, 15, 25, 50],
                 fixedLeftColumns: smallScreen ? 0 : 1,
                 minWidth: 2500,

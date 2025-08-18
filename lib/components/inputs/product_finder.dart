@@ -57,7 +57,7 @@ Column buildProductInput(
                           : SizedBox(),
                       suggestion['type'] == 'carton'
                           ? Text(
-                              '${(suggestion['quantity'] % suggestion['cartonAmount']).toString().formatToFinancial(isMoneySymbol: false)} Units')
+                              '${(suggestion['quantity'] % (suggestion['cartonAmount'] < 1 ? 1 : suggestion['cartonAmount'])).toString().formatToFinancial(isMoneySymbol: false)} Units')
                           : Text(
                               '${suggestion['quantity'].toString().formatToFinancial(isMoneySymbol: false)} Units'),
                     ]),

@@ -30,6 +30,7 @@ class _EditProductState extends State<EditProduct> {
   late TextEditingController _weightController;
   late TextEditingController _brandController;
   late TextEditingController _cartonPrice;
+  late String _productType;
   late bool _isAvailable;
   bool _isLoading = false;
 
@@ -61,6 +62,7 @@ class _EditProductState extends State<EditProduct> {
       _brandController = TextEditingController(text: product['brand']);
       _cartonPrice = TextEditingController(
           text: product['cartonPrice']?.toString() ?? '0');
+      _productType = product['type'];
       isLoading = false;
     });
   }
@@ -98,6 +100,7 @@ class _EditProductState extends State<EditProduct> {
         'brand': _brandController.text,
         'cartonAmount': int.parse(_cartonAmount.text),
         'cartonPrice': double.tryParse(_cartonPrice.text) ?? 0.0,
+        'type': _productType
       };
       await apiService.putRequest(
           'products/update/${widget.productId}', updatedProduct);
@@ -237,6 +240,39 @@ class _EditProductState extends State<EditProduct> {
                     TextFormField(
                       controller: _brandController,
                       decoration: const InputDecoration(labelText: 'Brand'),
+                    ),
+                    SizedBox(height: 16),
+                    DropdownButtonFormField<String>(
+                      value: _productType,
+                      decoration: InputDecoration(
+                        labelText: 'Product Type',
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.all(Radius.circular(5.0)),
+                          borderSide: BorderSide(color: Colors.blue),
+                        ),
+                        labelStyle: TextStyle(
+                            color: Theme.of(context).hintColor, fontSize: 15),
+                      ),
+                      items: ['unit', 'carton']
+                          .map((type) => DropdownMenuItem<String>(
+                                value: type,
+                                child: Text(
+                                    type[0].toUpperCase() + type.substring(1)),
+                              ))
+                          .toList(),
+                      onChanged: (value) {
+                        setState(() {
+                          if (value != null) {
+                            _productType = value;
+                          }
+                        });
+                      },
+                      validator: (value) {
+                        if (value == null || value.isEmpty) {
+                          return 'Please select a product type';
+                        }
+                        return null;
+                      },
                     ),
                     const SizedBox(height: 16),
                     SwitchListTile(

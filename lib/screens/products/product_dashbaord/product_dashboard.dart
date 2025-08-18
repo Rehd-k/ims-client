@@ -55,6 +55,7 @@ class ProductDashboardState extends State<ProductDashboard> {
   List returnedSelection = [];
   String selectedRange = 'Today';
   bool showDetails = false;
+  late String type;
 
   String? searchFeild = 'createdAt';
   String? selectedStatus = '';
@@ -90,7 +91,7 @@ class ProductDashboardState extends State<ProductDashboard> {
       hasError = true;
       return;
     }
-
+    type = widget.type;
     getAllData();
     super.initState();
   }
@@ -513,26 +514,28 @@ class ProductDashboardState extends State<ProductDashboard> {
             value: data['totalDamagedQuantity'].toString(),
             fontSize: isBigScreen ? 20 : 10,
             color: Theme.of(context).colorScheme.surface),
-        InfoCard(
-          title: 'Cartons',
-          icon: Icons.dangerous_outlined,
-          currency: false,
-          value: (((data['quantity'] ?? 0) - (data['totalSales'] ?? 0)) ~/
-                  cartonAmount)
-              .toString(),
-          fontSize: isBigScreen ? 20 : 10,
-          color: Theme.of(context).colorScheme.surface,
-        ),
-        InfoCard(
-          title: 'Units',
-          icon: Icons.dangerous_outlined,
-          currency: false,
-          value: (((data['quantity'] ?? 0) - (data['totalSales'] ?? 0)) %
-                  cartonAmount)
-              .toString(),
-          fontSize: isBigScreen ? 20 : 10,
-          color: Theme.of(context).colorScheme.surface,
-        )
+        if (type == 'carton')
+          InfoCard(
+            title: 'Cartons',
+            icon: Icons.dangerous_outlined,
+            currency: false,
+            value: (((data['quantity'] ?? 0) - (data['totalSales'] ?? 0)) ~/
+                    (cartonAmount < 1 ? 1 : cartonAmount))
+                .toString(),
+            fontSize: isBigScreen ? 20 : 10,
+            color: Theme.of(context).colorScheme.surface,
+          ),
+        if (type == 'carton')
+          InfoCard(
+            title: 'Units',
+            icon: Icons.dangerous_outlined,
+            currency: false,
+            value: (((data['quantity'] ?? 0) - (data['totalSales'] ?? 0)) %
+                    (cartonAmount < 1 ? 1 : cartonAmount))
+                .toString(),
+            fontSize: isBigScreen ? 20 : 10,
+            color: Theme.of(context).colorScheme.surface,
+          )
       ],
     );
   }

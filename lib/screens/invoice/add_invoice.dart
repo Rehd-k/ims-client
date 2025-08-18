@@ -51,7 +51,7 @@ class AddInvoiceState extends State<AddInvoice> {
 
   Future<List<Map>> _fetchProducts(String query) async {
     final response = await apiService.getRequest(
-        'products?filter={"isAvailable" : true, "title": {"\$regex": "$query"}}&sort={"title": 1}&limit=20&skip=0&select=" title price quantity type cartonAmount "');
+        'products?filter={"isAvailable" : true, "title": {"\$regex": "$query"}}&sort={"title": 1}&limit=20&skip=0&select=" title price quantity type cartonAmount cartonPrice "');
     var {"products": products, "totalDocuments": totalDocuments} =
         response.data;
     if (response.statusCode == 200) {
@@ -71,12 +71,50 @@ class AddInvoiceState extends State<AddInvoice> {
     }
   }
 
+  num _handleCaculateTotal(int quantity, int cartonAmount, int cartonPrice,
+      int unitPrice, String type) {
+    if (type != 'unit') {
+      if (quantity < cartonAmount) {
+        return quantity * unitPrice;
+      } else {
+        if (quantity % cartonAmount == 0) {
+          return ((quantity / cartonAmount) * cartonPrice);
+        } else {
+          num units = ((quantity % cartonAmount) * unitPrice);
+          num cartons = ((quantity ~/ cartonAmount) * cartonPrice);
+          return units + cartons;
+        }
+      }
+    } else {
+      return quantity * unitPrice;
+    }
+  }
+
   void updateQuantity(int index, int? newQuantity) {
     setState(() {
       if (newQuantity! <= selectedProducts[index]['remaining']) {
         selectedProducts[index]['quantity'] = newQuantity;
-        selectedProducts[index]['total'] = selectedProducts[index]['quantity'] *
-            selectedProducts[index]['price'];
+        selectedProducts[index]['total'] = _handleCaculateTotal(
+            newQuantity,
+            selectedProducts[index]['cartonAmount'],
+            selectedProducts[index]['cartonPrice'],
+            selectedProducts[index]['price'],
+            selectedProducts[index]['type']);
+
+        /**
+         * in order to make this work the way its expected 
+         * the quantity coming in would be devided by the cartonAmount 
+         * if...
+         * 1) its less than the carton amount, then it multiplies by unit price 
+         * 2) its more than the carton amount and divisible by cartonAmount without any remender
+         *    it is devided and the result is multiplied by the carton price 
+         * 3) if its more perfectly divisible, it gets the diviable whole number
+         *    multiple that by the carton amount, then it gets the remender, divides that by the unit price
+         *    and adds the result 
+         */
+        // selectedProducts[index]['quantity'] *
+        //     selectedProducts[index]['price'];
+
         quantityControllers[index].text = newQuantity.toString();
       } else {
         toastification.show(
@@ -197,6 +235,7 @@ class AddInvoiceState extends State<AddInvoice> {
       newQty = selectedProducts[index]['remaining'];
     }
     if (newQty != selectedProducts[index]['quantity']) {
+      // review this check everythig about this function , its updating price only once and thats weird
       updateQuantity(index, newQty);
     } else {
       // To update the text if user enters invalid value
@@ -241,6 +280,7 @@ class AddInvoiceState extends State<AddInvoice> {
               quantityControllers.removeAt(existingIndex);
               focusNodes.removeAt(existingIndex);
             } else {
+              suggestion['cartonPrice'] = suggestion['cartonPrice'];
               suggestion['quantity'] = 1;
               suggestion['total'] =
                   suggestion['quantity'] * suggestion['price'];

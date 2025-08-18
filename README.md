@@ -30,3 +30,5 @@ pagination for data table
 2) do scanner for phone
 
 https://gemini.google.com/app/9231581f2a156c4d -- this link is for how to do the auto update thing ( check everytime you wan tot update)
+
+stopping order from submiting if amount paid issnt entered

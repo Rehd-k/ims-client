@@ -247,7 +247,6 @@ class AddOrderState extends State<AddOrder> {
           return null;
         },
       ),
-
       TextFormField(
         keyboardType: TextInputType.number,
         inputFormatters: <TextInputFormatter>[
@@ -274,7 +273,6 @@ class AddOrderState extends State<AddOrder> {
           return null;
         },
       ),
-
       TextFormField(
           keyboardType: TextInputType.number,
           inputFormatters: <TextInputFormatter>[
@@ -292,7 +290,6 @@ class AddOrderState extends State<AddOrder> {
             labelStyle:
                 TextStyle(color: Theme.of(context).hintColor, fontSize: 15),
           )),
-
       TextFormField(
           controller: shippingAddressController,
           decoration: InputDecoration(
@@ -303,7 +300,6 @@ class AddOrderState extends State<AddOrder> {
             labelStyle:
                 TextStyle(color: Theme.of(context).hintColor, fontSize: 15),
           )),
-
       DropdownButtonFormField<String>(
         value: status,
         decoration: InputDecoration(
@@ -324,7 +320,6 @@ class AddOrderState extends State<AddOrder> {
         }).toList(),
         validator: (value) => value == null ? 'Please select an option' : null,
       ),
-
       TextFormField(
           readOnly: true,
           inputFormatters: <TextInputFormatter>[
@@ -355,11 +350,6 @@ class AddOrderState extends State<AddOrder> {
             }
             return null;
           }),
-
-      // Product Id
-
-      // paymentMethodController
-
       DropdownButtonFormField<String>(
         value: paymentMethord,
         decoration: InputDecoration(
@@ -380,7 +370,6 @@ class AddOrderState extends State<AddOrder> {
         }).toList(),
         validator: (value) => value == null ? 'Please select an option' : null,
       ),
-
       AnimatedSize(
           duration: Duration(milliseconds: 300),
           curve: Curves.easeInOut,
@@ -441,7 +430,6 @@ class AddOrderState extends State<AddOrder> {
                               calculatePercentage: calculatePercentage,
                               label: 'Cash')
                           : SizedBox.shrink()),
-
       isSuppliersLoading
           ? SizedBox(height: 10, width: 10, child: CircularProgressIndicator())
           : DropdownButtonFormField<String>(
@@ -475,7 +463,6 @@ class AddOrderState extends State<AddOrder> {
               validator: (value) =>
                   value == null ? 'Please select an option' : null,
             ),
-
       Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: <Widget>[
@@ -486,7 +473,6 @@ class AddOrderState extends State<AddOrder> {
           Text("${selectedDeliveryDate.toLocal()}".split(' ')[0]),
         ],
       ),
-
       Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: <Widget>[
@@ -497,7 +483,6 @@ class AddOrderState extends State<AddOrder> {
           Text("${selectedExpiryDate.toLocal()}".split(' ')[0]),
         ],
       ),
-
       Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: <Widget>[
@@ -508,7 +493,6 @@ class AddOrderState extends State<AddOrder> {
           Text("${selectedPurchaseDate.toLocal()}".split(' ')[0]),
         ],
       ),
-
       TextFormField(
           maxLines: 5,
           controller: notesController,
@@ -558,9 +542,8 @@ class AddOrderState extends State<AddOrder> {
                       ),
                       ElevatedButton(
                         onPressed: () {
-                          handleSubmit(context);
                           if (_formKey.currentState!.validate()) {
-                            // Process data
+                            handleSubmit(context);
                             ScaffoldMessenger.of(context).showSnackBar(
                               SnackBar(content: Text('Processing Data')),
                             );

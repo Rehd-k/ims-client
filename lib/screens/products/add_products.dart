@@ -316,7 +316,7 @@ class AddProductsState extends State<AddProducts> {
                   ],
                   controller: priceController,
                   decoration: InputDecoration(
-                    labelText: 'Selling Price *',
+                    labelText: '${isUnit ? '' : 'Unit'} Selling Price *',
                     border: OutlineInputBorder(
                         borderRadius: BorderRadius.all(Radius.circular(5.0)),
                         borderSide: BorderSide(color: Colors.blue)),

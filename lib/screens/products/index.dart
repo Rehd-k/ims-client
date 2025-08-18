@@ -113,6 +113,10 @@ class ProductsIndexState extends State<ProductsScreen> {
     );
   }
 
+  refreshTable() {
+    setState(() {});
+  }
+
   @override
   void initState() {
     getCategories();
@@ -170,13 +174,6 @@ class ProductsIndexState extends State<ProductsScreen> {
     bool smallScreen = width <= 1200;
     return Consumer<ThemeNotifier>(builder: (context, themeNotifier, child) {
       return Scaffold(
-          // floatingActionButton: smallScreen
-          //     ? FloatingActionButton(
-          //         onPressed: () {
-          //           handleShowModal(barcodeHolder);
-          //         },
-          //         child: Icon(Icons.add_outlined))
-          //     : null,
           appBar: AppBar(
             actions: [
               !smallScreen
@@ -323,6 +320,7 @@ class ProductsIndexState extends State<ProductsScreen> {
                         jsonEncoder: jsonEncoder,
                         searchController: _searchController,
                         rowsPerPage: rowsPerPage,
+                        refreshTable: refreshTable,
                       ))
                 ],
               )));
