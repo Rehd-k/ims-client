@@ -301,7 +301,7 @@ class AddOrderState extends State<AddOrder> {
                 TextStyle(color: Theme.of(context).hintColor, fontSize: 15),
           )),
       DropdownButtonFormField<String>(
-        value: status,
+        initialValue: status,
         decoration: InputDecoration(
           labelText: 'Select Status',
           border: OutlineInputBorder(),
@@ -351,7 +351,7 @@ class AddOrderState extends State<AddOrder> {
             return null;
           }),
       DropdownButtonFormField<String>(
-        value: paymentMethord,
+        initialValue: paymentMethord,
         decoration: InputDecoration(
           labelText: 'Payment Methord',
           border: OutlineInputBorder(),
@@ -433,7 +433,7 @@ class AddOrderState extends State<AddOrder> {
       isSuppliersLoading
           ? SizedBox(height: 10, width: 10, child: CircularProgressIndicator())
           : DropdownButtonFormField<String>(
-              value: supplier,
+              initialValue: supplier,
               decoration: InputDecoration(
                 suffix: TextButton(
                     onPressed: () {

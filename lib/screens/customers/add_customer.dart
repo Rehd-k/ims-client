@@ -188,7 +188,7 @@ class AddCustomerState extends State<AddCustomer> {
                     )),
                 SizedBox(height: 10),
                 DropdownButtonFormField<String>(
-                  value: stateController.text.isNotEmpty
+                  initialValue: stateController.text.isNotEmpty
                       ? stateController.text
                       : null,
                   decoration: InputDecoration(

@@ -499,7 +499,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
             SizedBox(width: 10),
             Expanded(
               child: DropdownButtonFormField<String>(
-                value: bank?['accountNumber'],
+                initialValue: bank?['accountNumber'],
                 decoration: InputDecoration(
                   labelText: 'Select Bank',
                   border: OutlineInputBorder(
@@ -548,7 +548,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                         width: 200,
                         child: DropdownButtonFormField<Map>(
                           isExpanded: true,
-                          value: charge[0],
+                          initialValue: charge[0],
                           items: charges
                               .map<DropdownMenuItem<Map>>(
                                 (charge) => DropdownMenuItem<Map>(
@@ -661,7 +661,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
             ),
             SizedBox(height: 10),
             DropdownButtonFormField<String>(
-              value: selectedPaymentMethod,
+              initialValue: selectedPaymentMethod,
               decoration: InputDecoration(
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(10),

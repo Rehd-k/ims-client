@@ -27,7 +27,7 @@ class ThemeNotifier with ChangeNotifier {
   Future<void> getTheme() async {
     final prefs = await SharedPreferences.getInstance();
     String? theme = prefs.getString('theme');
-    if (theme == null || theme == 'system') {
+    if (theme == 'system') {
       _themeMode = ThemeMode.system;
     } else if (theme == 'light') {
       _themeMode = ThemeMode.light;

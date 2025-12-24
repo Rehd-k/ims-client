@@ -62,7 +62,7 @@ class FilterHeader extends StatelessWidget {
                     ),
                   ],
                   onChanged: onFieldChange,
-                  value: selectedDateField,
+                  initialValue: selectedDateField,
                 )),
                 SizedBox(width: 16.0),
                 Expanded(
@@ -97,7 +97,7 @@ class FilterHeader extends StatelessWidget {
                     )
                   ],
                   onChanged: onInputChange,
-                  value: selectedForSearch,
+                  initialValue: selectedForSearch,
                 ),
               ),
               SizedBox(width: 16.0),
@@ -145,7 +145,7 @@ class FilterHeader extends StatelessWidget {
                     )
                   ],
                   onChanged: onSelectStatus,
-                  value: selectedStatus,
+                  initialValue: selectedStatus,
                 )),
                 SizedBox(width: 16.0),
                 Expanded(child: SizedBox())

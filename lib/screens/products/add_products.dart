@@ -187,7 +187,7 @@ class AddProductsState extends State<AddProducts> {
                 ),
                 SizedBox(height: 10),
                 DropdownButtonFormField<String>(
-                  value: categoryController.text.isNotEmpty
+                  initialValue: categoryController.text.isNotEmpty
                       ? categoryController.text
                       : null,
                   decoration: InputDecoration(
@@ -221,7 +221,7 @@ class AddProductsState extends State<AddProducts> {
                 ),
                 SizedBox(height: 10),
                 DropdownButtonFormField<String>(
-                  value: isUnit ? 'unit' : 'carton',
+                  initialValue: isUnit ? 'unit' : 'carton',
                   decoration: InputDecoration(
                     labelText: 'Product Type',
                     border: OutlineInputBorder(
@@ -440,30 +440,26 @@ class AddProductsState extends State<AddProducts> {
                 Row(
                   children: [Text('Is Available ')],
                 ),
-                ListTile(
-                  contentPadding: EdgeInsets.zero,
-                  title: const Text('True'),
-                  leading: Radio<bool>(
-                    value: true,
-                    groupValue: isAvailableController,
-                    onChanged: (bool? value) {
-                      setState(() {
-                        isAvailableController = value!;
-                      });
-                    },
-                  ),
-                ),
-                ListTile(
-                  contentPadding: EdgeInsets.zero,
-                  title: const Text('False'),
-                  leading: Radio<bool>(
-                    value: false,
-                    groupValue: isAvailableController,
-                    onChanged: (bool? value) {
-                      setState(() {
-                        isAvailableController = value!;
-                      });
-                    },
+                RadioGroup<bool>(
+                  groupValue: isAvailableController,
+                  onChanged: (bool? newValue) {
+                    setState(() {
+                      isAvailableController = newValue!;
+                    });
+                  },
+                  child: Column(
+                    children: [
+                      ListTile(
+                        contentPadding: EdgeInsets.zero,
+                        title: const Text('True'),
+                        leading: Radio<bool>(value: true),
+                      ),
+                      ListTile(
+                        contentPadding: EdgeInsets.zero,
+                        title: const Text('False'),
+                        leading: Radio<bool>(value: false),
+                      ),
+                    ],
                   ),
                 ),
                 ElevatedButton(

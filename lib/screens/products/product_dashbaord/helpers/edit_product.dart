@@ -243,7 +243,7 @@ class _EditProductState extends State<EditProduct> {
                     ),
                     SizedBox(height: 16),
                     DropdownButtonFormField<String>(
-                      value: _productType,
+                      initialValue: _productType,
                       decoration: InputDecoration(
                         labelText: 'Product Type',
                         border: OutlineInputBorder(

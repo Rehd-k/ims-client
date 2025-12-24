@@ -451,7 +451,7 @@ class AddInvoiceState extends State<AddInvoice> {
                                   child: DropdownButtonFormField<String>(
                                     decoration: const InputDecoration(
                                         labelText: 'Recurring'),
-                                    value: isRecurring,
+                                    initialValue: isRecurring,
                                     items: const [
                                       DropdownMenuItem(
                                           value: 'none', child: Text('None')),
@@ -493,7 +493,7 @@ class AddInvoiceState extends State<AddInvoice> {
                                           child: CircularProgressIndicator(),
                                         )
                                       : DropdownButtonFormField<String>(
-                                          value: bank?['accountNumber'],
+                                          initialValue: bank?['accountNumber'],
                                           decoration: InputDecoration(
                                             labelText: 'Select Bank',
                                             border: OutlineInputBorder(

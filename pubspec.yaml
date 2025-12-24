@@ -2,7 +2,7 @@ name: "shelf_sense"
 description: "A new Flutter project."
 # The following line prevents the package from being accidentally published to
 # pub.dev using `flutter pub publish`. This is preferred for private packages.
-publish_to: 'none' # Remove this line if you wish to publish to pub.dev
+publish_to: "none" # Remove this line if you wish to publish to pub.dev
 
 # The following defines the version and build number for your application.
 # A version number is three numbers separated by dots, like 1.2.43
@@ -62,12 +62,13 @@ dependencies:
   window_manager: ^0.5.0
   pdf: ^3.11.3
   share_plus: ^11.0.0
+  msix: ^3.16.12
 
 dev_dependencies:
   flutter_test:
     sdk: flutter
-  auto_route_generator: 
-  build_runner: 
+  auto_route_generator:
+  build_runner:
 
   # The "flutter_lints" package below contains a set of recommended lints to
   # encourage good coding practices. The lint set provided by the package is
@@ -81,7 +82,6 @@ dev_dependencies:
 
 # The following section is specific to Flutter packages.
 flutter:
-
   # The following line ensures that the Material Icons font is
   # included with your application, so that you can use the icons in
   # the material Icons class.
@@ -139,7 +139,6 @@ flutter:
         - asset: assets/fonts/DejaVuSans-Bold.ttf
           weight: 700
 
-          
 flutter_native_splash:
   color: "#ffffff"
   color_dark: "#000000"
@@ -156,6 +155,14 @@ flutter_native_splash:
     image: assets/vectors/logo.png
     color: "#ffffff"
     color_dark: "#000000"
+
+msix_config:
+  display_name: Shlef Sense
+  publisher_display_name: Vessel
+  identity_name: vessel.suite.shelfsense
+  msix_version: 1.0.0.0
+  logo_path: C:\Users\Rhed\Documents\shelfSense\icon.png
+  capabilities: internetClient, location, microphone, webcam
 
   #
   # For details regarding fonts from package dependencies,
